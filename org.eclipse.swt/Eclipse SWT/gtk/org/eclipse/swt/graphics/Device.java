@@ -51,14 +51,22 @@ public abstract class Device implements Drawable {
 	
 	/* Warning and Error Handlers */
 	int /*long*/ logProc;
+  /*#if USWT
+	CNICallback logCallback;
+    #else*/
 	Callback logCallback;
+  //#endif
 	//NOT DONE - get list of valid names
 	String [] log_domains = {"GLib-GObject", "GLib", "GObject", "Pango", "ATK", "GdkPixbuf", "Gdk", "Gtk", "GnomeVFS"};
 	int [] handler_ids = new int [log_domains.length];
 	int warningLevel;
 	
 	/* X Warning and Error Handlers */
+  /*#if USWT
+	static CNICallback XErrorCallback, XIOErrorCallback;
+    #else*/
 	static Callback XErrorCallback, XIOErrorCallback;
+  //#endif
 	static int /*long*/ XErrorProc, XIOErrorProc, XNullErrorProc, XNullIOErrorProc;
 	static Device[] Devices = new Device[4];
 
@@ -82,6 +90,12 @@ public abstract class Device implements Drawable {
 
 	static final Object CREATE_LOCK = new Object();
 
+  /*#if USWT
+  private static final int X_ERROR_PROC = 1;
+  private static final int X_IO_ERROR_PROC = 2;
+  private static final int LOG_PROC = 3;
+    #endif*/
+
 	/*
 	* TEMPORARY CODE. When a graphics object is
 	* created and the device parameter is null,
@@ -98,7 +112,11 @@ public abstract class Device implements Drawable {
 	protected static Runnable DeviceFinder;
 	static {
 		try {
+  /*#if USWT
+    org.eclipse.swt.widgets.Display.class.getName();
+    #else*/
 			Class.forName ("org.eclipse.swt.widgets.Display");
+  //#endif
 		} catch (Throwable e) {}
 	}	
 
@@ -159,6 +177,7 @@ public Device(DeviceData data) {
 }
 
 void checkCairo() {
+  //#if not USWT
 	if (CAIRO_LOADED) return;
 	try {
 		/* Check if cairo is available on the system */
@@ -178,6 +197,7 @@ void checkCairo() {
 	} catch (Throwable t) {
 		SWT.error(SWT.ERROR_NO_GRAPHICS_LIBRARY, t, " [Cairo is required]");
 	}
+  //#endif
 }
 
 /**
@@ -556,6 +576,26 @@ protected void init () {
 		}
 	}
 
+        /*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+        case X_ERROR_PROC:
+          return _XErrorProc(args[0], args[1]);
+          
+        case X_IO_ERROR_PROC:
+          return _XIOErrorProc(args[0]);
+          
+        case LOG_PROC:
+          return logProc(args[0], args[1], args[2], args[3]);
+          
+        default:
+          throw new IllegalArgumentException();
+        }
+      }
+    };
+          #endif*/
+
 	if (debug) {
 		if (xDisplay != 0) {
 			/* Create the warning and error callbacks */
@@ -567,10 +607,18 @@ protected void init () {
 					index++;
 				}
 				if (index == Devices.length) {
+                                  /*#if USWT
+					XErrorCallback = new CNICallback(dispatcher, X_ERROR_PROC, 2);
+                                    #else*/
 					XErrorCallback = new Callback (clazz, "XErrorProc", 2);
+                                  //#endif
 					XNullErrorProc = XErrorCallback.getAddress ();
 					if (XNullErrorProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+                                  /*#if USWT
+					XIOErrorCallback = new CNICallback(dispatcher, X_IO_ERROR_PROC, 1);
+                                    #else*/
 					XIOErrorCallback = new Callback (clazz, "XIOErrorProc", 1);
+                                  //#endif
 					XNullIOErrorProc = XIOErrorCallback.getAddress ();
 					if (XNullIOErrorProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 					XErrorProc = OS.XSetErrorHandler (XNullErrorProc);
@@ -583,7 +631,11 @@ protected void init () {
 	
 	/* Create GTK warnings and error callbacks */
 	if (xDisplay != 0) {
+          /*#if USWT
+            logCallback = new CNICallback(dispatcher, LOG_PROC, 4);
+            #else*/
 		logCallback = new Callback (this, "logProc", 4);
+          //#endif
 		logProc = logCallback.getAddress ();
 		if (logProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		
@@ -813,7 +865,11 @@ public void setWarnings (boolean warnings) {
 	}
 }
 
+/*#if USWT
+static int /*long#eoc _XErrorProc (int /*long#eoc xDisplay, int /*long#eoc xErrorEvent) {
+  #else*/
 static int /*long*/ XErrorProc (int /*long*/ xDisplay, int /*long*/ xErrorEvent) {
+//#endif
 	Device device = findDevice (xDisplay);
 	if (device != null) {
 		if (device.warningLevel == 0) {
@@ -829,7 +885,11 @@ static int /*long*/ XErrorProc (int /*long*/ xDisplay, int /*long*/ xErrorEvent)
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _XIOErrorProc (int /*long#eoc xDisplay) {
+  #else*/
 static int /*long*/ XIOErrorProc (int /*long*/ xDisplay) {
+//#endif
 	Device device = findDevice (xDisplay);
 	if (device != null) {
 		if (DEBUG || device.debug) {

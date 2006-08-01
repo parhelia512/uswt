@@ -107,16 +107,56 @@ public class DragSource extends Widget {
 	
 	DragAndDropEffect effect;
 	static final String DRAGSOURCEID = "DragSource"; //$NON-NLS-1$
-		
+	
+  /*#if USWT
+	static CNICallback DragGetData;
+	static CNICallback DragEnd;
+	static CNICallback DragDataDelete;
+
+	private static final int DRAG_GET_DATA = 1;
+	private static final int DRAG_END = 2;
+	private static final int DRAG_DATA_DELETE = 3;
+    #else*/	
 	static Callback DragGetData;
 	static Callback DragEnd;
 	static Callback DragDataDelete;
+  //#endif
 	static {
+  /*#if USWT
+    CNIDispatcher dispatcher = new CNIDispatcher() {
+        public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+          switch (method) {
+          case DRAG_GET_DATA:
+            return _DragGetData(args[0], args[1], args[2], args[3], args[4]);
+
+          case DRAG_END:
+            return _DragEnd(args[0], args[1]);
+
+          case DRAG_DATA_DELETE:
+            return _DragDataDelete(args[0], args[1]);
+
+          default: throw new IllegalArgumentException();
+          }
+        }
+      };    
+    #endif*/
+  /*#if USWT
+		DragGetData = new CNICallback(dispatcher, DRAG_GET_DATA, 5);
+    #else*/
 		DragGetData = new Callback(DragSource.class, "DragGetData", 5);	 //$NON-NLS-1$
+  //#endif
 		if (DragGetData.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+  /*#if USWT
+		DragEnd = new CNICallback(dispatcher, DRAG_END, 2);
+    #else*/
 		DragEnd = new Callback(DragSource.class, "DragEnd", 2); //$NON-NLS-1$
+  //#endif
 		if (DragEnd.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+  /*#if USWT
+		DragDataDelete = new CNICallback(dispatcher, DRAG_DATA_DELETE, 2);
+    #else*/
 		DragDataDelete = new Callback(DragSource.class, "DragDataDelete", 2); //$NON-NLS-1$
+  //#endif
 		if (DragDataDelete.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}
 	
@@ -201,22 +241,34 @@ static int checkStyle (int style) {
 	if (style == SWT.NONE) return DND.DROP_MOVE;
 	return style;
 }
-
+	
+/*#if USWT
+static int /*long#eoc _DragDataDelete(int /*long#eoc widget, int /*long#eoc context){
+  #else*/
 static int /*long*/ DragDataDelete(int /*long*/ widget, int /*long*/ context){
+//#endif
 	DragSource source = FindDragSource(widget);
 	if (source == null) return 0;
 	source.dragDataDelete(widget, context);
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _DragEnd(int /*long#eoc widget, int /*long#eoc context){
+  #else*/
 static int /*long*/ DragEnd(int /*long*/ widget, int /*long*/ context){
+//#endif
 	DragSource source = FindDragSource(widget);
 	if (source == null) return 0;
 	source.dragEnd(widget, context);
 	return 0;
 }
 	
+/*#if USWT
+static int /*long#eoc _DragGetData(int /*long#eoc widget, int /*long#eoc context, int /*long#eoc selection_data,  int /*long#eoc info, int /*long#eoc time){
+  #else*/
 static int /*long*/ DragGetData(int /*long*/ widget, int /*long*/ context, int /*long*/ selection_data,  int /*long*/ info, int /*long*/ time){
+//#endif
 	DragSource source = FindDragSource(widget);
 	if (source == null) return 0;
 	source.dragGetData(widget, context, selection_data, (int)/*64*/info, (int)/*64*/time);

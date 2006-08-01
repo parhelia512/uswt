@@ -21,9 +21,18 @@ class AccessibleFactory {
 	int /*long*/ handle;
 	int /*long*/ objectParentType;
 	int /*long*/ widgetTypeName;
+  /*#if USWT
+	CNICallback atkObjectFactoryCB_create_accessible;
+	CNICallback gTypeInfo_base_init_factory;
+    #else*/
 	Callback atkObjectFactoryCB_create_accessible;
 	Callback gTypeInfo_base_init_factory;
+  //#endif
 	Hashtable accessibles = new Hashtable (9);
+
+  /*#if USWT
+    private final Dispatcher dispatcher = new Dispatcher();
+    #endif*/
 	
 	static final Hashtable Types = new Hashtable (9);
 	static final Hashtable Factories = new Hashtable (9);	
@@ -45,6 +54,37 @@ class AccessibleFactory {
 	};
 
 	/* AT callbacks*/
+  /*#if USWT
+	static final CNICallback AtkActionCB_get_keybinding;
+	static final CNICallback AtkActionCB_get_name;	
+	static final CNICallback AtkComponentCB_get_extents;
+	static final CNICallback AtkComponentCB_get_position;
+	static final CNICallback AtkComponentCB_get_size;
+	static final CNICallback AtkComponentCB_ref_accessible_at_point;
+	static final CNICallback AtkHypertextCB_get_link;
+	static final CNICallback AtkHypertextCB_get_n_links;
+	static final CNICallback AtkHypertextCB_get_link_index;
+	static final CNICallback AtkObjectCB_get_description;
+	static final CNICallback AtkObjectCB_get_index_in_parent;
+	static final CNICallback AtkObjectCB_get_n_children;
+	static final CNICallback AtkObjectCB_get_name;
+	static final CNICallback AtkObjectCB_get_parent;	
+	static final CNICallback AtkObjectCB_get_role;
+	static final CNICallback AtkObjectCB_ref_child;
+	static final CNICallback AtkObjectCB_ref_state_set;
+	static final CNICallback AtkSelectionCB_is_child_selected;
+	static final CNICallback AtkSelectionCB_ref_selection;
+	static final CNICallback AtkTextCB_get_caret_offset;
+	static final CNICallback AtkTextCB_get_n_selections;
+	static final CNICallback AtkTextCB_get_selection;
+	static final CNICallback AtkTextCB_get_text;
+	static final CNICallback AtkTextCB_get_text_after_offset;
+	static final CNICallback AtkTextCB_get_text_at_offset;
+	static final CNICallback AtkTextCB_get_text_before_offset;
+	static final CNICallback AtkTextCB_get_character_at_offset;
+	static final CNICallback AtkTextCB_get_character_count;
+	static final CNICallback GObjectClass_finalize;
+    #else*/
 	static final Callback AtkActionCB_get_keybinding;
 	static final Callback AtkActionCB_get_name;	
 	static final Callback AtkComponentCB_get_extents;
@@ -74,13 +114,23 @@ class AccessibleFactory {
 	static final Callback AtkTextCB_get_character_at_offset;
 	static final Callback AtkTextCB_get_character_count;
 	static final Callback GObjectClass_finalize;
+  //endif
 	/* interface initialization callbacks */
+  /*#if USWT
+	static final CNICallback InitActionIfaceCB;		
+	static final CNICallback InitComponentIfaceCB;
+	static final CNICallback InitHypertextIfaceCB;
+	static final CNICallback GTypeInfo_base_init_type;
+	static final CNICallback InitSelectionIfaceCB;
+	static final CNICallback InitTextIfaceCB;
+    #else*/
 	static final Callback InitActionIfaceCB;		
 	static final Callback InitComponentIfaceCB;
 	static final Callback InitHypertextIfaceCB;
 	static final Callback GTypeInfo_base_init_type;
 	static final Callback InitSelectionIfaceCB;
 	static final Callback InitTextIfaceCB;
+  //#endif
 	/* interface definitions */
 	static int /*long*/ ObjectIfaceDefinition;
 	static final int /*long*/ ActionIfaceDefinition;
@@ -88,7 +138,193 @@ class AccessibleFactory {
 	static final int /*long*/ HypertextIfaceDefinition;
 	static final int /*long*/ SelectionIfaceDefinition;
 	static final int /*long*/ TextIfaceDefinition;
+
+  /*#if USWT
+  private static final int ATKACTION_GET_KEYBINDING = 1;
+  private static final int ATKACTION_GET_NAME = 2;
+  private static final int ATKCOMPONENT_GET_EXTENTS = 3;
+  private static final int ATKCOMPONENT_GET_POSITION = 4;
+  private static final int ATKCOMPONENT_GET_SIZE = 5;
+  private static final int ATKCOMPONENT_REF_ACCESSIBLE_AT_POINT = 6;
+  private static final int ATKHYPERTEXT_GET_LINK = 7;
+  private static final int ATKHYPERTEXT_GET_N_LINKS = 8;
+  private static final int ATKHYPERTEXT_GET_LINK_INDEX = 9;
+  private static final int ATKOBJECT_GET_NAME = 10;
+  private static final int ATKOBJECT_GET_DESCRIPTION = 11;
+  private static final int ATKOBJECT_GET_N_CHILDREN = 12;
+  private static final int ATKOBJECT_GET_ROLE = 13;
+  private static final int ATKOBJECT_GET_PARENT = 14;
+  private static final int ATKOBJECT_REF_STATE_SET = 15;
+  private static final int ATKOBJECT_GET_INDEX_IN_PARENT = 16;
+  private static final int ATKOBJECT_REF_CHILD = 17;
+  private static final int ATKSELECTION_IS_CHILD_SELECTED = 18;
+  private static final int ATKSELECTION_REF_SELECTION = 19;
+  private static final int ATKTEXT_GET_CARET_OFFSET = 20;
+  private static final int ATKTEXT_GET_N_SELECTIONS = 21;
+  private static final int ATKTEXT_GET_SELECTION = 22;
+  private static final int ATKTEXT_GET_TEXT = 23;
+  private static final int ATKTEXT_GET_TEXT_AFTER_OFFSET = 24;
+  private static final int ATKTEXT_GET_TEXT_AT_OFFSET = 25;
+  private static final int ATKTEXT_GET_TEXT_BEFORE_OFFSET = 26;
+  private static final int ATKTEXT_GET_CHARACTER_AT_OFFSET = 27;
+  private static final int ATKTEXT_GET_CHARACTER_COUNT = 28;
+  private static final int GOBJECTCLASS_FINALIZE = 29;
+  private static final int GTYPEINFO_BASE_INIT_TYPE = 30;
+  private static final int INITACTIONIFACECB = 31;
+  private static final int INITCOMPONENTIFACECB = 32;
+  private static final int INITHYPERTEXTIFACECB = 33;
+  private static final int INITSELECTIONIFACECB = 34;
+  private static final int INITTEXTIFACECB = 35;
+  private static final int GTYPEINFO_BASE_INIT_FACTORY = 36;
+  private static final int ATKOBJECTFACTORY_CREATE_ACCESSIBLE = 37;
+    #endif*/
+
 	static {
+  /*#if USWT
+    CNIDispatcher dispatcher = new CNIDispatcher() {
+        public int /*long#eoc dispatch(int method, int /*long#eoc[] args) {
+          switch (method) {
+          case ATKACTION_GET_KEYBINDING:
+            return AccessibleObject.atkAction_get_keybinding(args[0], args[1]);
+
+          case ATKACTION_GET_NAME:
+            return AccessibleObject.atkAction_get_name(args[0], args[1]);
+
+          case ATKCOMPONENT_GET_EXTENTS:
+            return AccessibleObject.atkComponent_get_extents(args[0], args[1], args[2], args[3], args[4], args[5]);
+
+          case ATKCOMPONENT_GET_POSITION:
+            return AccessibleObject.atkComponent_get_position(args[0], args[1], args[2], args[3]);
+
+          case ATKCOMPONENT_GET_SIZE:
+            return AccessibleObject.atkComponent_get_size(args[0], args[1], args[2], args[3]);
+
+          case ATKCOMPONENT_REF_ACCESSIBLE_AT_POINT:
+            return AccessibleObject.atkComponent_ref_accessible_at_point(args[0], args[1], args[2], args[3]);
+
+          case ATKHYPERTEXT_GET_LINK:
+            return AccessibleObject.atkHypertext_get_link(args[0], args[1]);
+
+          case ATKHYPERTEXT_GET_N_LINKS:
+            return AccessibleObject.atkHypertext_get_n_links(args[0]);
+
+          case ATKHYPERTEXT_GET_LINK_INDEX:
+            return AccessibleObject.atkHypertext_get_link_index(args[0], args[1]);
+
+          case ATKOBJECT_GET_NAME:
+            return AccessibleObject.atkObject_get_name(args[0]);
+
+          case ATKOBJECT_GET_DESCRIPTION:
+            return AccessibleObject.atkObject_get_description(args[0]);
+
+          case ATKOBJECT_GET_N_CHILDREN:
+            return AccessibleObject.atkObject_get_n_children(args[0]);
+
+          case ATKOBJECT_GET_ROLE:
+            return AccessibleObject.atkObject_get_role(args[0]);
+
+          case ATKOBJECT_GET_PARENT:
+            return AccessibleObject.atkObject_get_parent(args[0]);
+
+          case ATKOBJECT_REF_STATE_SET:
+            return AccessibleObject.atkObject_ref_state_set(args[0]);
+
+          case ATKOBJECT_GET_INDEX_IN_PARENT:
+            return AccessibleObject.atkObject_get_index_in_parent(args[0]);
+
+          case ATKOBJECT_REF_CHILD:
+            return AccessibleObject.atkObject_ref_child(args[0], args[1]);
+
+          case ATKSELECTION_IS_CHILD_SELECTED:
+            return AccessibleObject.atkSelection_is_child_selected(args[0], args[1]);
+
+          case ATKSELECTION_REF_SELECTION:
+            return AccessibleObject.atkSelection_ref_selection(args[0], args[1]);
+
+          case ATKTEXT_GET_CARET_OFFSET:
+            return AccessibleObject.atkText_get_caret_offset(args[0]);
+
+          case ATKTEXT_GET_N_SELECTIONS:
+            return AccessibleObject.atkText_get_n_selections(args[0]);
+
+          case ATKTEXT_GET_SELECTION:
+            return AccessibleObject.atkText_get_selection(args[0], args[1], args[2], args[3]);
+
+          case ATKTEXT_GET_TEXT:
+            return AccessibleObject.atkText_get_text(args[0], args[1], args[2]);
+
+          case ATKTEXT_GET_TEXT_AFTER_OFFSET:
+            return AccessibleObject.atkText_get_text_after_offset(args[0], args[1], args[2], args[3], args[4]);
+
+          case ATKTEXT_GET_TEXT_AT_OFFSET:
+            return AccessibleObject.atkText_get_text_at_offset(args[0], args[1], args[2], args[3], args[4]);
+
+          case ATKTEXT_GET_TEXT_BEFORE_OFFSET:
+            return AccessibleObject.atkText_get_text_before_offset(args[0], args[1], args[2], args[3], args[4]);
+
+          case ATKTEXT_GET_CHARACTER_AT_OFFSET:
+            return AccessibleObject.atkText_get_character_at_offset(args[0], args[1]);
+
+          case ATKTEXT_GET_CHARACTER_COUNT:
+            return AccessibleObject.atkText_get_character_count(args[0]);
+
+          case GOBJECTCLASS_FINALIZE:
+            return AccessibleObject.gObjectClass_finalize(args[0]);
+
+          case GTYPEINFO_BASE_INIT_TYPE:
+            return gTypeInfo_base_init_type(args[0]);
+
+          case INITACTIONIFACECB:
+            return initActionIfaceCB(args[0]);
+
+          case INITCOMPONENTIFACECB:
+            return initComponentIfaceCB(args[0]);
+
+          case INITHYPERTEXTIFACECB:
+            return initHypertextIfaceCB(args[0]);
+
+          case INITSELECTIONIFACECB:
+            return initSelectionIfaceCB(args[0]);
+
+          case INITTEXTIFACECB:
+            return initTextIfaceCB(args[0]);
+
+          default: throw new IllegalArgumentException();
+          }
+        }
+      };
+
+		AtkActionCB_get_keybinding = newCallback (dispatcher, ATKACTION_GET_KEYBINDING, 2);
+		AtkActionCB_get_name = newCallback (dispatcher, ATKACTION_GET_NAME, 2);
+		AtkComponentCB_get_extents = newCallback (dispatcher, ATKCOMPONENT_GET_EXTENTS, 6);
+		AtkComponentCB_get_position = newCallback (dispatcher, ATKCOMPONENT_GET_POSITION, 4);
+		AtkComponentCB_get_size = newCallback (dispatcher, ATKCOMPONENT_GET_SIZE, 4);
+		AtkComponentCB_ref_accessible_at_point = newCallback (dispatcher, ATKCOMPONENT_REF_ACCESSIBLE_AT_POINT, 4);
+		AtkHypertextCB_get_link = newCallback (dispatcher, ATKHYPERTEXT_GET_LINK, 2);
+		AtkHypertextCB_get_n_links = newCallback (dispatcher, ATKHYPERTEXT_GET_N_LINKS, 1);
+		AtkHypertextCB_get_link_index = newCallback (dispatcher, ATKHYPERTEXT_GET_LINK_INDEX, 2);
+		AtkObjectCB_get_name = newCallback (dispatcher, ATKOBJECT_GET_NAME, 1);
+		AtkObjectCB_get_description = newCallback (dispatcher, ATKOBJECT_GET_DESCRIPTION, 1);
+		AtkObjectCB_get_n_children = newCallback (dispatcher, ATKOBJECT_GET_N_CHILDREN, 1);
+		AtkObjectCB_get_role = newCallback (dispatcher, ATKOBJECT_GET_ROLE, 1);
+		AtkObjectCB_get_parent = newCallback (dispatcher, ATKOBJECT_GET_PARENT, 1);
+		AtkObjectCB_ref_state_set = newCallback (dispatcher, ATKOBJECT_REF_STATE_SET, 1);
+		AtkObjectCB_get_index_in_parent = newCallback (dispatcher, ATKOBJECT_GET_INDEX_IN_PARENT, 1);
+		AtkObjectCB_ref_child = newCallback (dispatcher, ATKOBJECT_REF_CHILD, 2);
+		AtkSelectionCB_is_child_selected = newCallback (dispatcher, ATKSELECTION_IS_CHILD_SELECTED, 2);
+		AtkSelectionCB_ref_selection = newCallback (dispatcher, ATKSELECTION_REF_SELECTION, 2);
+		AtkTextCB_get_caret_offset = newCallback (dispatcher, ATKTEXT_GET_CARET_OFFSET, 1);
+		AtkTextCB_get_n_selections = newCallback (dispatcher, ATKTEXT_GET_N_SELECTIONS, 1);
+		AtkTextCB_get_selection = newCallback (dispatcher, ATKTEXT_GET_SELECTION, 4);
+		AtkTextCB_get_text = newCallback (dispatcher, ATKTEXT_GET_TEXT, 3);
+		AtkTextCB_get_text_after_offset = newCallback (dispatcher, ATKTEXT_GET_TEXT_AFTER_OFFSET, 5);
+		AtkTextCB_get_text_at_offset = newCallback ( dispatcher, ATKTEXT_GET_TEXT_AT_OFFSET, 5);
+		AtkTextCB_get_text_before_offset = newCallback (dispatcher, ATKTEXT_GET_TEXT_BEFORE_OFFSET, 5);
+		AtkTextCB_get_character_at_offset = newCallback (dispatcher, ATKTEXT_GET_CHARACTER_AT_OFFSET, 2);
+		AtkTextCB_get_character_count = newCallback (dispatcher, ATKTEXT_GET_CHARACTER_COUNT, 1);
+		GObjectClass_finalize = newCallback (dispatcher, GOBJECTCLASS_FINALIZE, 1);
+		GTypeInfo_base_init_type = newCallback (dispatcher, GTYPEINFO_BASE_INIT_TYPE, 1);
+    #else*/
 		AtkActionCB_get_keybinding = newCallback (AccessibleObject.class, "atkAction_get_keybinding", 2); //$NON-NLS-1$
 		AtkActionCB_get_name = newCallback (AccessibleObject.class, "atkAction_get_name", 2); //$NON-NLS-1$
 		AtkComponentCB_get_extents = newCallback (AccessibleObject.class, "atkComponent_get_extents", 6); //$NON-NLS-1$
@@ -119,43 +355,72 @@ class AccessibleFactory {
 		AtkTextCB_get_character_count = newCallback (AccessibleObject.class, "atkText_get_character_count", 1); //$NON-NLS-1$
 		GObjectClass_finalize = newCallback (AccessibleObject.class, "gObjectClass_finalize", 1); //$NON-NLS-1$
 		GTypeInfo_base_init_type = newCallback (AccessibleFactory.class, "gTypeInfo_base_init_type", 1); //$NON-NLS-1$
+                //#endif
 		/* Action interface */
+                /*#if USWT
+		InitActionIfaceCB = newCallback (dispatcher, INITACTIONIFACECB, 1);
+                  #else*/
 		InitActionIfaceCB = newCallback (AccessibleFactory.class, "initActionIfaceCB", 1); //$NON-NLS-1$
+                //#endif
 		GInterfaceInfo interfaceInfo = new GInterfaceInfo ();
 		interfaceInfo.interface_init = InitActionIfaceCB.getAddress ();
 		ActionIfaceDefinition = OS.g_malloc (GInterfaceInfo.sizeof);  
 		OS.memmove (ActionIfaceDefinition, interfaceInfo, GInterfaceInfo.sizeof);
 		/* Component interface */
+                /*#if USWT
+		InitComponentIfaceCB = newCallback (dispatcher, INITCOMPONENTIFACECB, 1);
+                  #else*/
 		InitComponentIfaceCB = newCallback (AccessibleFactory.class, "initComponentIfaceCB", 1); //$NON-NLS-1$
+                //#endif
 		interfaceInfo = new GInterfaceInfo ();
 		interfaceInfo.interface_init = InitComponentIfaceCB.getAddress ();
 		ComponentIfaceDefinition = OS.g_malloc (GInterfaceInfo.sizeof);
 		OS.memmove (ComponentIfaceDefinition, interfaceInfo, GInterfaceInfo.sizeof);
 		/* Hypertext interface */
+                /*#if USWT
+		InitHypertextIfaceCB = newCallback (dispatcher, INITHYPERTEXTIFACECB, 1);
+                  #else*/
 		InitHypertextIfaceCB = newCallback (AccessibleFactory.class, "initHypertextIfaceCB", 1); //$NON-NLS-1$
+                //#endif
 		interfaceInfo = new GInterfaceInfo ();
 		interfaceInfo.interface_init = InitHypertextIfaceCB.getAddress ();
 		HypertextIfaceDefinition = OS.g_malloc (GInterfaceInfo.sizeof);  
 		OS.memmove (HypertextIfaceDefinition, interfaceInfo, GInterfaceInfo.sizeof);
 		/* Selection interface */
+                /*#if USWT
+		InitSelectionIfaceCB = newCallback (dispatcher, INITSELECTIONIFACECB, 1);
+                  #else*/
 		InitSelectionIfaceCB = newCallback (AccessibleFactory.class, "initSelectionIfaceCB", 1); //$NON-NLS-1$
+                //#endif
 		interfaceInfo = new GInterfaceInfo ();
 		interfaceInfo.interface_init = InitSelectionIfaceCB.getAddress ();
 		SelectionIfaceDefinition = OS.g_malloc (GInterfaceInfo.sizeof);  
 		OS.memmove (SelectionIfaceDefinition, interfaceInfo, GInterfaceInfo.sizeof);
 		/* Text interface */
+                /*#if USWT
+		InitTextIfaceCB = newCallback (dispatcher, INITTEXTIFACECB, 1);
+                  #else*/
 		InitTextIfaceCB = newCallback (AccessibleFactory.class, "initTextIfaceCB", 1); //$NON-NLS-1$
+                //#endif
 		interfaceInfo = new GInterfaceInfo ();
 		interfaceInfo.interface_init = InitTextIfaceCB.getAddress ();
 		TextIfaceDefinition = OS.g_malloc (GInterfaceInfo.sizeof);  
 		OS.memmove (TextIfaceDefinition, interfaceInfo, GInterfaceInfo.sizeof);
 	}
 
+  /*#if USWT
+	static private CNICallback newCallback (CNIDispatcher dispatcher, int method, int argCount) {
+		CNICallback callback = new CNICallback (dispatcher, method, argCount);
+		if (callback.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+		return callback;
+	}
+    #else*/
 	static private Callback newCallback (Object object, String method, int argCount) {
 		Callback callback = new Callback (object, method, argCount);
 		if (callback.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		return callback;
 	}
+  //#endif
 
 	private AccessibleFactory (int /*long*/ widgetType) {
 		super ();
@@ -173,7 +438,11 @@ class AccessibleFactory {
 			objectParentType = ATK.atk_object_factory_get_accessible_type (previousFactory);
 			if (objectParentType == 0) objectParentType = DefaultParentType;
 			int /*long*/ factoryParentType = OS.g_type_from_name (FACTORY_PARENTTYPENAME);
+                        /*#if USWT
+			gTypeInfo_base_init_factory  = new CNICallback (dispatcher, GTYPEINFO_BASE_INIT_FACTORY, 1);
+                          #else*/
 			gTypeInfo_base_init_factory  = new Callback (this, "gTypeInfo_base_init_factory", 1); //$NON-NLS-1$
+                        //#endif
 			int /*long*/ address = gTypeInfo_base_init_factory.getAddress ();
 			if (address == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 			GTypeInfo typeInfo = new GTypeInfo ();
@@ -303,7 +572,11 @@ class AccessibleFactory {
 		int /*long*/ atkObjectFactoryClass = ATK.ATK_OBJECT_FACTORY_CLASS (klass);
 		AtkObjectFactoryClass objectFactoryClassStruct = new AtkObjectFactoryClass ();
 		ATK.memmove (objectFactoryClassStruct, atkObjectFactoryClass);
+                /*#if USWT
+		atkObjectFactoryCB_create_accessible = new CNICallback(dispatcher, ATKOBJECTFACTORY_CREATE_ACCESSIBLE, 1);
+                  #else*/
 		atkObjectFactoryCB_create_accessible = new Callback (this, "atkObjectFactory_create_accessible", 1); //$NON-NLS-1$
+                //#endif
 		int /*long*/ address = atkObjectFactoryCB_create_accessible.getAddress ();
 		if (address == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		objectFactoryClassStruct.create_accessible = address;
@@ -411,4 +684,21 @@ class AccessibleFactory {
 			factory.removeAccessible (accessible);
 		}
 	}
+
+  /*#if USWT
+  private class Dispatcher implements CNIDispatcher {
+    public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+      switch (method) {
+      case GTYPEINFO_BASE_INIT_FACTORY:
+        return gTypeInfo_base_init_factory(args[0]);
+        
+      case ATKOBJECTFACTORY_CREATE_ACCESSIBLE:
+        return atkObjectFactory_create_accessible(args[0]);
+        
+      default: throw new IllegalArgumentException();
+      }
+    }
+  }
+    #endif*/
+
 }

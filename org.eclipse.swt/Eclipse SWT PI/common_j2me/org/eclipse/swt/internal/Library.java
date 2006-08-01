@@ -36,7 +36,11 @@ public class Library {
 
 static {
 	JAVA_VERSION = parseVersion(System.getProperty("java.version"));
+        /*#if USWT
+	SWT_VERSION = _SWT_VERSION(MAJOR_VERSION, MINOR_VERSION);
+          #else*/
 	SWT_VERSION = SWT_VERSION(MAJOR_VERSION, MINOR_VERSION);
+        //#endif
 }
 
 static int parseVersion(String version) {
@@ -57,7 +61,11 @@ static int parseVersion(String version) {
 	try {
 		if (start < length) micro = Integer.parseInt(version.substring(start, index));
 	} catch (NumberFormatException e) {}
+/*#if USWT
+	return _JAVA_VERSION(major, minor, micro);
+  #else*/
 	return JAVA_VERSION(major, minor, micro);
+//#endif
 }
 
 /**
@@ -68,7 +76,11 @@ static int parseVersion(String version) {
  * @param micro
  * @return the version
  */
+/*#if USWT
+public static int _JAVA_VERSION (int major, int minor, int micro) {
+  #else*/
 public static int JAVA_VERSION (int major, int minor, int micro) {
+//#endif
 	return (major << 16) + (minor << 8) + micro;
 }
 
@@ -79,7 +91,11 @@ public static int JAVA_VERSION (int major, int minor, int micro) {
  * @param minor
  * @return the version
  */
+/*#if USWT
+public static int _SWT_VERSION (int major, int minor) {
+  #else*/
 public static int SWT_VERSION (int major, int minor) {
+//#endif
 	return major * 1000 + minor;
 }
 

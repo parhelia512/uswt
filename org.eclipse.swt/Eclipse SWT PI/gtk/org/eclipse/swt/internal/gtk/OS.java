@@ -29,11 +29,19 @@ public class OS extends Platform {
 		/* Initialize the OS flags and locale constants */
 		String osName = System.getProperty ("os.name");
 		boolean isAIX = false, isSunOS = false, isLinux = false, isHPUX = false;
+                /*#if USWT
+		if ("Linux".equals(osName)) isLinux = true;
+		if ("AIX".equals(osName)) isAIX = true;
+		if ("Solaris".equals(osName)) isSunOS = true;
+		if ("SunOS".equals(osName)) isSunOS = true;
+		if ("HP-UX".equals(osName)) isHPUX = true;
+                  #else*/
 		if (osName.equals ("Linux")) isLinux = true;
 		if (osName.equals ("AIX")) isAIX = true;
 		if (osName.equals ("Solaris")) isSunOS = true;
 		if (osName.equals ("SunOS")) isSunOS = true;
 		if (osName.equals ("HP-UX")) isHPUX = true;
+                //#endif
 		IsAIX = isAIX;  IsSunOS = isSunOS;  IsLinux = isLinux;  IsHPUX = isHPUX;
 	}
 

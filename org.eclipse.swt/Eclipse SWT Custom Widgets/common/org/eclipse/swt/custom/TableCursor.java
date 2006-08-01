@@ -193,7 +193,11 @@ public TableCursor(Table parent, int style) {
 					paint(event);
 					break;
 				case SWT.Traverse :
+                                  /*#if USWT
+                                    traverse_(event);
+                                    #else*/
 					traverse(event);
+                                  //#endif
 					break;
 			}
 		}
@@ -504,7 +508,11 @@ void tableMouseDown(Event event) {
 	return;
 }
 
+  /*#if USWT
+    void traverse_(Event event) {
+    #else*/
 void traverse(Event event) {
+  //#endif
 	switch (event.detail) {
 		case SWT.TRAVERSE_ARROW_NEXT :
 		case SWT.TRAVERSE_ARROW_PREVIOUS :

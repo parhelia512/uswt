@@ -136,7 +136,11 @@ public String getMessage () {
  */
 public void printStackTrace () {
 	super.printStackTrace ();
+/*#if USWT
+	if (Library.JAVA_VERSION < Library._JAVA_VERSION(1, 4, 0) && throwable != null) {
+  #else*/
 	if (Library.JAVA_VERSION < Library.JAVA_VERSION(1, 4, 0) && throwable != null) {
+//#endif
 		System.err.println ("*** Stack trace of contained error ***"); //$NON-NLS-1$
 		throwable.printStackTrace ();
 	}

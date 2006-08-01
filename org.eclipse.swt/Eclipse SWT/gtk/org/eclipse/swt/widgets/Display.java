@@ -103,9 +103,17 @@ public class Display extends Device {
 	int allocated_nfds;
 	boolean wake;
 	int [] max_priority = new int [1], timeout = new int [1];
+  /*#if USWT
+	CNICallback eventCallback, filterCallback;
+    #else*/
 	Callback eventCallback, filterCallback;
+  //#endif
 	int /*long*/ eventProc, filterProc, windowProc2, windowProc3, windowProc4, windowProc5;
+  /*#if USWT
+	CNICallback windowCallback2, windowCallback3, windowCallback4, windowCallback5;
+    #else*/
 	Callback windowCallback2, windowCallback3, windowCallback4, windowCallback5;
+  //#endif
 	EventTable eventTable, filterTable;
 	static String APP_NAME = "SWT";
 	static final String DISPATCH_EVENT_KEY = "org.eclipse.swt.internal.gtk.dispatchEvent";
@@ -154,14 +162,26 @@ public class Display extends Device {
 	/* Timers */
 	int [] timerIds;
 	Runnable [] timerList;
+  /*#if USWT
+	CNICallback timerCallback;
+    #else*/
 	Callback timerCallback;
+  //#endif
 	int /*long*/ timerProc;
+  /*#if USWT
+	CNICallback windowTimerCallback;
+    #else*/
 	Callback windowTimerCallback;
+  //#endif
 	int /*long*/ windowTimerProc;
 	
 	/* Caret */
 	Caret currentCaret;
+  /*#if USWT
+	CNICallback caretCallback;
+    #else*/
 	Callback caretCallback;
+  //#endif
 	int caretId;
 	int /*long*/ caretProc;
 	
@@ -171,35 +191,67 @@ public class Display extends Device {
 	/* Mouse hover */
 	int mouseHoverId;
 	int /*long*/ mouseHoverHandle, mouseHoverProc;
+  /*#if USWT
+	CNICallback mouseHoverCallback;
+    #else*/
 	Callback mouseHoverCallback;
+  //#endif
 	
 	/* Menu position callback */
 	int /*long*/ menuPositionProc;
+  /*#if USWT
+	CNICallback menuPositionCallback;
+    #else*/
 	Callback menuPositionCallback;
+  //#endif
 
 	/* Tooltip size allocate callback */
 	int /*long*/ sizeAllocateProc;
+  /*#if USWT
+	CNICallback sizeAllocateCallback;
+    #else*/
 	Callback sizeAllocateCallback;
+  //#endif
 
 	/* Shell map callback */
 	int /*long*/ shellMapProc;
+  /*#if USWT
+	CNICallback shellMapCallback;
+    #else*/
 	Callback shellMapCallback;
+  //#endif
 	
 	/* GtkTreeView callbacks */
 	int[] treeSelection;
 	int treeSelectionLength;
 	int /*long*/ treeSelectionProc;
+  /*#if USWT
+	CNICallback treeSelectionCallback;
+    #else*/
 	Callback treeSelectionCallback;
+  //#endif
 	int /*long*/ cellDataProc;
+  /*#if USWT
+	CNICallback cellDataCallback;
+    #else*/
 	Callback cellDataCallback;
+  //#endif
 	
 	/* Set direction callback */
 	int /*long*/ setDirectionProc;
+  /*#if USWT
+	CNICallback setDirectionCallback;
+    #else*/
 	Callback setDirectionCallback;
+  //#endif
 	
 	/* Settings callbacks */
 	int /*long*/ styleSetProc;
+  /*#if USWT
+	CNICallback styleSetCallback;
+    #else*/
 	Callback styleSetCallback;
+  //#endif
 	int /*long*/ shellHandle;
 	boolean settingsChanged, runSettings;
 	
@@ -208,7 +260,11 @@ public class Display extends Device {
 
 	/* Flush exposes */
 	int /*long*/ checkIfEventProc;
+  /*#if USWT
+	CNICallback checkIfEventCallback;
+    #else*/
 	Callback checkIfEventCallback;
+  //#endif
 	int /*long*/ flushWindow;
 	boolean flushAll;
 	GdkRectangle flushRect = new GdkRectangle ();
@@ -247,13 +303,21 @@ public class Display extends Device {
 	/* Fixed Subclass */
 	static int /*long*/ fixed_type;
 	static int /*long*/ fixed_info_ptr;
+  /*#if USWT
+	static CNICallback fixedClassInitCallback, fixedMapCallback;
+    #else*/
 	static Callback fixedClassInitCallback, fixedMapCallback;
+  //#endif
 	static int /*long*/ fixedClassInitProc, fixedMapProc;
 
 	/* Renderer Subclass */
 	static int /*long*/ text_renderer_type, pixbuf_renderer_type, toggle_renderer_type;
 	static int /*long*/ text_renderer_info_ptr, pixbuf_renderer_info_ptr, toggle_renderer_info_ptr;
+  /*#if USWT
+	static CNICallback rendererClassInitCallback, rendererRenderCallback, rendererGetSizeCallback;
+    #else*/
 	static Callback rendererClassInitCallback, rendererRenderCallback, rendererGetSizeCallback;
+  //#endif
 	static int /*long*/ rendererClassInitProc, rendererRenderProc, rendererGetSizeProc;
 
 	/* Key Mappings */
@@ -398,6 +462,34 @@ public class Display extends Device {
 
 	/* Window Manager */
 	String windowManager;
+
+  /*#if USWT
+  private Dispatcher dispatcher;
+
+  private static final int FIXED_CLASS_INIT_PROC = 1;
+  private static final int FIXED_MAP_PROC = 2;
+  private static final int RENDERER_CLASS_INIT_PROC = 3;
+  private static final int RENDERER_RENDER_PROC = 4;
+  private static final int RENDERER_GET_SIZE_PROC = 5;
+  private static final int EVENT_PROC = 6;
+  private static final int WINDOW_PROC_2 = 7;
+  private static final int WINDOW_PROC_3 = 8;
+  private static final int WINDOW_PROC_4 = 9;
+  private static final int WINDOW_PROC_5 = 10;
+  private static final int TIMER_PROC = 11;
+  private static final int WINDOW_TIMER_PROC = 12;
+  private static final int MOUSE_HOVER_PROC = 13;
+  private static final int MENU_POSITION_PROC = 14;
+  private static final int SIZE_ALLOCATE_PROC = 15;
+  private static final int SHELL_MAP_PROC = 16;
+  private static final int TREE_SELECTION_PROC = 17;
+  private static final int SET_DIRECTION_PROC = 18;
+  private static final int CHECK_IF_EVENT_PROC = 19;
+  private static final int STYLE_SET_PROC = 20;
+  private static final int FILTER_PROC = 21;
+  private static final int CARET_PROC = 22;
+  private static final int CELL_DATA_PROC = 23;
+    #endif*/
 
 	/*
 	* TEMPORARY CODE.  Install the runnable that
@@ -779,6 +871,9 @@ public void close () {
  * @see #init
  */
 protected void create (DeviceData data) {
+  /*#if USWT
+    dispatcher = new Dispatcher();
+    #endif*/
 	checkSubclass ();
 	checkDisplay(thread = Thread.currentThread (), false);
 	createDisplay (data);
@@ -808,10 +903,18 @@ synchronized void createDisplay (DeviceData data) {
 	}
 	if (fixed_type == 0) {
 		byte [] type_name = Converter.wcsToMbcs (null, "SwtFixed", true);
+                /*#if USWT
+		fixedClassInitCallback = new CNICallback(dispatcher, FIXED_CLASS_INIT_PROC, 2);
+                  #else*/
 		fixedClassInitCallback = new Callback (getClass (), "fixedClassInitProc", 2);
+                //#endif
 		fixedClassInitProc = fixedClassInitCallback.getAddress ();
 		if (fixedClassInitProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+                /*#if USWT
+		fixedMapCallback = new CNICallback(dispatcher, FIXED_MAP_PROC, 1);
+                  #else*/
 		fixedMapCallback = new Callback (getClass (), "fixedMapProc", 1);
+                //#endif
 		fixedMapProc = fixedMapCallback.getAddress ();
 		if (fixedMapProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		GTypeInfo fixed_info = new GTypeInfo ();
@@ -823,17 +926,29 @@ synchronized void createDisplay (DeviceData data) {
 		fixed_type = OS.g_type_register_static (OS.GTK_TYPE_FIXED (), type_name, fixed_info_ptr, 0);
 	}
 	if (rendererClassInitProc == 0) {
+                /*#if USWT
+		rendererClassInitCallback = new CNICallback(dispatcher, RENDERER_CLASS_INIT_PROC, 2);
+                  #else*/
 		rendererClassInitCallback = new Callback (getClass (), "rendererClassInitProc", 2);
+                //#endif
 		rendererClassInitProc = rendererClassInitCallback.getAddress ();
 		if (rendererClassInitProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	}
 	if (rendererRenderProc == 0) {
+                /*#if USWT
+		rendererRenderCallback = new CNICallback(dispatcher, RENDERER_RENDER_PROC, 7);
+                  #else*/
 		rendererRenderCallback = new Callback (getClass (), "rendererRenderProc", 7);
+                //#endif
 		rendererRenderProc = rendererRenderCallback.getAddress ();
 		if (rendererRenderProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	}
 	if (rendererGetSizeProc == 0) {
+                /*#if USWT
+		rendererGetSizeCallback = new CNICallback(dispatcher, RENDERER_GET_SIZE_PROC, 7);
+                  #else*/
 		rendererGetSizeCallback = new Callback (getClass (), "rendererGetSizeProc", 7);
+                //#endif
 		rendererGetSizeProc = rendererGetSizeCallback.getAddress ();
 		if (rendererGetSizeProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	}
@@ -882,11 +997,19 @@ synchronized void createDisplay (DeviceData data) {
 	OS.gtk_widget_realize (shellHandle);
 
 	/* Initialize the filter and event callback */
+        /*#if USWT
+	eventCallback = new CNICallback(dispatcher, EVENT_PROC, 2);
+          #else*/
 	eventCallback = new Callback (this, "eventProc", 2);
+        //#endif
 	eventProc = eventCallback.getAddress ();
 	if (eventProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gdk_event_handler_set (eventProc, 0, 0);
+        /*#if USWT
+	filterCallback = new CNICallback(dispatcher, FILTER_PROC, 3);
+          #else*/
 	filterCallback = new Callback (this, "filterProc", 3);
+        //#endif
 	filterProc = filterCallback.getAddress ();
 	if (filterProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gdk_window_add_filter  (0, filterProc, 0);
@@ -1216,7 +1339,11 @@ public Widget findWidget (Widget widget, int id) {
 	return null;
 }
 
+/*#if USWT
+static int /*long#eoc _fixedClassInitProc (int /*long#eoc g_class, int /*long#eoc class_data) {
+  #else*/
 static int /*long*/ fixedClassInitProc (int /*long*/ g_class, int /*long*/ class_data) {
+//#endif
 	GtkWidgetClass klass = new GtkWidgetClass ();
 	OS.memmove (klass, g_class);
 	klass.map = fixedMapProc;
@@ -1224,14 +1351,22 @@ static int /*long*/ fixedClassInitProc (int /*long*/ g_class, int /*long*/ class
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _fixedMapProc (int /*long#eoc handle) {
+  #else*/
 static int /*long*/ fixedMapProc (int /*long*/ handle) {
+//#endif
 	Display display = getCurrent ();
 	Widget widget = display.getWidget (handle);
 	if (widget != null) return widget.fixedMapProc (handle);
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _rendererClassInitProc (int /*long#eoc g_class, int /*long#eoc class_data) {
+  #else*/
 static int /*long*/ rendererClassInitProc (int /*long*/ g_class, int /*long*/ class_data) {
+//#endif
 	GtkCellRendererClass klass = new GtkCellRendererClass ();
 	OS.memmove (klass, g_class);
 	klass.render = rendererRenderProc;
@@ -1240,14 +1375,22 @@ static int /*long*/ rendererClassInitProc (int /*long*/ g_class, int /*long*/ cl
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _rendererGetSizeProc (int /*long#eoc cell, int /*long#eoc handle, int /*long#eoc cell_area, int /*long#eoc x_offset, int /*long#eoc y_offset, int /*long#eoc width, int /*long#eoc height) {
+  #else*/
 static int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ handle, int /*long*/ cell_area, int /*long*/ x_offset, int /*long*/ y_offset, int /*long*/ width, int /*long*/ height) {
+//#endif
 	Display display = getCurrent ();
 	Widget widget = display.getWidget (handle);
 	if (widget != null) return widget.rendererGetSizeProc (cell, handle, cell_area, x_offset, y_offset, width, height);
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _rendererRenderProc (int /*long#eoc cell, int /*long#eoc window, int /*long#eoc handle, int /*long#eoc background_area, int /*long#eoc cell_area, int /*long#eoc expose_area, int /*long#eoc flags) {
+  #else*/
 static int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ window, int /*long*/ handle, int /*long*/ background_area, int /*long*/ cell_area, int /*long*/ expose_area, int /*long*/ flags) {
+//#endif
 	Display display = getCurrent ();
 	Widget widget = display.getWidget (handle);
 	if (widget != null) return widget.rendererRenderProc (cell, window, handle, background_area, cell_area, expose_area, flags);
@@ -2224,7 +2367,11 @@ void initializeCallbacks () {
 	signalIds [Widget.VISIBILITY_NOTIFY_EVENT] = OS.g_signal_lookup (OS.visibility_notify_event, OS.GTK_TYPE_WIDGET ());
 	signalIds [Widget.WINDOW_STATE_EVENT] = OS.g_signal_lookup (OS.window_state_event, OS.GTK_TYPE_WIDGET ());
 
+        /*#if USWT
+	windowCallback2 = new CNICallback(dispatcher, WINDOW_PROC_2, 2);
+          #else*/
 	windowCallback2 = new Callback (this, "windowProc", 2);
+        //#endif
 	windowProc2 = windowCallback2.getAddress ();
 	if (windowProc2 == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 
@@ -2245,7 +2392,11 @@ void initializeCallbacks () {
 	closures [Widget.UNMAP] = OS.g_cclosure_new (windowProc2, Widget.UNMAP, 0);
 	closures [Widget.UNREALIZE] = OS.g_cclosure_new (windowProc2, Widget.UNREALIZE, 0);
 
+        /*#if USWT
+	windowCallback3 = new CNICallback(dispatcher, WINDOW_PROC_3, 3);
+          #else*/
 	windowCallback3 = new Callback (this, "windowProc", 3);
+        //#endif
 	windowProc3 = windowCallback3.getAddress ();
 	if (windowProc3 == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);	
 
@@ -2282,7 +2433,11 @@ void initializeCallbacks () {
 	closures [Widget.VISIBILITY_NOTIFY_EVENT] = OS.g_cclosure_new (windowProc3, Widget.VISIBILITY_NOTIFY_EVENT, 0);
 	closures [Widget.WINDOW_STATE_EVENT] = OS.g_cclosure_new (windowProc3, Widget.WINDOW_STATE_EVENT, 0);
 
+        /*#if USWT
+	windowCallback4 = new CNICallback(dispatcher, WINDOW_PROC_4, 4);
+          #else*/
 	windowCallback4 = new Callback (this, "windowProc", 4);
+        //#endif
 	windowProc4 = windowCallback4.getAddress ();
 	if (windowProc4 == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);	
 
@@ -2294,7 +2449,11 @@ void initializeCallbacks () {
 	closures [Widget.TEST_COLLAPSE_ROW] = OS.g_cclosure_new (windowProc4, Widget.TEST_COLLAPSE_ROW, 0);
 	closures [Widget.TEST_EXPAND_ROW] = OS.g_cclosure_new (windowProc4, Widget.TEST_EXPAND_ROW, 0);
 
+        /*#if USWT
+	windowCallback5 = new CNICallback(dispatcher, WINDOW_PROC_5, 5);
+          #else*/
 	windowCallback5 = new Callback (this, "windowProc", 5);
+        //#endif
 	windowProc5 = windowCallback5.getAddress ();
 	if (windowProc5 == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 
@@ -2307,56 +2466,104 @@ void initializeCallbacks () {
 		if (closures [i] != 0) OS.g_closure_ref (closures [i]);
 	}
 
+        /*#if USWT
+	timerCallback = new CNICallback(dispatcher, TIMER_PROC, 1);
+          #else*/
 	timerCallback = new Callback (this, "timerProc", 1);
+        //#endif
 	timerProc = timerCallback.getAddress ();
 	if (timerProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
+        /*#if USWT
+	windowTimerCallback = new CNICallback(dispatcher, WINDOW_TIMER_PROC, 1);
+          #else*/
 	windowTimerCallback = new Callback (this, "windowTimerProc", 1);
+        //#endif
 	windowTimerProc = windowTimerCallback.getAddress ();
 	if (windowTimerProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	
+        /*#if USWT
+	mouseHoverCallback = new CNICallback(dispatcher, MOUSE_HOVER_PROC, 1);
+          #else*/
 	mouseHoverCallback = new Callback (this, "mouseHoverProc", 1);
+        //#endif
 	mouseHoverProc = mouseHoverCallback.getAddress ();
 	if (mouseHoverProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
+        /*#if USWT
+	caretCallback = new CNICallback(dispatcher, CARET_PROC, 1);
+          #else*/
 	caretCallback = new Callback(this, "caretProc", 1);
+        //#endif
 	caretProc = caretCallback.getAddress();
 	if (caretProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
+        /*#if USWT
+	menuPositionCallback = new CNICallback(dispatcher, MENU_POSITION_PROC, 5);
+          #else*/
 	menuPositionCallback = new Callback(this, "menuPositionProc", 5);
+        //#endif
 	menuPositionProc = menuPositionCallback.getAddress();
 	if (menuPositionProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	
+        /*#if USWT
+	sizeAllocateCallback = new CNICallback(dispatcher, SIZE_ALLOCATE_PROC, 3);
+          #else*/
 	sizeAllocateCallback = new Callback(this, "sizeAllocateProc", 3);
+        //#endif
 	sizeAllocateProc = sizeAllocateCallback.getAddress();
 	if (sizeAllocateProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	
+        /*#if USWT
+	shellMapCallback = new CNICallback(dispatcher, SHELL_MAP_PROC, 3);
+          #else*/
 	shellMapCallback = new Callback(this, "shellMapProc", 3);
+        //#endif
 	shellMapProc = shellMapCallback.getAddress();
 	if (shellMapProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
 	shellMapProcClosure = OS.g_cclosure_new (shellMapProc, 0, 0);
 	OS.g_closure_ref (shellMapProcClosure);
 
+        /*#if USWT
+	treeSelectionCallback = new CNICallback(dispatcher, TREE_SELECTION_PROC, 4);
+          #else*/
 	treeSelectionCallback = new Callback(this, "treeSelectionProc", 4);
+        //#endif
 	treeSelectionProc = treeSelectionCallback.getAddress();
 	if (treeSelectionProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	
+        /*#if USWT
+	cellDataCallback = new CNICallback(dispatcher, CELL_DATA_PROC, 5);
+          #else*/
 	cellDataCallback = new Callback (this, "cellDataProc", 5);
+        //#endif
 	cellDataProc = cellDataCallback.getAddress ();
 	if (cellDataProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
+        /*#if USWT
+	setDirectionCallback = new CNICallback(dispatcher, SET_DIRECTION_PROC, 2);
+          #else*/
 	setDirectionCallback = new Callback (this, "setDirectionProc", 2);
+        //#endif
 	setDirectionProc = setDirectionCallback.getAddress ();
 	if (setDirectionProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
+        /*#if USWT
+	checkIfEventCallback = new CNICallback(dispatcher, CHECK_IF_EVENT_PROC, 3);
+          #else*/
 	checkIfEventCallback = new Callback (this, "checkIfEventProc", 3);
+        //#endif
 	checkIfEventProc = checkIfEventCallback.getAddress ();
 	if (checkIfEventProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 }
 
 void initializeSystemSettings () {
+        /*#if USWT
+	styleSetCallback = new CNICallback(dispatcher, STYLE_SET_PROC, 3);
+          #else*/
 	styleSetCallback = new Callback (this, "styleSetProc", 3);
+        //#endif
 	styleSetProc = styleSetCallback.getAddress ();
 	if (styleSetProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.g_signal_connect (shellHandle, OS.style_set, styleSetProc, 0);
@@ -3840,5 +4047,85 @@ int /*long*/ windowTimerProc (int /*long*/ handle) {
 	if (widget == null) return 0;
 	return widget.timerProc (handle);
 }
+
+  /*#if USWT
+  private class Dispatcher implements CNIDispatcher {
+    public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+      switch (method) {
+      case FIXED_CLASS_INIT_PROC:
+        return _fixedClassInitProc(args[0], args[1]);
+
+      case FIXED_MAP_PROC:
+        return _fixedMapProc(args[0]);
+
+      case RENDERER_CLASS_INIT_PROC:
+        return _rendererClassInitProc(args[0], args[1]);
+
+      case RENDERER_RENDER_PROC:
+        return _rendererRenderProc(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+
+      case RENDERER_GET_SIZE_PROC:
+        return _rendererGetSizeProc(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+
+      case EVENT_PROC:
+        return eventProc(args[0], args[1]);
+
+      case WINDOW_PROC_2:
+        return windowProc(args[0], args[1]);
+
+      case WINDOW_PROC_3:
+        return windowProc(args[0], args[1], args[2]);
+
+      case WINDOW_PROC_4:
+        return windowProc(args[0], args[1], args[2], args[3]);
+
+      case WINDOW_PROC_5:
+        return windowProc(args[0], args[1], args[2], args[3], args[4]);
+
+      case TIMER_PROC:
+        return timerProc(args[0]);
+
+      case WINDOW_TIMER_PROC:
+        return windowTimerProc(args[0]);
+
+      case MOUSE_HOVER_PROC:
+        return mouseHoverProc(args[0]);
+
+      case MENU_POSITION_PROC:
+        return menuPositionProc(args[0], args[1], args[2], args[3], args[4]);
+
+      case SIZE_ALLOCATE_PROC:
+        return sizeAllocateProc(args[0], args[1], args[2]);
+
+      case SHELL_MAP_PROC:
+        return shellMapProc(args[0], args[1], args[2]);
+
+      case TREE_SELECTION_PROC:
+        return treeSelectionProc(args[0], args[1], args[2], args[3]);
+
+      case SET_DIRECTION_PROC:
+        return setDirectionProc(args[0], args[1]);
+
+      case CHECK_IF_EVENT_PROC:
+        return checkIfEventProc(args[0], args[1], args[2]);
+
+      case STYLE_SET_PROC:
+        return styleSetProc(args[0], args[1], args[2]);
+
+      case FILTER_PROC:
+        return filterProc(args[0], args[1], args[2]);
+
+      case CARET_PROC:
+        return caretProc(args[0]);
+
+      case CELL_DATA_PROC:
+        return cellDataProc(args[0], args[1], args[2], args[3], args[4]);
+
+      default:
+        throw new IllegalArgumentException();
+      }
+    }
+  }
+    #endif*/
 
 }

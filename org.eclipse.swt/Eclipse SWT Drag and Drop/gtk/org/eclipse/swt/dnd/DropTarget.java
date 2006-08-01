@@ -96,19 +96,68 @@ public class DropTarget extends Widget {
 	static final String DROPTARGETID = "DropTarget"; //$NON-NLS-1$
 	static final int DRAGOVER_HYSTERESIS = 50;
 	
+  /*#if USWT
+	static CNICallback Drag_Motion;
+	static CNICallback Drag_Leave;
+	static CNICallback Drag_Data_Received;
+	static CNICallback Drag_Drop;
+
+	private static final int DRAG_MOTION = 1;
+	private static final int DRAG_LEAVE = 2;
+	private static final int DRAG_DATA_RECEIVED = 3;
+	private static final int DRAG_DROP = 4;
+    #else*/
 	static Callback Drag_Motion;
 	static Callback Drag_Leave;
 	static Callback Drag_Data_Received;
 	static Callback Drag_Drop;
+  //#endif
 	
-	 static {	
+	 static {
+  /*#if USWT	
+    CNIDispatcher dispatcher = new CNIDispatcher() {
+        public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+          switch (method) {
+          case DRAG_MOTION:
+            return _Drag_Motion(args[0], args[1], args[2], args[3], args[4]);
+
+          case DRAG_LEAVE:
+            return _Drag_Leave(args[0], args[1], args[2]);
+
+          case DRAG_DATA_RECEIVED:
+            return _Drag_Data_Received(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+
+          case DRAG_DROP:
+            return _Drag_Drop(args[0], args[1], args[2], args[3], args[4]);
+
+          default: throw new IllegalArgumentException();
+          }
+        }
+      };
+    #endif*/
+  /*#if USWT
+		Drag_Motion = new CNICallback(dispatcher, DRAG_MOTION, 5);
+    #else*/	
 		Drag_Motion = new Callback(DropTarget.class, "Drag_Motion", 5); //$NON-NLS-1$
+  //#endif
 		if (Drag_Motion.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+  /*#if USWT
+		Drag_Leave = new CNICallback(dispatcher, DRAG_LEAVE, 3);
+    #else*/
 		Drag_Leave = new Callback(DropTarget.class, "Drag_Leave", 3); //$NON-NLS-1$
+  //#endif
 		if (Drag_Leave.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+  /*#if USWT
+		Drag_Data_Received = new CNICallback(dispatcher, DRAG_DATA_RECEIVED, 7);
+    #else*/
 		Drag_Data_Received = new Callback(DropTarget.class, "Drag_Data_Received", 7); //$NON-NLS-1$
+  //#endif
 		if (Drag_Data_Received.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+  /*#if USWT
+		Drag_Drop = new CNICallback(dispatcher, DRAG_DROP, 5);
+    #else*/
 		Drag_Drop = new Callback(DropTarget.class, "Drag_Drop", 5); //$NON-NLS-1$
+  //#endif
 		if (Drag_Drop.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}
 
@@ -240,27 +289,43 @@ static int checkStyle (int style) {
 	return style;
 }
 
+/*#if USWT
+static int /*long#eoc _Drag_Data_Received ( int /*long#eoc widget, int /*long#eoc context, int /*long#eoc x, int /*long#eoc y, int /*long#eoc data, int /*long#eoc info, int /*long#eoc time){
+  #else*/
 static int /*long*/ Drag_Data_Received ( int /*long*/ widget, int /*long*/ context, int /*long*/ x, int /*long*/ y, int /*long*/ data, int /*long*/ info, int /*long*/ time){
+//#endif
 	DropTarget target = FindDropTarget(widget);
 	if (target == null) return 0;
 	target.drag_data_received (widget, context, (int)/*64*/x, (int)/*64*/y, data, (int)/*64*/info, (int)/*64*/time);
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _Drag_Drop(int /*long#eoc widget, int /*long#eoc context, int /*long#eoc x, int /*long#eoc y, int /*long#eoc time) {
+  #else*/
 static int /*long*/ Drag_Drop(int /*long*/ widget, int /*long*/ context, int /*long*/ x, int /*long*/ y, int /*long*/ time) {
+//#endif
 	DropTarget target = FindDropTarget(widget);
 	if (target == null) return 0;
 	return target.drag_drop (widget, context, (int)/*64*/x, (int)/*64*/y, (int)/*64*/time) ? 1 : 0;
 }
 
+/*#if USWT
+static int /*long#eoc _Drag_Leave ( int /*long#eoc widget, int /*long#eoc context, int /*long#eoc time){
+  #else*/
 static int /*long*/ Drag_Leave ( int /*long*/ widget, int /*long*/ context, int /*long*/ time){
+//#endif
 	DropTarget target = FindDropTarget(widget);
 	if (target == null) return 0;
 	target.drag_leave (widget, context, (int)/*64*/time);
 	return 0;
 }
 
+/*#if USWT
+static int /*long#eoc _Drag_Motion ( int /*long#eoc widget, int /*long#eoc context, int /*long#eoc x, int /*long#eoc y, int /*long#eoc time){
+  #else*/
 static int /*long*/ Drag_Motion ( int /*long*/ widget, int /*long*/ context, int /*long*/ x, int /*long*/ y, int /*long*/ time){
+//#endif
 	DropTarget target = FindDropTarget(widget);
 	if (target == null) return 0;
 	return target.drag_motion (widget, context, (int)/*64*/x, (int)/*64*/y, (int)/*64*/time) ? 1 : 0;
