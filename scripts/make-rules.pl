@@ -157,7 +157,7 @@ my $rules = sub {
     my $class = shift;
     my $object = shift;
 
-    print "$object: $new $class\n";
+    print "$object: $new swt-sources\n";
     print "\t\@mkdir -p \$(dir \$(\@))\n";
     print "\t\@echo \"compiling \$(\@)\"\n";
     print "\t\@\$(ugcj) -c \$(cflags) --classpath \$(build-dir)/sources \$(<) -o \$(@)\n\n";

@@ -1,28 +1,38 @@
 ifdef win32
   build-dir = build/win32
-  swt-dir = swt-win32
   g++ = mingw32-g++
   gcj = mingw32-gcj
   gij = mingw32-gij
   gcjh = mingw32-gcjh
   ar = mingw32-ar
-  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj \
-		-L/usr/local/gcc-ulibgcj-w32/lib
+  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj
 	classpath-mode = win32
 	jptr = jint
 	long-filter = cat
 else
-  build-dir = build/lin64
-  swt-dir = swt-lin64
+ifdef lin32
+  build-dir = build/lin32
   g++ = /usr/local/gcc/bin/g++
   gcj = /usr/local/gcc/bin/gcj
   gij = /usr/local/gcc/bin/gij
   gcjh = /usr/local/gcc/bin/gcjh
   ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
+  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
+	classpath-mode = unix
+	jptr = jint
+	long-filter = cat
+else
+  build-dir = build/lin64
+  g++ = /usr/local/gcc/bin/g++
+  gcj = /usr/local/gcc/bin/gcj
+  gij = /usr/local/gcc/bin/gij
+  gcjh = /usr/local/gcc/bin/gcjh
+  ar = ar
+  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
 	classpath-mode = unix
 	jptr = jlong
-	long-filter = sed -e 's:int */\*long\*/: long :g'
+	long-filter = sed -e 's:int */\*long\*/:long /*int*/:g'
+endif
 endif
 
 script-dir = scripts
@@ -72,12 +82,14 @@ swt-lflags += -fPIC \
 
 cflags = -Os -g -fPIC
 
+.PHONY: swt-sources
+swt-sources: $(swt-sources)
+
 .PHONY: swt-headers
 swt-headers: $(swt-headers)
 
 .PHONY: swt-classes
-swt-classes: $(swt-sources)
-	@$(ugcj) -C -d $(build-dir)/classes --classpath $(build-dir)/sources $(^)
+swt-classes: $(swt-classes)
 
 $(swt-classes): $(swt-sources)
 	@echo "compiling swt sources"
