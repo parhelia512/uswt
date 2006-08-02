@@ -1,38 +1,62 @@
+ifdef lin64
+  build-dir = build/lin64
+	platform = unix
+	jptr = jlong
+else
+ifdef lin32
+  build-dir = build/lin32
+	platform = unix
+	jptr = jint
+else
 ifdef win32
   build-dir = build/win32
+	platform = win32
+	jptr = jint
+	long-filter = cat
+else
+$(error please specify a one of the following: lin64=1, lin32=1, win32=1)
+endif
+endif
+endif
+
+ifeq "$(platform)" "unix"
+  g++ = /usr/local/gcc/bin/g++
+  gcj = /usr/local/gcc/bin/gcj
+  gij = /usr/local/gcc/bin/gij
+  gcjh = /usr/local/gcc/bin/gcjh
+  ar = ar
+  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
+
+  swt-cflags = \
+		-DJPTR=$(jptr) \
+		$$(pkg-config --cflags cairo) \
+		$$(pkg-config --cflags gtk+-2.0) \
+		$$(pkg-config --cflags atk gtk+-2.0) \
+		-I$(build-dir)/native-sources \
+		-I$(build-dir)/headers
+
+	swt-lflags = -fPIC \
+		$$(pkg-config --libs-only-L cairo) -lcairo \
+		$$(pkg-config --libs-only-L gtk+-2.0 gthread-2.0) \
+		-lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib -lXtst \
+		$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
+		-L/usr/X11R6/lib -lGL -lGLU -lm
+else
+ifeq "$(platform)" "win32"
   g++ = mingw32-g++
   gcj = mingw32-gcj
   gij = mingw32-gij
   gcjh = mingw32-gcjh
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj
-	classpath-mode = win32
-	jptr = jint
-	long-filter = cat
-else
-ifdef lin32
-  build-dir = build/lin32
-  g++ = /usr/local/gcc/bin/g++
-  gcj = /usr/local/gcc/bin/gcj
-  gij = /usr/local/gcc/bin/gij
-  gcjh = /usr/local/gcc/bin/gcjh
-  ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
-	classpath-mode = unix
-	jptr = jint
-	long-filter = cat
-else
-  build-dir = build/lin64
-  g++ = /usr/local/gcc/bin/g++
-  gcj = /usr/local/gcc/bin/gcj
-  gij = /usr/local/gcc/bin/gij
-  gcjh = /usr/local/gcc/bin/gcjh
-  ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
-	classpath-mode = unix
-	jptr = jlong
-	long-filter = sed -e 's:int */\*long\*/:long /*int*/:g'
 endif
+endif
+
+ifeq "$(jptr)" "jlong"
+	swt-cflags += -DJPTR_IS_JLONG
+	long-filter = sed -e 's:int */\*long\*/:long /*int*/:g'
+else
+	long-filter = cat
 endif
 
 script-dir = scripts
@@ -41,7 +65,7 @@ script-dir = scripts
 default: $(gen-dir) $(build-dir)/swt.a
 
 $(build-dir)/rules.mk: $(script-dir)/make-rules.pl
-	@perl $(<) $(classpath-mode) >$(@)
+	@perl $(<) $(platform) >$(@)
 
 -include $(build-dir)/rules.mk
 
@@ -66,7 +90,8 @@ $(gen-classes): $(gen-sources) $(swt-sources)
 	@$(gcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(gen-dir)	$(gen-sources)
 
-swt-cflags = \
+swt-cflags += \
+	-DJPTR=$(jptr) \
 	$$(pkg-config --cflags cairo) \
 	$$(pkg-config --cflags gtk+-2.0) \
 	$$(pkg-config --cflags atk gtk+-2.0) \
@@ -76,7 +101,7 @@ swt-cflags = \
 swt-lflags += -fPIC \
 	$$(pkg-config --libs-only-L cairo) -lcairo \
 	$$(pkg-config --libs-only-L gtk+-2.0 gthread-2.0) \
-	-lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib $(XLIB64) -lXtst \
+	-lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib -lXtst \
 	$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
 	-L/usr/X11R6/lib -lGL -lGLU -lm
 
@@ -126,7 +151,7 @@ $(build-dir)/os_custom-processed.cpp: \
 
 $(build-dir)/os_custom.o: $(build-dir)/os_custom-processed.cpp
 	@echo "compiling $(@) from $(<)"
-	@$(g++) -DJPTR=$(jptr) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
+	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
 $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@mkdir -p $(dir $(@))

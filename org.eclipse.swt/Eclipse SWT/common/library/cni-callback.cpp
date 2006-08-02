@@ -11,7 +11,7 @@
 #endif
 
 #ifndef RETURN_TYPE
-#define RETURN_TYPE jlong
+#define RETURN_TYPE JPTR
 #endif
 
 #ifndef RETURN_CAST
@@ -29,13 +29,17 @@ long
 callback(int index, ...)
 {
   org::eclipse::swt::internal::CNICallback* cb = callbacks[index];
-  JArray<jlong>* args = JvNewLongArray(cb->argCount);
+#ifdef JPTR_IS_JLONG
+  JArray<JPTR>* args = JvNewLongArray(cb->argCount);
+#else
+  JArray<JPTR>* args = JvNewIntArray(cb->argCount);
+#endif
   va_list al;
 
-  jlong* array = elements(args);
+  JPTR* array = elements(args);
   va_start(al, index);
   for (unsigned i = 0; i < cb->argCount; ++i) {
-    array[i] = va_arg(al, jlong);
+    array[i] = va_arg(al, JPTR);
   }
   va_end(al);
 
@@ -56,40 +60,40 @@ callback(int index, ...)
 #define FN_0(index) RETURN_TYPE FN(index, 0)() { return RETURN_CAST callback(index); }
 
 /* Function template with 1 argument */
-#define FN_1(index) RETURN_TYPE FN(index, 1)(intptr_t p1) { return RETURN_CAST callback(index, p1); }
+#define FN_1(index) RETURN_TYPE FN(index, 1)(JPTR p1) { return RETURN_CAST callback(index, p1); }
 
 /* Function template with 2 arguments */
-#define FN_2(index) RETURN_TYPE FN(index, 2)(intptr_t p1, intptr_t p2) { return RETURN_CAST callback(index, p1, p2); }
+#define FN_2(index) RETURN_TYPE FN(index, 2)(JPTR p1, JPTR p2) { return RETURN_CAST callback(index, p1, p2); }
 
 /* Function template with 3 arguments */
-#define FN_3(index) RETURN_TYPE FN(index, 3)(intptr_t p1, intptr_t p2, intptr_t p3) { return RETURN_CAST callback(index, p1, p2, p3); }
+#define FN_3(index) RETURN_TYPE FN(index, 3)(JPTR p1, JPTR p2, JPTR p3) { return RETURN_CAST callback(index, p1, p2, p3); }
 
 /* Function template with 4 arguments */
-#define FN_4(index) RETURN_TYPE FN(index, 4)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4) { return RETURN_CAST callback(index, p1, p2, p3, p4); }
+#define FN_4(index) RETURN_TYPE FN(index, 4)(JPTR p1, JPTR p2, JPTR p3, JPTR p4) { return RETURN_CAST callback(index, p1, p2, p3, p4); }
 
 /* Function template with 5 arguments */
-#define FN_5(index) RETURN_TYPE FN(index, 5)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5); }
+#define FN_5(index) RETURN_TYPE FN(index, 5)(JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5); }
 
 /* Function template with 6 arguments */
-#define FN_6(index) RETURN_TYPE FN(index, 6)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6); }
+#define FN_6(index) RETURN_TYPE FN(index, 6)(JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6); }
 
 /* Function template with 7 arguments */
-#define FN_7(index) RETURN_TYPE FN(index, 7)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7); }
+#define FN_7(index) RETURN_TYPE FN(index, 7)(JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7); }
 
 /* Function template with 8 arguments */
-#define FN_8(index) RETURN_TYPE FN(index, 8)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7, intptr_t p8) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8); }
+#define FN_8(index) RETURN_TYPE FN(index, 8)(JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7, JPTR p8) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8); }
 
 /* Function template with 9 arguments */
-#define FN_9(index) RETURN_TYPE FN(index, 9)(intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7, intptr_t p8, intptr_t p9) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9); }
+#define FN_9(index) RETURN_TYPE FN(index, 9)(JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7, JPTR p8, JPTR p9) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9); }
 
 /* Function template with 10 arguments */
-#define FN_10(index) RETURN_TYPE FN(index, 10) (intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7, intptr_t p8, intptr_t p9, intptr_t p10) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10); }
+#define FN_10(index) RETURN_TYPE FN(index, 10) (JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7, JPTR p8, JPTR p9, JPTR p10) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10); }
 
 /* Function template with 11 arguments */
-#define FN_11(index) RETURN_TYPE FN(index, 11) (intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7, intptr_t p8, intptr_t p9, intptr_t p10, intptr_t p11) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11); }
+#define FN_11(index) RETURN_TYPE FN(index, 11) (JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7, JPTR p8, JPTR p9, JPTR p10, JPTR p11) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11); }
 
 /* Function template with 12 arguments */
-#define FN_12(index) RETURN_TYPE FN(index, 12) (intptr_t p1, intptr_t p2, intptr_t p3, intptr_t p4, intptr_t p5, intptr_t p6, intptr_t p7, intptr_t p8, intptr_t p9, intptr_t p10, intptr_t p11, intptr_t p12) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12); }
+#define FN_12(index) RETURN_TYPE FN(index, 12) (JPTR p1, JPTR p2, JPTR p3, JPTR p4, JPTR p5, JPTR p6, JPTR p7, JPTR p8, JPTR p9, JPTR p10, JPTR p11, JPTR p12) { return RETURN_CAST callback(index, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12); }
 
 /**
  * Define all functions with the specified number of arguments.
@@ -145,20 +149,20 @@ procedures[MaxArgs + 1][MaxCallbacks] = {
 
 } // namespace
 
-jlong
+JPTR
 org::eclipse::swt::internal::CNICallback::
 bind(org::eclipse::swt::internal::CNICallback* callback)
 {
   for (unsigned i = 0; i < MaxCallbacks; ++i) {
     if (callbacks[i] == 0) {
       callbacks[i] = callback;
-      return (jlong) procedures[callback->argCount][i];
+      return (JPTR) procedures[callback->argCount][i];
     }
   }
   return 0;
 }
 
-jlong
+JPTR
 org::eclipse::swt::internal::CNICallback::
 unbind(org::eclipse::swt::internal::CNICallback* callback)
 {
