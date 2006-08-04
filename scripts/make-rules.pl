@@ -4,14 +4,6 @@ use strict;
 
 use constant {
     SWTParent => "org.eclipse.swt",
-    SWTDirectories => [ "Eclipse SWT",
-                        "Eclipse SWT Accessibility",
-                        "Eclipse SWT Custom Widgets",
-                        "Eclipse SWT Drag and Drop",
-                        "Eclipse SWT PI",
-                        "Eclipse SWT Printing",
-                        "Eclipse SWT Program",
-                        "Eclipse SWT Theme" ],
     ClassPaths => {
         "unix" => [
             "Eclipse SWT/gtk",
@@ -40,6 +32,25 @@ use constant {
             "Eclipse SWT OpenGL/common",
             "Eclipse SWT Theme/gtk",
         ],
+        "win32" => [
+            "Eclipse SWT/win32",
+            "Eclipse SWT/common",
+            "Eclipse SWT/common_j2me",
+            "Eclipse SWT PI/win32",
+            "Eclipse SWT PI/common_j2me",
+            "Eclipse SWT Accessibility/emulated",
+            "Eclipse SWT Accessibility/common",
+            "Eclipse SWT Drag and Drop/emulated",
+            "Eclipse SWT Drag and Drop/common",
+            "Eclipse SWT Printing/win32",
+            "Eclipse SWT Printing/common",
+            "Eclipse SWT Program/win32",
+            "Eclipse SWT Program/common",
+            "Eclipse SWT Custom Widgets/common",
+            "Eclipse SWT OpenGL/win32",
+            "Eclipse SWT OpenGL/common",
+            "Eclipse SWT Theme/win32",
+        ],
     },
     NativePaths => {
         "unix" => [
@@ -47,6 +58,11 @@ use constant {
             "Eclipse SWT PI/gtk/library",
             "Eclipse SWT PI/cairo/library",
             "Eclipse SWT OpenGL/glx/library",
+        ],
+        "win32" => [
+            "Eclipse SWT/common/library",
+            "Eclipse SWT PI/win32/library",
+            "Eclipse SWT OpenGL/win32/library",
         ],
     },
 };

@@ -25,7 +25,7 @@ ifeq "$(platform)" "unix"
   gij = /usr/local/gcc/bin/gij
   gcjh = /usr/local/gcc/bin/gcjh
   ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
+  ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -43,12 +43,13 @@ ifeq "$(platform)" "unix"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(platform)" "win32"
-  g++ = mingw32-g++
-  gcj = mingw32-gcj
-  gij = mingw32-gij
-  gcjh = mingw32-gcjh
+  g++ = /usr/local/gcc-w32/bin/mingw32-g++
+  gcj = /usr/local/gcc-w32/bin/mingw32-gcj
+  gij = /usr/local/gcc-w32/bin/mingw32-gij
+  gcjh = /usr/local/gcc-w32/bin/mingw32-gcjh
   ar = mingw32-ar
-  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj
+  ugcj = $(gcj)
+#   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 endif
 endif
 
