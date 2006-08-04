@@ -52,6 +52,21 @@ public abstract class CNIGenerator {
     return accessor;
   }
 
+  private static void generateStructureFunctionDeclarations
+    (PrintStream out, Class[] classes, MetaData metaData)
+  {
+    sort(classes);
+
+    for (int i = 0; i < classes.length; ++i) {
+      if (metaData.getMetaData(classes[i]).getGenerate()) {
+        generateReaderDeclaration(out, classes[i]);
+        generateWriterDeclaration(out, classes[i]);
+      }
+    }
+
+    out.println();    
+  }
+
   private static void generateStructureFunctions(PrintStream out,
                                                  Class[] classes,
                                                  MetaData metaData)
@@ -79,20 +94,25 @@ public abstract class CNIGenerator {
       ((m & Modifier.STATIC) != 0);
   }
 
-  private static void generateReader(PrintStream out, Class c,
-                                     MetaData metaData)
+  private static void generateReaderFields(PrintStream out, Class c,
+                                           MetaData metaData)
   {
+    Class superClass = c.getSuperclass();
     String name = name(c);
-
-    out.print("void get");
-    out.print(name);
-    out.print("Fields(");
-    generateTypeName(out, c);
-    out.print("* src, ");
-    out.print(name);
-    out.println("* dst)");
-    
-    out.println("{");
+    String superName = name(superClass);
+    if (superClass != Object.class) {
+      // Windows exception - cannot call get/set function of super
+      // class in this case.
+      if (! (name.equals(superName + "A") || name.equals(superName + "W"))) {
+        out.print("  get");
+        out.print(superName);
+        out.print("Fields(src, (");
+        out.print(superName);
+        out.println("*) dst);");
+      } else {
+        generateReaderFields(out, superClass, metaData);
+      }
+    }
 
     Field[] fields = c.getDeclaredFields();
     for (int i = 0; i < fields.length; i++) {
@@ -151,6 +171,34 @@ public abstract class CNIGenerator {
         out.println("));");
       }
     }
+  }
+
+  private static void generateReaderPrototype(PrintStream out, Class c) {
+    String name = name(c);
+
+    out.print("void get");
+    out.print(name);
+    out.print("Fields(");
+    generateTypeName(out, c);
+    out.print("* src, ");
+    out.print(name);
+    out.print("* dst)");
+  }  
+
+  private static void generateReaderDeclaration(PrintStream out, Class c) {
+    generateReaderPrototype(out, c);
+    out.println(";");
+  }
+
+  private static void generateReader(PrintStream out, Class c,
+                                     MetaData metaData)
+  {
+    generateReaderPrototype(out, c);
+    out.println();
+
+    out.println("{");
+
+    generateReaderFields(out, c, metaData);
 
     out.println("}");
   }
@@ -168,20 +216,25 @@ public abstract class CNIGenerator {
       ("can't determine byte count for " + c.getName());
   }
 
-  private static void generateWriter(PrintStream out, Class c,
-                                     MetaData metaData)
+  private static void generateWriterFields(PrintStream out, Class c,
+                                           MetaData metaData)
   {
+    Class superClass = c.getSuperclass();
     String name = name(c);
-
-    out.print("void set");
-    out.print(name);
-    out.print("Fields(");
-    generateTypeName(out, c);
-    out.print("* dst, ");
-    out.print(name);
-    out.println("* src)");
-    
-    out.println("{");
+    String superName = name(superClass);
+    if (superClass != Object.class) {
+      // Windows exception - cannot call get/set function of super
+      // class in this case.
+      if (! (name.equals(superName + "A") || name.equals(superName + "W"))) {
+        out.print("  set");
+        out.print(superName);
+        out.print("Fields(dst, (");
+        out.print(superName);
+        out.println("*) src);");
+      } else {
+        generateWriterFields(out, superClass, metaData);
+      }
+    }
 
     Field[] fields = c.getDeclaredFields();
     for (int i = 0; i < fields.length; i++) {
@@ -245,6 +298,34 @@ public abstract class CNIGenerator {
         out.println(");");
       }
     }
+  }
+
+  private static void generateWriterPrototype(PrintStream out, Class c) {
+    String name = name(c);
+
+    out.print("void set");
+    out.print(name);
+    out.print("Fields(");
+    generateTypeName(out, c);
+    out.print("* dst, ");
+    out.print(name);
+    out.print("* src)");
+  }
+
+  private static void generateWriterDeclaration(PrintStream out, Class c) {
+    generateWriterPrototype(out, c);
+    out.println(";");
+  }
+  
+  private static void generateWriter(PrintStream out, Class c,
+                                     MetaData metaData)
+  {
+    generateWriterPrototype(out, c);
+    out.println();
+    
+    out.println("{");
+
+    generateWriterFields(out, c, metaData);
 
     out.println("}");
   }
@@ -933,7 +1014,7 @@ public abstract class CNIGenerator {
     MyGeneratorApp app = new MyGeneratorApp(out);
 
     System.out.println("first stage:");
-    app.stage = MyGeneratorApp.FIRST_STAGE;
+    app.stage = 1;
     app.generateAll();
     out.println("#include \"cairo_custom.h\"");
     out.println("#include \"cairo.h\"");
@@ -947,7 +1028,11 @@ public abstract class CNIGenerator {
     out.println();
 
     System.out.println("\nsecond stage:");
-    app.stage = MyGeneratorApp.SECOND_STAGE;
+    app.stage = 2;
+    app.generateAll();
+
+    System.out.println("\nthird stage:");
+    app.stage = 3;
     app.generateAll();
   }
 
@@ -968,11 +1053,8 @@ public abstract class CNIGenerator {
   }
 
   private static class MyGeneratorApp extends JNIGeneratorApp {
-    private static final int FIRST_STAGE = 1;
-    private static final int SECOND_STAGE = 2;
-
     public final PrintStream out;
-    public int stage = FIRST_STAGE;
+    public int stage = 1;
     
     private MyGeneratorApp(PrintStream out) {
       this.out = out;
@@ -987,12 +1069,17 @@ public abstract class CNIGenerator {
       }
 
       switch (stage) {
-      case FIRST_STAGE:
+      case 1:
         generateIncludes(out, getStructureClasses(), getMetaData());
         generateIncludes(out, getNativesClasses(), getMetaData());
         break;
 
-      case SECOND_STAGE:
+      case 2:
+        generateStructureFunctionDeclarations(out, getStructureClasses(),
+                                              getMetaData());
+        break;
+
+      case 3:
         generateStructureFunctions(out, getStructureClasses(), getMetaData());
         generateNatives(out, getNativesClasses(), getMetaData());
         break;
