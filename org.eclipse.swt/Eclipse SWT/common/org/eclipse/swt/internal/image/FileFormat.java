@@ -21,9 +21,19 @@ import org.eclipse.swt.graphics.*;
  *
  */
 public abstract class FileFormat {
+/*#if USWT
+  static final Class[] FORMATS = { WinBMPFileFormat.class,
+                                   GIFFileFormat.class,
+                                   WinICOFileFormat.class,
+                                   JPEGFileFormat.class,
+                                   PNGFileFormat.class,
+                                   TIFFFileFormat.class,
+                                   OS2BMPFileFormat.class };
+  #else*/
 	static final String FORMAT_PACKAGE = "org.eclipse.swt.internal.image"; //$NON-NLS-1$
 	static final String FORMAT_SUFFIX = "FileFormat"; //$NON-NLS-1$
 	static final String[] FORMATS = {"WinBMP", "WinBMP", "GIF", "WinICO", "JPEG", "PNG", "TIFF", "OS2BMP"}; //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$//$NON-NLS-5$ //$NON-NLS-6$//$NON-NLS-7$//$NON-NLS-8$
+//#endif
 	
 	LEDataInputStream inputStream;
 	LEDataOutputStream outputStream;
@@ -65,6 +75,17 @@ public static ImageData[] load(InputStream is, ImageLoader loader) {
 	LEDataInputStream stream = new LEDataInputStream(is);
 	boolean isSupported = false;	
 	for (int i = 1; i < FORMATS.length; i++) {
+/*#if USWT
+    try {
+      fileFormat = (FileFormat) FORMATS[i].newInstance();
+      if (fileFormat.isFileFormat(stream)) {
+        isSupported = true;
+        break;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  #else*/
 		if (FORMATS[i] != null) {
 			try {
 				Class clazz = Class.forName(FORMAT_PACKAGE + '.' + FORMATS[i] + FORMAT_SUFFIX);
@@ -78,6 +99,7 @@ public static ImageData[] load(InputStream is, ImageLoader loader) {
 			} catch (Exception e) {
 			}
 		}
+//#endif
 	}
 	if (!isSupported) SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);
 	fileFormat.loader = loader;
@@ -96,8 +118,12 @@ public static void save(OutputStream os, int format, ImageLoader loader) {
 	LEDataOutputStream stream = new LEDataOutputStream(os);
 	FileFormat fileFormat = null;
 	try {
+/*#if USWT
+		fileFormat = (FileFormat) FORMATS[format].newInstance();
+  #else*/
 		Class clazz = Class.forName(FORMAT_PACKAGE + '.' + FORMATS[format] + FORMAT_SUFFIX);
 		fileFormat = (FileFormat) clazz.newInstance();
+//#endif
 	} catch (Exception e) {
 		SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);
 	}

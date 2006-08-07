@@ -13,7 +13,12 @@ package org.eclipse.swt.printing;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
+/*#if USWT
+import org.eclipse.swt.internal.CNICallback;
+import org.eclipse.swt.internal.CNIDispatcher;
+  #else*/
 import org.eclipse.swt.internal.Callback;
+//#endif
 import org.eclipse.swt.internal.Converter;
 import org.eclipse.swt.internal.gtk.OS;
 import org.eclipse.swt.internal.cairo.Cairo;
@@ -58,6 +63,29 @@ public final class Printer extends Device {
 	byte [] settingsData;
 	int start, end;
 
+/*#if USWT
+  private static final int GTK_PRINTER_FUNC_LIST = 1;
+  private static final int GTK_PRINTER_FUNC_DEFAULT = 2;
+  private static final int GTK_PRINTER_FUNC_FIND_NAMED_PRINTER = 3;
+
+  private static final CNIDispatcher dispatcher = new CNIDispatcher() {
+      public long dispatch(int method, long[] args) {
+        switch (method) {
+        case GTK_PRINTER_FUNC_LIST:
+          return GtkPrinterFunc_List(args[0], args[1]);
+          
+        case GTK_PRINTER_FUNC_DEFAULT:
+          return GtkPrinterFunc_Default(args[0], args[1]);
+
+        case GTK_PRINTER_FUNC_FIND_NAMED_PRINTER:
+          return GtkPrinterFunc_FindNamedPrinter(args[0], args[1]);
+          
+        default:
+          throw new IllegalArgumentException();
+        }
+      }
+    };
+  #endif*/
 
 /**
  * Returns an array of <code>PrinterData</code> objects
@@ -67,7 +95,11 @@ public final class Printer extends Device {
  */
 public static PrinterData[] getPrinterList() {
 	printerList = new PrinterData [0];
+/*#if USWT
+	CNICallback printerCallback = new CNICallback(dispatcher, GTK_PRINTER_FUNC_LIST, 2);
+  #else*/
 	Callback printerCallback = new Callback(Printer.class, "GtkPrinterFunc_List", 2); //$NON-NLS-1$
+//#endif
 	int /*long*/ GtkPrinterFunc_List = printerCallback.getAddress();
 	if (GtkPrinterFunc_List == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gtk_enumerate_printers(GtkPrinterFunc_List, 0, 0, true);
@@ -95,7 +127,11 @@ static int /*long*/ GtkPrinterFunc_List (int /*long*/ printer, int /*long*/ user
  */
 public static PrinterData getDefaultPrinterData() {
 	printerList = new PrinterData [1];
+/*#if USWT
+	CNICallback printerCallback = new CNICallback(dispatcher, GTK_PRINTER_FUNC_DEFAULT, 2);
+  #else*/
 	Callback printerCallback = new Callback(Printer.class, "GtkPrinterFunc_Default", 2); //$NON-NLS-1$
+//#endif
 	int /*long*/ GtkPrinterFunc_Default = printerCallback.getAddress();
 	if (GtkPrinterFunc_Default == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gtk_enumerate_printers(GtkPrinterFunc_Default, 0, 0, true);
@@ -112,7 +148,11 @@ static int /*long*/ GtkPrinterFunc_Default (int /*long*/ printer, int /*long*/ u
 }
 
 int /*long*/ gtkPrinterFromPrinterData() {
+/*#if USWT
+	CNICallback printerCallback = new CNICallback(dispatcher, GTK_PRINTER_FUNC_FIND_NAMED_PRINTER, 2);
+  #else*/
 	Callback printerCallback = new Callback(this, "GtkPrinterFunc_FindNamedPrinter", 2); //$NON-NLS-1$
+//#endif
 	int /*long*/ GtkPrinterFunc_FindNamedPrinter = printerCallback.getAddress();
 	if (GtkPrinterFunc_FindNamedPrinter == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	printer = 0;

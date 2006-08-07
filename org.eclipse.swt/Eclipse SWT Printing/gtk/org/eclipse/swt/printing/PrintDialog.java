@@ -300,7 +300,16 @@ public PrinterData open() {
 				data.collate = OS.gtk_print_settings_get_collate(settings);
 
 				/* Save other print_settings data as key/value pairs in otherData. */
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public long dispatch(int method, long[] args) {
+        return GtkPrintSettingsFunc(args[0], args[1], args[2]);
+      }
+    };
+				CNICallback printSettingsCallback = new CNICallback(dispatcher, 0, 3);
+  #else*/
 				Callback printSettingsCallback = new Callback(this, "GtkPrintSettingsFunc", 3); //$NON-NLS-1$
+//#endif
 				int /*long*/ GtkPrintSettingsFunc = printSettingsCallback.getAddress();
 				if (GtkPrintSettingsFunc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 				index = 0;

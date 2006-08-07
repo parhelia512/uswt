@@ -12,7 +12,12 @@ package org.eclipse.swt.dnd;
 
  
 import org.eclipse.swt.SWT;
+/*#if USWT
+import org.eclipse.swt.internal.CNICallback;
+import org.eclipse.swt.internal.CNIDispatcher;
+  #else*/
 import org.eclipse.swt.internal.Callback;
+//#endif
 import org.eclipse.swt.internal.Converter;
 import org.eclipse.swt.internal.gtk.GtkSelectionData;
 import org.eclipse.swt.internal.gtk.GtkTargetEntry;
@@ -33,10 +38,20 @@ class ClipboardProxy {
 	Display display;
 	Clipboard activeClipboard = null;
 	Clipboard activePrimaryClipboard = null;
+/*#if USWT
+	CNICallback getFunc;
+	CNICallback clearFunc;
+  #else*/
 	Callback getFunc;
 	Callback clearFunc;
+//#endif
 	
 	static String ID = "CLIPBOARD PROXY OBJECT"; //$NON-NLS-1$
+
+/*#if USWT
+  private static final int GET_FUNC = 1;
+  private static final int CLEAR_FUNC = 2;
+  #endif*/
 
 static ClipboardProxy _getInstance(final Display display) {
 	ClipboardProxy proxy = (ClipboardProxy) display.getData(ID);
@@ -54,11 +69,35 @@ static ClipboardProxy _getInstance(final Display display) {
 	return proxy;
 }	
 
-ClipboardProxy(Display display) {	
+ClipboardProxy(Display display) {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public long dispatch(int method, long[] args) {
+        switch (method) {
+        case GET_FUNC:
+          return getFunc(args[0], args[1], args[2], args[3]);
+          
+        case CLEAR_FUNC:
+          return clearFunc(args[0], args[1]);
+          
+        default:
+          throw new IllegalArgumentException();
+        }
+      }
+    };
+  #endif*/	
 	this.display = display;
+/*#if USWT
+	getFunc = new CNICallback(dispatcher, GET_FUNC, 4);
+  #else*/
 	getFunc = new Callback( this, "getFunc", 4); //$NON-NLS-1$
+//#endif
 	if (getFunc.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+	clearFunc = new CNICallback(dispatcher, CLEAR_FUNC, 2);
+  #else*/
 	clearFunc = new Callback( this, "clearFunc", 2); //$NON-NLS-1$
+//#endif
 	if (clearFunc.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 }
 
