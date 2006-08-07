@@ -4,6 +4,11 @@ use strict;
 
 use constant {
     SWTParent => "org.eclipse.swt",
+
+    Blacklist => [
+        "org/eclipse/swt/internal/Callback.java",
+    ],
+
     ClassPaths => {
         "unix" => [
             "Eclipse SWT/gtk",
@@ -52,6 +57,7 @@ use constant {
             "Eclipse SWT Theme/win32",
         ],
     },
+
     NativePaths => {
         "unix" => [
             "Eclipse SWT/common/library",
@@ -79,7 +85,14 @@ sub generate {
 
     my @files = `find $dirs -name '[A-Za-z]*.java'`;
     my %map;
-    for my $file (@files) {
+    loop: for my $file (@files) {
+        my $blacklist = Blacklist;
+        for my $blacklisted (@{$blacklist}) {
+            if ($file =~ /$blacklisted$/) {
+                next loop;
+            }
+        }
+
         my $new = $file;
         $new =~ s:.*/org/(.*):\$(build-dir)/sources/org/$1:;
         chomp $new;

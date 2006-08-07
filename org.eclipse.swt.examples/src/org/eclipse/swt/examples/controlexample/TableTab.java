@@ -395,6 +395,7 @@ class TableTab extends ScrollableTab {
 			TableItem item = findItem(value, ((Table) control).getItems());
 			if (item != null) return new Object[] {item};
 		}
+                //#if not USWT
 		if (typeName.equals("[Lorg.eclipse.swt.widgets.TableItem;")) {
 			String[] values = value.split(",");
 			TableItem[] items = new TableItem[values.length];
@@ -403,6 +404,7 @@ class TableTab extends ScrollableTab {
 			}
 			return new Object[] {items};
 		}
+                //#endif
 		return super.parameterForType(typeName, value, control);
 	}
 

@@ -132,6 +132,7 @@ class TabFolderTab extends Tab {
 			TabItem item = findItem(value, ((TabFolder) control).getItems());
 			if (item != null) return new Object[] {item};
 		}
+                //#if not USWT
 		if (typeName.equals("[Lorg.eclipse.swt.widgets.TabItem;")) {
 			String[] values = value.split(",");
 			TabItem[] items = new TabItem[values.length];
@@ -140,6 +141,7 @@ class TabFolderTab extends Tab {
 			}
 			return new Object[] {items};
 		}
+                //#endif
 		return super.parameterForType(typeName, value, control);
 	}
 

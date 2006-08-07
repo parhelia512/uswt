@@ -682,6 +682,9 @@ abstract class Tab {
 	}
 
 	String parameterInfo(String methodRoot) {
+/*#if USWT
+  return "<not implemented>";
+  #else*/
 		String typeName = null;
 		Class returnType = getReturnType(methodRoot);
 		boolean isArray = returnType.isArray();
@@ -698,9 +701,13 @@ abstract class Tab {
 			typeNameString += "[]";
 		}
 		return ControlExample.getResourceString("Parameter_Info", new Object[] {typeNameString, info});
+//#endif
 	}
 
 	void getValue() {
+/*#if USWT
+  getText.setText("<not implemented>");
+  #else*/
 		String methodName = "get" + nameCombo.getText();
 		getText.setText("");
 		Control[] controls = getExampleWidgets();
@@ -728,9 +735,13 @@ abstract class Tab {
 				getText.append("\n\n");
 			}
 		}
+//#endif
 	}
 
 	Class getReturnType(String methodRoot) {
+/*#if USWT
+  return null;
+  #else*/
 		Class returnType = null;
 		String methodName = "get" + methodRoot;
 		Control[] controls = getExampleWidgets();
@@ -740,9 +751,11 @@ abstract class Tab {
 		} catch (Exception e) {
 		}
 		return returnType;
+//#endif
 	}
 	
 	void setValue() {
+//#if not USWT
 		/* The parameter type must be the same as the get method's return type */
 		String methodRoot = nameCombo.getText();
 		Class returnType = getReturnType(methodRoot);
@@ -784,6 +797,7 @@ abstract class Tab {
 				getText.setText(e.toString());
 			}
 		}
+//#endif
 	}
 
 	Object[] parameterForType(String typeName, String value, Control control) {

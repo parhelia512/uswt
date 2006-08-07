@@ -48,8 +48,7 @@ ifeq "$(platform)" "win32"
   gij = /usr/local/gcc-w32/bin/mingw32-gij
   gcjh = /usr/local/gcc-w32/bin/mingw32-gcjh
   ar = mingw32-ar
-  ugcj = $(gcj)
-#   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
+  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 endif
 endif
 
@@ -106,7 +105,7 @@ swt-lflags += -fPIC \
 	$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
 	-L/usr/X11R6/lib -lGL -lGLU -lm
 
-cflags = -Os -g -fPIC
+cflags = -O0 -g -fPIC
 
 .PHONY: swt-sources
 swt-sources: $(swt-sources)
@@ -168,46 +167,6 @@ $(build-dir)/swt.a: \
 	@echo "creating $(@)"
 	@$(ar) cru $(@) $(^)
 
-# top-example-dir = ../swt/org.eclipse.swt.examples
-# example-dir = $(top-example-dir)/src
-# example-sources = $(shell find \
-# 	$(example-dir)/org/eclipse/swt/examples/controlexample \
-# 	-name '[A-Za-z]*.java')
-# example-objects = $(foreach x,$(example-sources),$(patsubst \
-# 	$(example-dir)/%.java,$(build-dir)/%.o,$(x)))
-# example-resources = $(shell find \
-# 	$(example-dir)/org/eclipse/swt/examples/controlexample \
-# 	-name '[A-Za-z]*.gif' -or -name '[A-Za-z]*.png')
-# example-resource-objects = $(foreach x,$(example-resources),$(patsubst \
-# 	$(example-dir)/%,$(build-dir)/%.o,$(x)))
-
-# .PHONY: example
-# example: $(build-dir)/example
-
-# $(example-objects): $(build-dir)/%.o: $(example-dir)/%.java
-# 	@mkdir -p $(dir $(@))
-# 	@echo "compiling $(@)"
-# 	@gcj $(cflags) --classpath $(example-dir):$(swt-dir) -c $(<) -o $(@)
-
-# $(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%
-# 	@mkdir -p $(dir $(@))
-# 	@echo "generating $(@) from $(<)"
-# 	@gcj --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
-
-# $(build-dir)/examples_control.o: $(example-dir)/examples_control.properties
-# 	@mkdir -p $(dir $(@))
-# 	@echo "generating $(@) from $(<)"
-# 	gcj --resource examples_control.properties -c $(<) -o $(@)
-
-# $(build-dir)/example: \
-# 		$(build-dir)/examples_control.o \
-# 		$(example-resource-objects) \
-# 		$(example-objects) \
-# 		$(build-dir)/swt.a
-# 	@echo "linking $(@)"
-# 	@gcj --main=org.eclipse.swt.examples.controlexample.ControlExample \
-# 		$(swt-lflags) $(^) -o $(@)
-
 .PHONY: hello
 hello: $(build-dir)/hello
 
@@ -215,6 +174,71 @@ $(build-dir)/hello: test/Hello.java $(build-dir)/swt.a
 	@echo "compiling $(@) from $(<)"
 	@$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
 		--main=Hello $(swt-lflags) $(<) $(build-dir)/swt.a -o $(@)
+
+top-example-dir = org.eclipse.swt.examples
+example-dir = $(top-example-dir)/src
+example-original-sources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/controlexample \
+	-name '[A-Za-z]*.java')
+example-sources =  $(foreach x,$(example-original-sources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/sources/%,$(x)))
+example-classes = $(foreach x,$(example-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/classes/%.class,$(x)))
+example-objects = $(foreach x,$(example-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/objects/%.o,$(x)))
+example-resources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/controlexample \
+	-name '[A-Za-z]*.gif' -or -name '[A-Za-z]*.png')
+example-resource-objects = $(foreach x,$(example-resources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/%.o,$(x)))
+
+.PHONY: example
+example: $(build-dir)/example
+
+$(example-classes): $(example-sources)
+	@echo "compiling example sources"
+	@mkdir -p $(build-dir)/classes
+	@$(ugcj) -C -d $(build-dir)/classes \
+		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
+
+.PHONY: example-classes
+example-classes: $(example-classes)
+
+$(example-sources): $(build-dir)/sources/%: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@)"
+	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
+
+.PHONY: example-sources
+example-sources: $(example-sources)
+
+$(example-objects): $(build-dir)/objects/%.o: \
+		$(build-dir)/sources/%.java \
+		$(example-sources) \
+		$(swt-classes)
+	@mkdir -p $(dir $(@))
+	@echo "compiling $(@)"
+	@$(ugcj) $(cflags) --classpath $(build-dir)/sources:$(build-dir)/classes \
+		-c $(<) -o $(@)
+
+$(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+
+$(build-dir)/examples_control.o: $(example-dir)/examples_control.properties
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource examples_control.properties -c $(<) -o $(@)
+
+$(build-dir)/example: \
+		$(build-dir)/examples_control.o \
+		$(example-resource-objects) \
+		$(example-objects) \
+		$(build-dir)/swt.a
+	@echo "linking $(@)"
+	@$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
+		$(swt-lflags) $(^) -o $(@)
 
 .PHONY: clean
 clean:

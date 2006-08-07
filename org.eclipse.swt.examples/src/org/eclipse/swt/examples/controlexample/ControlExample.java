@@ -17,7 +17,9 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import java.io.*;
+//#if not USWT
 import java.text.*;
+//#endif
 import java.util.*;
 
 public class ControlExample {
@@ -146,6 +148,9 @@ public class ControlExample {
 	 * return the key.
 	 */
 	static String getResourceString(String key, Object[] args) {
+/*#if USWT
+  return getResourceString(key);
+  #else*/
 		try {
 			return MessageFormat.format(getResourceString(key), args);
 		} catch (MissingResourceException e) {
@@ -153,6 +158,7 @@ public class ControlExample {
 		} catch (NullPointerException e) {
 			return "!" + key + "!"; //$NON-NLS-1$ //$NON-NLS-2$
 		}
+//#endif
 	}
 
 	/**

@@ -442,6 +442,7 @@ class TreeTab extends ScrollableTab {
 			TreeItem item = findItem(value, ((Tree) control).getItems());
 			if (item != null) return new Object[] {item};
 		}
+                //#if not USWT
 		if (typeName.equals("[Lorg.eclipse.swt.widgets.TreeItem;")) {
 			String[] values = value.split(",");
 			TreeItem[] items = new TreeItem[values.length];
@@ -452,6 +453,7 @@ class TreeTab extends ScrollableTab {
 			}
 			return new Object[] {items};
 		}
+                //#endif
 		return super.parameterForType(typeName, value, control);
 	}
 
