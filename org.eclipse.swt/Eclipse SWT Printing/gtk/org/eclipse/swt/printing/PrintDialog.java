@@ -302,7 +302,7 @@ public PrinterData open() {
 				/* Save other print_settings data as key/value pairs in otherData. */
 /*#if USWT
   CNIDispatcher dispatcher = new CNIDispatcher() {
-      public long dispatch(int method, long[] args) {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
         return GtkPrintSettingsFunc(args[0], args[1], args[2]);
       }
     };

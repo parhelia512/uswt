@@ -69,7 +69,7 @@ public final class Printer extends Device {
   private static final int GTK_PRINTER_FUNC_FIND_NAMED_PRINTER = 3;
 
   private static final CNIDispatcher dispatcher = new CNIDispatcher() {
-      public long dispatch(int method, long[] args) {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
         switch (method) {
         case GTK_PRINTER_FUNC_LIST:
           return GtkPrinterFunc_List(args[0], args[1]);

@@ -72,7 +72,7 @@ static ClipboardProxy _getInstance(final Display display) {
 ClipboardProxy(Display display) {
 /*#if USWT
   CNIDispatcher dispatcher = new CNIDispatcher() {
-      public long dispatch(int method, long[] args) {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
         switch (method) {
         case GET_FUNC:
           return getFunc(args[0], args[1], args[2], args[3]);
