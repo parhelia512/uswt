@@ -174,7 +174,17 @@ public String open () {
 	}
 
 	/* Create the BrowseCallbackProc */
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return BrowseCallbackProc(args[0], args[1], args[2], args[3]);
+      }
+    };
+
+  CNICallback callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 	Callback callback = new Callback (this, "BrowseCallbackProc", 4); //$NON-NLS-1$
+//#endif
 	int address = callback.getAddress ();
 	if (address == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	

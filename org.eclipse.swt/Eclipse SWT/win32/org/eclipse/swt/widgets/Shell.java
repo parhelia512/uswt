@@ -2084,6 +2084,7 @@ LRESULT WM_SYSCOMMAND (int wParam, int lParam) {
 	* with SW_SHOWMINIMIZED does not.  There is no fix for
 	* this at this time.
 	*/
+        //#if not USWT
 	if (OS.IsWinNT) {
 		int cmd = wParam & 0xFFF0;
 		switch (cmd) {
@@ -2095,6 +2096,7 @@ LRESULT WM_SYSCOMMAND (int wParam, int lParam) {
 				}
 		}
 	}
+        //#endif
 	return result;
 }
 

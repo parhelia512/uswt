@@ -453,7 +453,7 @@ public abstract class CNIGenerator {
          st.hasMoreTokens();)
     {
       out.print(st.nextToken());
-      if (st.hasMoreTokens()) out.print("::");
+      if (st.hasMoreTokens()) out.print("::"); else out.print("MacroProtect_");
     }
   }
 
@@ -1056,10 +1056,16 @@ public abstract class CNIGenerator {
       System.out.println("first stage:");
       app.stage = 1;
       app.generateAll();
-      out.println("#include \"cairo_custom.h\"");
-      out.println("#include \"cairo.h\"");
-      out.println("#include \"cairo-xlib.h\"");
-      out.println("#include \"glx.h\"");
+      if (SWT.getPlatform().equals("gtk")) {
+        out.println("#include \"cairo_custom.h\"");
+        out.println("#include \"cairo.h\"");
+        out.println("#include \"cairo-xlib.h\"");
+        out.println("#include \"glx.h\"");
+      } else if (SWT.getPlatform().equals("win32")) {
+        out.println("#include \"windows.h\"");
+        out.println("#include \"docobj.h\"");
+        out.println("#include \"commctrl.h\"");
+      }
       out.println("#include \"os.h\"");
       out.println();
 

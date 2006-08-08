@@ -712,7 +712,17 @@ void resizeEmbeddedHandle(int embeddedHandle, int width, int height) {
 		if (processID [0] == OS.GetCurrentProcessId ()) {
 			if (display.msgHook == 0) {
 				if (!OS.IsWinCE) {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return display.getMsgProc(args[0], args[1], args[2]);
+      }
+    };
+
+  display.getMsgCallback = new CNICallback(dispatcher, 0, 3);
+  #else*/
 					display.getMsgCallback = new Callback (display, "getMsgProc", 3);
+//#endif
 					display.getMsgProc = display.getMsgCallback.getAddress ();
 					if (display.getMsgProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 					display.msgHook = OS.SetWindowsHookEx (OS.WH_GETMESSAGE, display.getMsgProc, OS.GetLibraryHandle(), threadId);

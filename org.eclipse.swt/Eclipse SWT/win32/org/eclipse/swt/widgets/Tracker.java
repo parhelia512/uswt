@@ -457,7 +457,18 @@ public boolean open () {
 	* outside of our visible windows (ie.- over the desktop).
 	*/
 	int hwndTransparent = 0;
+
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return transparentProc(args[0], args[1], args[2], args[3]);
+      }
+    };
+
+  CNICallback newProc = null;
+  #else*/
 	Callback newProc = null;
+//#endif
 	boolean mouseDown = OS.GetKeyState(OS.VK_LBUTTON) < 0;
 	if (!mouseDown) {
 		int width = OS.GetSystemMetrics (OS.SM_CXSCREEN);
@@ -474,7 +485,11 @@ public boolean open () {
 			OS.GetModuleHandle (null),
 			null);
 		oldProc = OS.GetWindowLong (hwndTransparent, OS.GWL_WNDPROC);
+/*#if USWT
+  newProc = new CNICallback(dispatcher, 0, 4);
+  #else*/
 		newProc = new Callback (this, "transparentProc", 4); //$NON-NLS-1$
+//#endif
 		int newProcAddress = newProc.getAddress ();
 		if (newProcAddress == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		OS.SetWindowLong (hwndTransparent, OS.GWL_WNDPROC, newProcAddress);

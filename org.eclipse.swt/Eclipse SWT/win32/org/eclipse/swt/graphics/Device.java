@@ -442,7 +442,17 @@ public FontData [] getFontList (String faceName, boolean scalable) {
 	checkDevice ();
 	
 	/* Create the callback */
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return EnumFontFamProc(args[0], args[1], args[2], args[3]);
+      }
+    };
+
+  CNICallback callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 	Callback callback = new Callback (this, "EnumFontFamProc", 4); //$NON-NLS-1$
+//#endif
 	int lpEnumFontFamProc = callback.getAddress ();
 	if (lpEnumFontFamProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	

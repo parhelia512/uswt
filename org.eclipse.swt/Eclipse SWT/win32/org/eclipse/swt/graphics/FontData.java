@@ -503,7 +503,17 @@ public void setLocale(String locale) {
 	if (lang == null) {
 		data.lfCharSet = (byte)OS.DEFAULT_CHARSET;
 	} else {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return EnumLocalesProc(args[0]);
+      }
+    };
+
+  CNICallback callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 		Callback callback = new Callback (this, "EnumLocalesProc", 1); //$NON-NLS-1$
+//#endif
 		int lpEnumLocalesProc = callback.getAddress ();	
 		if (lpEnumLocalesProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 		OS.EnumSystemLocales(lpEnumLocalesProc, OS.LCID_SUPPORTED);

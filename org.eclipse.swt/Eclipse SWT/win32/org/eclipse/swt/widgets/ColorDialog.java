@@ -131,7 +131,17 @@ public RGB open () {
 	int hwndOwner = parent.handle;
 
 	/* Create the CCHookProc */
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return CCHookProc(args[0], args[1], args[2], args[3]);
+      }
+    };
+
+  CNICallback callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 	Callback callback = new Callback (this, "CCHookProc", 4); //$NON-NLS-1$
+//#endif
 	int lpfnHook = callback.getAddress ();
 	if (lpfnHook == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	

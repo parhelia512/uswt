@@ -20,12 +20,13 @@ endif
 endif
 
 ifeq "$(platform)" "unix"
-  g++ = /usr/local/gcc/bin/g++
-  gcj = /usr/local/gcc/bin/gcj
-  gij = /usr/local/gcc/bin/gij
-  gcjh = /usr/local/gcc/bin/gcjh
+  g++ = g++
+  gcj = gcj
+  gij = gij
+  gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
+  cflags = -Os -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -43,12 +44,20 @@ ifeq "$(platform)" "unix"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(platform)" "win32"
-  g++ = /usr/local/gcc-w32/bin/mingw32-g++
-  gcj = /usr/local/gcc-w32/bin/mingw32-gcj
-  gij = /usr/local/gcc-w32/bin/mingw32-gij
-  gcjh = /usr/local/gcc-w32/bin/mingw32-gcjh
+  g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
+  gcj = gcj
+  gij = gij
+  gcjh = gcjh
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
+  cflags = -Os -g
+
+  swt-cflags = \
+		-DJPTR=$(jptr) \
+		-D_WIN32_WINNT=0x0501 \
+		-D_WIN32_IE=0x0500 \
+		-I$(build-dir)/native-sources \
+		-I$(build-dir)/headers
 endif
 endif
 
@@ -94,23 +103,6 @@ swt-binding-dir = $(build-dir)/bindings
 swt-processed-binding-dir = $(build-dir)/processed-bindings
 swt-binding-object-dir = $(build-dir)/binding-objects
 
-swt-cflags += \
-	-DJPTR=$(jptr) \
-	$$(pkg-config --cflags cairo) \
-	$$(pkg-config --cflags gtk+-2.0) \
-	$$(pkg-config --cflags atk gtk+-2.0) \
-	-I$(build-dir)/native-sources \
-	-I$(build-dir)/headers
-
-swt-lflags += -fPIC \
-	$$(pkg-config --libs-only-L cairo) -lcairo \
-	$$(pkg-config --libs-only-L gtk+-2.0 gthread-2.0) \
-	-lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib -lXtst \
-	$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
-	-L/usr/X11R6/lib -lGL -lGLU -lm
-
-cflags = -Os -g -fPIC
-
 .PHONY: swt-sources
 swt-sources: $(swt-sources)
 
@@ -142,11 +134,11 @@ swt-processed-bindings: \
 		$(swt-headers)
 	@echo "processing bindings"
 	@mkdir -p $(swt-processed-binding-dir)
-	@for file in $(swt-binding-dir)/*.cpp; do \
+	@set -e; for file in $(swt-binding-dir)/*.cpp; do \
 		echo "processing $${file}"; \
 		$(g++) $(cflags) $(swt-cflags) -E $${file} \
 			-o $(swt-processed-binding-dir)/$${file##*/}; \
-		sed -i -e 's/MacroProtect_//' $(swt-processed-binding-dir)/$${file##*/}; \
+		sed -i -e 's/MacroProtect_//' $(swt-processed-binding-dir)/$${file##*/}; exit 0;\
 	 done
 
 # note the -O0 flag below - something breaks when the code is
@@ -155,7 +147,7 @@ swt-processed-bindings: \
 swt-binding-objects: swt-processed-bindings
 	@echo "compiling bindings"
 	@mkdir -p $(swt-binding-object-dir)
-	@for file in $(swt-processed-binding-dir)/*.cpp; do \
+	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
 		echo "compiling $${file}"; \
 		$(g++) $(cflags) -O0 -c $${file} \
 			-o $(swt-binding-object-dir)/$$(basename $${file}).o; \

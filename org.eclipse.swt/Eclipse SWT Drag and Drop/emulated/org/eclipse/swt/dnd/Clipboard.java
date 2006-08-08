@@ -174,6 +174,16 @@ public Object getContents(Transfer transfer) {
 	return display.getData("TextTransfer"); //$NON-NLS-1$
 }
 
+/*#if USWT
+  public Object getContents(Transfer transfer, int clipboardType) {
+    return getContents(transfer);
+  }
+
+  public void setContents(Object[] data, Transfer[] types, int clipboardType) {
+    setContents(data, types);
+  }
+  #endif*/
+
 /**
  * Returns <code>true</code> if the clipboard has been disposed,
  * and <code>false</code> otherwise.

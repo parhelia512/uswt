@@ -26,7 +26,11 @@ public class BidiUtil {
 	public static final int KEYBOARD_BIDI = 1;
 
 	// bidi flag
+/*#if USWT
+	static int isBidiPlatform_ = -1;
+  #else*/
 	static int isBidiPlatform = -1;
+//#endif
 
 	// getRenderInfo flag values
 	public static final int CLASSIN = 1;
@@ -38,6 +42,19 @@ public class BidiUtil {
 	static Hashtable languageMap = new Hashtable ();
 	static Hashtable keyMap = new Hashtable ();
 	static Hashtable oldProcMap = new Hashtable ();
+/*#if USWT
+  static CNICallback callback;
+
+  static {
+    CNIDispatcher dispatcher = new CNIDispatcher() {
+        public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+          return windowProc(args[0], args[1], args[2], args[3]);
+        }
+      };
+
+    callback = new CNICallback(dispatcher, 0, 4);
+  }
+  #else*/
 	/*
 	 * This code is intentionally commented.  In order
 	 * to support CLDC, .class cannot be used because
@@ -53,6 +70,7 @@ public class BidiUtil {
 			if (callback.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 		} catch (ClassNotFoundException e) {}
 	}
+//#endif
 
 	// GetCharacterPlacement constants
 	static final int GCP_REORDER = 0x0002;
@@ -113,11 +131,19 @@ public static void addLanguageListener (int hwnd, Runnable runnable) {
  */
 static int EnumSystemLanguageGroupsProc(int lpLangGrpId, int lpLangGrpIdString, int lpLangGrpName, int options, int lParam) {
 	if (lpLangGrpId == OS.LGRPID_HEBREW) {
+/*#if USWT
+		isBidiPlatform_ = 1;
+  #else*/
 		isBidiPlatform = 1;
+//#endif
 		return 0;
 	}
 	if (lpLangGrpId == OS.LGRPID_ARABIC) {
+/*#if USWT
+		isBidiPlatform_ = 1;
+  #else*/
 		isBidiPlatform = 1;
+//#endif
 		return 0;
 	}
 	return 1;
@@ -435,9 +461,15 @@ static int[] getKeyboardLanguageList() {
  */
 public static boolean isBidiPlatform() {
 	if (OS.IsWinCE) return false;
+/*#if USWT
+	if (isBidiPlatform_ != -1) return isBidiPlatform_ == 1; // already set
+
+	isBidiPlatform_ = 0;
+  #else*/
 	if (isBidiPlatform != -1) return isBidiPlatform == 1; // already set
 
 	isBidiPlatform = 0;
+//#endif
 	
 	// The following test is a workaround for bug report 27629. On WinXP,
 	// both bidi and complex script (e.g., Thai) languages must be installed
@@ -449,24 +481,48 @@ public static boolean isBidiPlatform() {
 	// languages, but only install the Thai keyboard).
 	if (!isKeyboardBidi()) return false;
 	
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return EnumSystemLanguageGroupsProc(args[0], args[1], args[2], args[3], args[4]);
+      }
+    };
+
+  CNICallback callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 	Callback callback = null;
 	try {
 		callback = new Callback (Class.forName (CLASS_NAME), "EnumSystemLanguageGroupsProc", 5); //$NON-NLS-1$
+//#endif
 		int lpEnumSystemLanguageGroupsProc = callback.getAddress ();	
 		if (lpEnumSystemLanguageGroupsProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 		OS.EnumSystemLanguageGroups(lpEnumSystemLanguageGroupsProc, OS.LGRPID_INSTALLED, 0);
 		callback.dispose ();
+//#if not USWT
 	} catch (ClassNotFoundException e) {
 		if (callback != null) callback.dispose();
 	}
+//#endif
+/*#if USWT
+	if (isBidiPlatform_ == 1) return true;
+  #else*/
 	if (isBidiPlatform == 1) return true;
+//#endif
 	// need to look at system code page for NT & 98 platforms since EnumSystemLanguageGroups is
 	// not supported for these platforms
 	String codePage = String.valueOf(OS.GetACP());
 	if (CD_PG_ARABIC.equals(codePage) || CD_PG_HEBREW.equals(codePage)) {
+/*#if USWT
+		isBidiPlatform_ = 1;
+  #else*/
 		isBidiPlatform = 1;
+//#endif
 	}
+/*#if USWT
+	return isBidiPlatform_ == 1;
+  #else*/
 	return isBidiPlatform == 1;
+//#endif
 }
 /**
  * Return whether or not the keyboard supports input of a bidi language.  Determine this

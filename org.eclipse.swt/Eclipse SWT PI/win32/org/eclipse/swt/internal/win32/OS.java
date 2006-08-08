@@ -70,9 +70,14 @@ public class OS extends Platform {
 		IsWin95 = info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS;
 		IsWinNT = info.dwPlatformId == VER_PLATFORM_WIN32_NT;
 		IsWinCE = info.dwPlatformId == VER_PLATFORM_WIN32_CE;
+/*#if USWT
+		IsSP = IsSP_();
+		IsPPC = IsPPC_();
+  #else*/
 		IsSP = IsSP();
 		IsPPC = IsPPC();
-		IsHPC = IsWinCE && !IsPPC && !IsSP;	
+//#endif
+		IsHPC = IsWinCE && !IsPPC && !IsSP;
 		WIN32_MAJOR = info.dwMajorVersion;
 		WIN32_MINOR = info.dwMinorVersion;
 		WIN32_VERSION = VERSION (WIN32_MAJOR, WIN32_MINOR);
@@ -3068,8 +3073,16 @@ public static final native boolean IsAppThemed();
 public static final native boolean IsDBCSLeadByte (byte TestChar);
 public static final native boolean IsHungAppWindow  (int hWnd);
 public static final native boolean IsIconic (int hWnd);
+/*#if USWT
+public static final native boolean IsPPC_();
+  #else*/
 public static final native boolean IsPPC();
+//#endif
+/*#if USWT
+public static final native boolean IsSP_();
+  #else*/
 public static final native boolean IsSP();
+//#endif
 public static final native boolean IsWindowEnabled (int hWnd);
 public static final native boolean IsWindowVisible (int hWnd);
 public static final native boolean IsZoomed (int hWnd);

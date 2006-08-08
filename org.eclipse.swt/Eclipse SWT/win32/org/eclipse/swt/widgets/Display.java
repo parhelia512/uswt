@@ -108,7 +108,11 @@ public class Display extends Device {
 	
 	/* Windows and Events */
 	Event [] eventQueue;
+/*#if USWT
+  CNICallback windowCallback;
+  #else*/
 	Callback windowCallback;
+//#endif
 	int windowProc, threadId;
 	TCHAR windowClass, windowShadowClass;
 	static int WindowClassCount;
@@ -149,17 +153,29 @@ public class Display extends Device {
 	static final int ID_START = 108;
 	
 	/* Filter Hook */
+/*#if USWT
+  CNICallback msgFilterCallback;
+  #else*/
 	Callback msgFilterCallback;
+//#endif
 	int msgFilterProc, filterHook;
 	MSG hookMsg = new MSG ();
 	
 	/* Idle Hook */
+/*#if USWT
+  CNICallback foregroundIdleCallback;
+  #else*/
 	Callback foregroundIdleCallback;
+//#endif
 	int foregroundIdleProc, idleHook;
 	
 	/* Message Hook and Embedding */
 	boolean ignoreNextKey;
+/*#if USWT
+  CNICallback getMsgCallback, embeddedCallback;
+  #else*/
 	Callback getMsgCallback, embeddedCallback;
+//#endif
 	int getMsgProc, msgHook, embeddedHwnd, embeddedProc;
 	static final String AWT_WINDOW_CLASS = "SunAwtWindow";
 	static final short [] ACCENTS = new short [] {'~', '`', '\'', '^', '"'};
@@ -202,7 +218,11 @@ public class Display extends Device {
 	int lastHittest;
 	
 	/* Message Only Window */
+/*#if USWT
+  CNICallback messageCallback;
+  #else*/
 	Callback messageCallback;
+//#endif
 	int hwndMessage, messageProc;
 	
 	/* System Resources */
@@ -361,7 +381,18 @@ public class Display extends Device {
 				setDevice (device);
 			}
 		};
-	}	
+	}
+
+/*#if USWT
+  private static final int MONITOR_ENUM_PROC = 1;
+  private static final int EMBEDDED_PROC = 2;
+  private static final int WINDOW_PROC = 3;
+  private static final int MESSAGE_PROC = 4;
+  private static final int MSG_FILTER_PROC = 5;
+  private static final int FOREGROUND_IDLE_PROC = 6;
+
+  private CNIDispatcher dispatcher;
+  #endif*/
 
 /*
 * TEMPORARY CODE.
@@ -703,6 +734,33 @@ public void close () {
  * @see #init
  */
 protected void create (DeviceData data) {
+/*#if USWT
+  dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+        case MONITOR_ENUM_PROC:
+          return monitorEnumProc(args[0], args[1], args[2], args[3]);
+
+        case EMBEDDED_PROC:
+          return embeddedProc(args[0], args[1], args[2], args[3]);
+
+        case WINDOW_PROC:
+          return windowProc(args[0], args[1], args[2], args[3]);
+
+        case MESSAGE_PROC:
+          return messageProc(args[0], args[1], args[2], args[3]);
+
+        case MSG_FILTER_PROC:
+          return msgFilterProc(args[0], args[1], args[2]);
+
+        case FOREGROUND_IDLE_PROC:
+          return foregroundIdleProc(args[0], args[1], args[2]);
+
+        default: throw new IllegalArgumentException();
+        }
+      }
+    };
+  #endif*/
 	checkSubclass ();
 	checkDisplay (thread = Thread.currentThread (), true);
 	createDisplay (data);
@@ -1733,7 +1791,11 @@ public Monitor [] getMonitors () {
 		return new Monitor [] {getPrimaryMonitor ()};
 	}
 	monitors = new Monitor [4];
+/*#if USWT
+  CNICallback callback = new CNICallback(dispatcher, MONITOR_ENUM_PROC, 4);
+  #else*/
 	Callback callback = new Callback (this, "monitorEnumProc", 4); //$NON-NLS-1$
+//#endif
 	int lpfnEnum = callback.getAddress ();
 	if (lpfnEnum == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.EnumDisplayMonitors (0, null, lpfnEnum, 0);
@@ -1757,7 +1819,11 @@ int getMsgProc (int code, int wParam, int lParam) {
 			0,
 			hInstance,
 			null);
+/*#if USWT
+  embeddedCallback = new CNICallback(dispatcher, EMBEDDED_PROC, 4);
+  #else*/
 		embeddedCallback = new Callback (this, "embeddedProc", 4); //$NON-NLS-1$
+//#endif
 		embeddedProc = embeddedCallback.getAddress ();
 		if (embeddedProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 		OS.SetWindowLong (embeddedHwnd, OS.GWL_WNDPROC, embeddedProc);
@@ -1809,7 +1875,11 @@ public Monitor getPrimaryMonitor () {
 		return monitor;
 	}
 	monitors = new Monitor [4];
+/*#if USWT
+  CNICallback callback = new CNICallback(dispatcher, MONITOR_ENUM_PROC, 4);
+  #else*/
 	Callback callback = new Callback (this, "monitorEnumProc", 4); //$NON-NLS-1$
+//#endif
 	int lpfnEnum = callback.getAddress ();
 	if (lpfnEnum == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.EnumDisplayMonitors (0, null, lpfnEnum, 0);
@@ -2218,7 +2288,11 @@ protected void init () {
 	super.init ();
 		
 	/* Create the callbacks */
+/*#if USWT
+  windowCallback = new CNICallback(dispatcher, WINDOW_PROC, 4);
+  #else*/
 	windowCallback = new Callback (this, "windowProc", 4); //$NON-NLS-1$
+//#endif
 	windowProc = windowCallback.getAddress ();
 	if (windowProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	
@@ -2260,14 +2334,22 @@ protected void init () {
 		0,
 		hInstance,
 		null);
+/*#if USWT
+  messageCallback = new CNICallback(dispatcher, MESSAGE_PROC, 4);
+  #else*/
 	messageCallback = new Callback (this, "messageProc", 4); //$NON-NLS-1$
+//#endif
 	messageProc = messageCallback.getAddress ();
 	if (messageProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.SetWindowLong (hwndMessage, OS.GWL_WNDPROC, messageProc);
 
 	/* Create the filter hook */
 	if (!OS.IsWinCE) {
+/*#if USWT
+  msgFilterCallback = new CNICallback(dispatcher, MSG_FILTER_PROC, 4);
+  #else*/
 		msgFilterCallback = new Callback (this, "msgFilterProc", 3); //$NON-NLS-1$
+//#endif
 		msgFilterProc = msgFilterCallback.getAddress ();
 		if (msgFilterProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 		filterHook = OS.SetWindowsHookEx (OS.WH_MSGFILTER, msgFilterProc, 0, threadId);
@@ -2275,7 +2357,11 @@ protected void init () {
 	
 	/* Create the idle hook */
 	if (!OS.IsWinCE) {
+/*#if USWT
+  foregroundIdleCallback = new CNICallback(dispatcher, FOREGROUND_IDLE_PROC, 4);
+  #else*/
 		foregroundIdleCallback = new Callback (this, "foregroundIdleProc", 3); //$NON-NLS-1$
+//#endif
 		foregroundIdleProc = foregroundIdleCallback.getAddress ();
 		if (foregroundIdleProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 		idleHook = OS.SetWindowsHookEx (OS.WH_FOREGROUNDIDLE, foregroundIdleProc, 0, threadId);
