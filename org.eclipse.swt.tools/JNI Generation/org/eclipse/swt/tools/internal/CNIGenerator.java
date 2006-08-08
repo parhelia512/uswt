@@ -67,23 +67,56 @@ public abstract class CNIGenerator {
     out.println();    
   }
 
-  private static void generateStructureFunctions(PrintStream out,
+  private static PrintStream headerOut(String prefix)
+    throws Exception
+  {
+    return new PrintStream(new BufferedOutputStream
+                           (new FileOutputStream(prefix + "swt.h")));
+  }
+
+  private static PrintStream structureFunctionOut(String prefix, Class c)
+    throws Exception
+  {    
+    PrintStream out = new PrintStream(new BufferedOutputStream
+                                      (new FileOutputStream
+                                       (prefix + name(c) + "-structs.cpp")));
+    out.println("#include \"swt.h\"");
+    out.println();
+    return out;
+  }
+
+  private static PrintStream nativeOut(String prefix, Class c)
+    throws Exception
+  {    
+    PrintStream out = new PrintStream(new BufferedOutputStream
+                                      (new FileOutputStream
+                                       (prefix + name(c) + "-natives.cpp")));
+    out.println("#include \"swt.h\"");
+    out.println();
+    return out;
+  }
+
+  private static void generateStructureFunctions(String prefix,
                                                  Class[] classes,
                                                  MetaData metaData)
+    throws Exception
   {
     sort(classes);
 
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
-        generateReader(out, classes[i], metaData);
-        out.println();
+        PrintStream out = structureFunctionOut(prefix, classes[i]);
+        try {
+          generateReader(out, classes[i], metaData);
+          out.println();
 
-        generateWriter(out, classes[i], metaData);
-        out.println();
+          generateWriter(out, classes[i], metaData);
+          out.println();
+        } finally {
+          out.close();
+        }
       }
     }
-
-    out.println();    
   }
 
   private static boolean ignoreField(Field field) {
@@ -330,14 +363,20 @@ public abstract class CNIGenerator {
     out.println("}");
   }
   
-  private static void generateNatives(PrintStream out, Class[] classes,
+  private static void generateNatives(String prefix, Class[] classes,
                                       MetaData metaData)
+    throws Exception
   {
     sort(classes);
 
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
-        generateMethods(out, classes[i], metaData);
+        PrintStream out = nativeOut(prefix, classes[i]);
+        try {
+          generateMethods(out, classes[i], metaData);
+        } finally {
+          out.close();
+        }
       }
     }
   }
@@ -1010,26 +1049,30 @@ public abstract class CNIGenerator {
     out.println("}");
   }
 
-  public static void generateAll(PrintStream out) throws Exception {
-    MyGeneratorApp app = new MyGeneratorApp(out);
+  private static void generateAll(String prefix) throws Exception {
+    PrintStream out = headerOut(prefix);
+    MyGeneratorApp app = new MyGeneratorApp(out, prefix);
+    try {
+      System.out.println("first stage:");
+      app.stage = 1;
+      app.generateAll();
+      out.println("#include \"cairo_custom.h\"");
+      out.println("#include \"cairo.h\"");
+      out.println("#include \"cairo-xlib.h\"");
+      out.println("#include \"glx.h\"");
+      out.println("#include \"os.h\"");
+      out.println();
 
-    System.out.println("first stage:");
-    app.stage = 1;
-    app.generateAll();
-    out.println("#include \"cairo_custom.h\"");
-    out.println("#include \"cairo.h\"");
-    out.println("#include \"cairo-xlib.h\"");
-    out.println("#include \"glx.h\"");
-    out.println("#include \"os.h\"");
-    out.println();
+      out.println("#undef TRUE");
+      out.println("#define TRUE 1");
+      out.println();
 
-    out.println("#undef TRUE");
-    out.println("#define TRUE 1");
-    out.println();
-
-    System.out.println("\nsecond stage:");
-    app.stage = 2;
-    app.generateAll();
+      System.out.println("\nsecond stage:");
+      app.stage = 2;
+      app.generateAll();
+    } finally {
+      out.close();
+    }
 
     System.out.println("\nthird stage:");
     app.stage = 3;
@@ -1039,25 +1082,22 @@ public abstract class CNIGenerator {
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       System.err.println
-        ("usage: java " + CNIGenerator.class.getName() + " <output_file>");
+        ("usage: java " + CNIGenerator.class.getName() +
+         " <output_prefix>");
       System.exit(-1);
     }
 
-    PrintStream out = new PrintStream(new BufferedOutputStream
-                                      (new FileOutputStream(args[0])));
-    try {
-      generateAll(out);
-    } finally {
-      out.close();
-    }
+    generateAll(args[0]);
   }
 
   private static class MyGeneratorApp extends JNIGeneratorApp {
-    public final PrintStream out;
+    public final PrintStream headerOut;
+    public final String prefix;
     public int stage = 1;
     
-    private MyGeneratorApp(PrintStream out) {
-      this.out = out;
+    private MyGeneratorApp(PrintStream headerOut, String prefix) {
+      this.headerOut = headerOut;
+      this.prefix = prefix;
     }
 
     public void generate() {
@@ -1070,18 +1110,19 @@ public abstract class CNIGenerator {
 
       switch (stage) {
       case 1:
-        generateIncludes(out, getStructureClasses(), getMetaData());
-        generateIncludes(out, getNativesClasses(), getMetaData());
+        generateIncludes(headerOut, getStructureClasses(), getMetaData());
+        generateIncludes(headerOut, getNativesClasses(), getMetaData());
         break;
 
       case 2:
-        generateStructureFunctionDeclarations(out, getStructureClasses(),
+        generateStructureFunctionDeclarations(headerOut, getStructureClasses(),
                                               getMetaData());
         break;
 
       case 3:
-        generateStructureFunctions(out, getStructureClasses(), getMetaData());
-        generateNatives(out, getNativesClasses(), getMetaData());
+        generateStructureFunctions(prefix, getStructureClasses(),
+                                   getMetaData());
+        generateNatives(prefix, getNativesClasses(), getMetaData());
         break;
 
       default: throw new RuntimeException("unexpected stage: " + stage);

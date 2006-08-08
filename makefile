@@ -90,6 +90,10 @@ $(gen-classes): $(gen-sources) $(swt-sources)
 	@$(gcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(gen-dir)	$(gen-sources)
 
+swt-binding-dir = $(build-dir)/bindings
+swt-processed-binding-dir = $(build-dir)/processed-bindings
+swt-binding-object-dir = $(build-dir)/binding-objects
+
 swt-cflags += \
 	-DJPTR=$(jptr) \
 	$$(pkg-config --cflags cairo) \
@@ -105,7 +109,7 @@ swt-lflags += -fPIC \
 	$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
 	-L/usr/X11R6/lib -lGL -lGLU -lm
 
-cflags = -O0 -g -fPIC
+cflags = -Os -g -fPIC
 
 .PHONY: swt-sources
 swt-sources: $(swt-sources)
@@ -121,25 +125,41 @@ $(swt-classes): $(swt-sources)
 	@mkdir -p $(build-dir)/classes
 	@$(ugcj) -C -d $(build-dir)/classes --classpath $(build-dir)/sources $(^)
 
-$(build-dir)/swt.cpp: \
+.PHONY: swt-bindings
+swt-bindings: \
 		$(swt-classes) \
 		$(gen-classes) \
 		$(gen-properties)
-	@echo "generating native code"
+	@echo "generating bindings"
+	@mkdir -p $(swt-binding-dir)
 	@$(gij) -cp $(build-dir)/classes:$(gen-dir) \
-		org.eclipse.swt.tools.internal.CNIGenerator	$(@)
+		org.eclipse.swt.tools.internal.CNIGenerator	$(swt-binding-dir)/
 
-$(build-dir)/swt-processed.cpp: \
-		$(build-dir)/swt.cpp \
+.PHONY: swt-processed-bindings
+swt-processed-bindings: \
+		swt-bindings \
 		$(swt-native-sources) \
 		$(swt-headers)
-	@echo "processing $(<)"
-	@$(g++) $(cflags) $(swt-cflags) -E $(<) -o $(@)
-	@sed -i -e 's/MacroProtect_//' $(@)
+	@echo "processing bindings"
+	@mkdir -p $(swt-processed-binding-dir)
+	@for file in $(swt-binding-dir)/*.cpp; do \
+		echo "processing $${file}"; \
+		$(g++) $(cflags) $(swt-cflags) -E $${file} \
+			-o $(swt-processed-binding-dir)/$${file##*/}; \
+		sed -i -e 's/MacroProtect_//' $(swt-processed-binding-dir)/$${file##*/}; \
+	 done
 
-$(build-dir)/swt.o: $(build-dir)/swt-processed.cpp
-	@echo "compiling $(@) from $(<)"
-	@$(g++) $(cflags) -c $(<) -o $(@)
+# note the -O0 flag below - something breaks when the code is
+# optimized which I haven't figured out, so we don't.
+.PHONY: swt-binding-objects
+swt-binding-objects: swt-processed-bindings
+	@echo "compiling bindings"
+	@mkdir -p $(swt-binding-object-dir)
+	@for file in $(swt-processed-binding-dir)/*.cpp; do \
+		echo "compiling $${file}"; \
+		$(g++) $(cflags) -O0 -c $${file} \
+			-o $(swt-binding-object-dir)/$$(basename $${file}).o; \
+	 done
 
 $(build-dir)/os_custom-processed.cpp: \
 		$(build-dir)/native-sources/os_custom.cpp \
@@ -159,13 +179,14 @@ $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
 $(build-dir)/swt.a: \
-		$(build-dir)/swt.o \
+		swt-binding-objects \
 		$(build-dir)/os_custom.o \
 		$(build-dir)/cni-callback.o \
 		$(swt-objects)
 	@rm -f $(@)
 	@echo "creating $(@)"
-	@$(ar) cru $(@) $(^)
+	@$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
+		$(swt-objects) $(wildcard $(swt-binding-object-dir)/*.o)
 
 .PHONY: hello
 hello: $(build-dir)/hello
