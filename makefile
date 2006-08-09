@@ -56,6 +56,7 @@ ifeq "$(platform)" "win32"
 		-DJPTR=$(jptr) \
 		-D_WIN32_WINNT=0x0501 \
 		-D_WIN32_IE=0x0500 \
+		-DCINTERFACE \
 		-I$(build-dir)/native-sources \
 		-I$(build-dir)/headers
 endif
@@ -138,11 +139,12 @@ swt-processed-bindings: \
 		echo "processing $${file}"; \
 		$(g++) $(cflags) $(swt-cflags) -E $${file} \
 			-o $(swt-processed-binding-dir)/$${file##*/}; \
-		sed -i -e 's/MacroProtect_//' $(swt-processed-binding-dir)/$${file##*/}; exit 0;\
+		sed -i -e 's/MacroProtect_//g' $(swt-processed-binding-dir)/$${file##*/}; \
 	 done
 
 # note the -O0 flag below - something breaks when the code is
-# optimized which I haven't figured out, so we don't.
+# optimized which I haven't figured out, so we turn it off for these
+# files.
 .PHONY: swt-binding-objects
 swt-binding-objects: swt-processed-bindings
 	@echo "compiling bindings"

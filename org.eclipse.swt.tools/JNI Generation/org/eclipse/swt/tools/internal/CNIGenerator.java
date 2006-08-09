@@ -59,8 +59,13 @@ public abstract class CNIGenerator {
 
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
+        out.print("#ifndef NO_");
+        out.println(name(classes[i]));
+
         generateReaderDeclaration(out, classes[i]);
         generateWriterDeclaration(out, classes[i]);
+
+        out.println("#endif");
       }
     }
 
@@ -107,10 +112,15 @@ public abstract class CNIGenerator {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
         PrintStream out = structureFunctionOut(prefix, classes[i]);
         try {
+          out.print("#ifndef NO_");
+          out.println(name(classes[i]));
+
           generateReader(out, classes[i], metaData);
           out.println();
 
           generateWriter(out, classes[i], metaData);
+
+          out.println("#endif");
           out.println();
         } finally {
           out.close();
@@ -439,10 +449,15 @@ public abstract class CNIGenerator {
       if ((methods[i].getModifiers() & Modifier.NATIVE) != 0 &&
           metaData.getMetaData(methods[i]).getGenerate())
       {
+        out.print("#ifndef NO_");
+        out.println(name(methods[i]));
+
         generateMethod(out, methods[i], true, metaData);
         out.println();
 
         generateMethod(out, methods[i], false, metaData);
+
+        out.println("#endif");
         out.println();
       }
     }
@@ -452,8 +467,10 @@ public abstract class CNIGenerator {
     for (StringTokenizer st = new StringTokenizer(c.getName(), ".");
          st.hasMoreTokens();)
     {
-      out.print(st.nextToken());
-      if (st.hasMoreTokens()) out.print("::"); else out.print("MacroProtect_");
+      String token = st.nextToken();
+      if (! st.hasMoreTokens()) out.print("MacroProtect_");
+      out.print(token);
+      if (st.hasMoreTokens()) out.print("::");
     }
   }
 
@@ -494,6 +511,10 @@ public abstract class CNIGenerator {
       out.print(name(c));
       if (! struct) out.print("*");
     }
+  }
+
+  private static void generateType3(PrintStream out, Class c) {
+    generateType3(out, c, false);
   }
 
   private static boolean isSystemClass(Class c) {
@@ -691,6 +712,28 @@ public abstract class CNIGenerator {
     out.print(";");
   }
 
+  private static void generateProcedureTypedef(PrintStream out, Method m,
+                                               MetaData metaData)
+  {
+    out.print("    typedef ");
+    generateType(out, m.getReturnType());
+    out.print(" (*Procedure)(");
+
+    Class[] types = m.getParameterTypes();
+    for (int i = 0; i < types.length; i++) {
+      ParameterData pdata = metaData.getMetaData(m, i);
+      String cast = cast(m, i, pdata);
+      if (cast.length() > 2) {
+        out.print(cast.substring(1, cast.length() - 1));
+      } else {
+        generateType3(out, types[i], pdata.getFlag("struct"));
+      }
+      if (i < types.length - 1) out.print(", ");
+    }
+
+    out.println(");");
+  }
+
   private static void generateDynamicCall(PrintStream out, Method m,
                                           MethodData data, boolean needsReturn,
                                           MetaData metaData)
@@ -702,12 +745,14 @@ public abstract class CNIGenerator {
     if (SWT.getPlatform().equals("win32")) {
       out.println("    static bool initialized = false;");
       out.println("    static HMODULE module = 0;");
-      out.println("    static FARPROC procedure = 0;");
+      generateProcedureTypedef(out, m, metaData);
+      out.println("    static Procedure procedure = 0;");
       out.println("    if (not initialized) {");
       out.print("      if (module == 0) module = LoadLibrary(");
       out.print(name);
       out.println("_LIB);");
-      out.print("      if (module) procedure = GetProcAddress(module, \"");
+      out.print("      if (module) procedure = (Procedure) ");
+      out.print("GetProcAddress(module, \"");
       out.print(name);
       out.println("\");");
       out.println("      initialized = true;");
@@ -722,23 +767,7 @@ public abstract class CNIGenerator {
     } else if (SWT.getPlatform().equals("carbon")) {
       out.println("    static bool initialized = false;");
       out.println("    static CFBundleRef bundle = 0;");
-      out.print("    typedef ");
-      generateType(out, m.getReturnType());
-      out.print(" (*Procedure)(");
-
-      Class[] types = m.getParameterTypes();
-      for (int i = 0; i < types.length; i++) {
-        ParameterData pdata = metaData.getMetaData(m, i);
-        String cast = cast(m, i, pdata);
-        if (cast.length() > 2) {
-          out.print(cast.substring(1, cast.length() - 1));
-        } else {
-          generateType3(out, types[i], pdata.getFlag("struct"));
-        }
-        if (i < types.length - 1) out.print(", ");
-      }
-
-      out.println(");");
+      generateProcedureTypedef(out, m, metaData);
       out.println("    static Procedure procedure;");
       out.println("    if (not initialized) {");
       out.print("      if (bundle == 0) bundle = ");
@@ -763,21 +792,7 @@ public abstract class CNIGenerator {
       out.println("    static void* handle = 0;");
       out.print("    typedef ");
       generateType(out, m.getReturnType());
-      out.print(" (*Procedure)(");
-
-      Class[] types = m.getParameterTypes();
-      for (int i = 0; i < types.length; i++) {
-        ParameterData pdata = metaData.getMetaData(m, i);
-        String cast = cast(m, i, pdata);
-        if (cast.length() > 2) {
-          out.print(cast.substring(1, cast.length() - 1));
-        } else {
-          generateType3(out, types[i], pdata.getFlag("struct"));
-        }
-        if (i < types.length - 1) out.print(", ");
-      }
-
-      out.println(");");
+      generateProcedureTypedef(out, m, metaData);
       out.println("    static Procedure procedure;");
       if (m.getReturnType() != Void.TYPE) {
         if (needsReturn) {
@@ -842,17 +857,17 @@ public abstract class CNIGenerator {
       paramStart = 1;
     } else if (name.startsWith("VtblCall")) {
       out.print("((");
-      generateType(out, m.getReturnType());
+      generateType3(out, m.getReturnType());
       out.print(" (STDMETHODCALLTYPE*)("); 
 
       Class[] types = m.getParameterTypes();
       for (int i = 1; i < types.length; i++) {
-        generateType(out, types[i]);
+        generateType3(out, types[i]);
         if (i < types.length - 1) out.print(", ");
       }
 
       out.print("))(*(");
-      generateType(out, types[1]);
+      generateType3(out, types[1]);
       out.print("**) p1)[p0])");
       paramStart = 1;
     } else if (data.getFlag("cpp")) {
@@ -1065,6 +1080,9 @@ public abstract class CNIGenerator {
         out.println("#include \"windows.h\"");
         out.println("#include \"docobj.h\"");
         out.println("#include \"commctrl.h\"");
+        out.println("#include \"gdiplus.h\"");
+        out.println("#include \"stdint.h\"");
+        out.println("#include \"com_custom.h\"");
       }
       out.println("#include \"os.h\"");
       out.println();
