@@ -136,10 +136,13 @@ swt-processed-bindings: \
 	@echo "processing bindings"
 	@mkdir -p $(swt-processed-binding-dir)
 	@set -e; for file in $(swt-binding-dir)/*.cpp; do \
-		echo "processing $${file}"; \
-		$(g++) $(cflags) $(swt-cflags) -E $${file} \
-			-o $(swt-processed-binding-dir)/$${file##*/}; \
-		sed -i -e 's/MacroProtect_//g' $(swt-processed-binding-dir)/$${file##*/}; \
+		if ! echo $${file} | grep -q -- -foreign; then \
+			echo "processing $${file}"; \
+			$(g++) $(cflags) $(swt-cflags) -E $${file} \
+				-o $(swt-processed-binding-dir)/$${file##*/}; \
+			sed -i -e 's/MacroProtect_//g' \
+				$(swt-processed-binding-dir)/$${file##*/}; \
+		fi \
 	 done
 
 # note the -O0 flag below - something breaks when the code is
@@ -151,7 +154,7 @@ swt-binding-objects: swt-processed-bindings
 	@mkdir -p $(swt-binding-object-dir)
 	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
 		echo "compiling $${file}"; \
-		$(g++) $(cflags) -O0 -c $${file} \
+		$(g++) $(cflags) -O0 -fpreprocessed -c $${file} \
 			-o $(swt-binding-object-dir)/$$(basename $${file}).o; \
 	 done
 
@@ -172,8 +175,8 @@ $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@echo "compiling $(@) from $(<)"
 	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
+#		swt-binding-objects
 $(build-dir)/swt.a: \
-		swt-binding-objects \
 		$(build-dir)/os_custom.o \
 		$(build-dir)/cni-callback.o \
 		$(swt-objects)

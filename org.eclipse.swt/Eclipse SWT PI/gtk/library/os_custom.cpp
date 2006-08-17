@@ -12,7 +12,7 @@ MacroProtect_GDK_WINDOWING_X11()
 JPTR
 org::eclipse::swt::internal::gtk::OS::
 MacroProtect__gtk_file_chooser_dialog_new
-(jbyteArray a0, JPTR a1, jint a2, JPTR a3, jint a4, JPTR a5, jint a6, JPTR a7)
+(jbyteArray p0, JPTR p1, jint p2, JPTR p3, jint p4, JPTR p5, jint p6, JPTR p7)
 {
   static bool initialized = false;
   static void* handle = 0;
@@ -30,7 +30,7 @@ MacroProtect__gtk_file_chooser_dialog_new
   
   if (procedure) {
     return (JPTR) procedure
-      ((a0 ? elements(a0) : 0), a1, a2, a3, a4, a5, a6, a7);
+      ((p0 ? elements(p0) : 0), p1, p2, p3, p4, p5, p6, p7);
   } else {
     return 0;
   }
