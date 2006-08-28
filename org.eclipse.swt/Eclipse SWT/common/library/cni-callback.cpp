@@ -1,5 +1,10 @@
 #include <stdint.h>
-// #include "java/lang/RuntimeException.h"
+#include <stdio.h>
+#include <gcj/cni.h>
+#include "java/io/PrintStream.h"
+#include "java/lang/System.h"
+#include "java/lang/StringBuffer.h"
+#include "java/lang/Throwable.h"
 #include "org/eclipse/swt/internal/CNICallback.h"
 #include "org/eclipse/swt/internal/CNIDispatcher.h"
 #include "os.h"
@@ -25,7 +30,7 @@ const int MaxArgs = 12;
 const int MaxCallbacks = 128;
 org::eclipse::swt::internal::CNICallback* callbacks[MaxCallbacks];
 
-long
+JPTR
 callback(int index, ...)
 {
   org::eclipse::swt::internal::CNICallback* cb = callbacks[index];
@@ -43,7 +48,11 @@ callback(int index, ...)
   }
   va_end(al);
 
-  return cb->dispatcher->dispatch(cb->method, args);
+//   try {
+    return cb->dispatcher->dispatch(cb->method, args);
+//   } catch (java::lang::Throwable* e) {
+//     e->printStackTrace();
+//   }
 }
 
 /* Function name from index and number of arguments */

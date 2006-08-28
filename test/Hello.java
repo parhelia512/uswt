@@ -16,7 +16,7 @@ public class Hello {
     Label label = new Label(shell, SWT.CENTER);
     label.setText("Hello, world!");
     shell.pack();
-    shell.open ();
+    shell.open();
     while (!shell.isDisposed()) {
       if (!display.readAndDispatch()) display.sleep();
     }

@@ -721,6 +721,30 @@ public void close () {
 	if (event.doit) dispose ();
 }
 
+  private int /*long*/ dispatch(int method, int /*long*/ [] args) {
+    switch (method) {
+    case MONITOR_ENUM_PROC:
+      return monitorEnumProc(args[0], args[1], args[2], args[3]);
+
+    case EMBEDDED_PROC:
+      return embeddedProc(args[0], args[1], args[2], args[3]);
+
+    case WINDOW_PROC:
+      return windowProc(args[0], args[1], args[2], args[3]);
+
+    case MESSAGE_PROC:
+      return messageProc(args[0], args[1], args[2], args[3]);
+
+    case MSG_FILTER_PROC:
+      return msgFilterProc(args[0], args[1], args[2]);
+
+    case FOREGROUND_IDLE_PROC:
+      return foregroundIdleProc(args[0], args[1], args[2]);
+
+    default: throw new IllegalArgumentException();
+    }
+  }
+
 /**
  * Creates the device in the operating system.  If the device
  * does not have a handle, this method may do nothing depending
@@ -737,27 +761,10 @@ protected void create (DeviceData data) {
 /*#if USWT
   dispatcher = new CNIDispatcher() {
       public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
-        switch (method) {
-        case MONITOR_ENUM_PROC:
-          return monitorEnumProc(args[0], args[1], args[2], args[3]);
-
-        case EMBEDDED_PROC:
-          return embeddedProc(args[0], args[1], args[2], args[3]);
-
-        case WINDOW_PROC:
-          return windowProc(args[0], args[1], args[2], args[3]);
-
-        case MESSAGE_PROC:
-          return messageProc(args[0], args[1], args[2], args[3]);
-
-        case MSG_FILTER_PROC:
-          return msgFilterProc(args[0], args[1], args[2]);
-
-        case FOREGROUND_IDLE_PROC:
-          return foregroundIdleProc(args[0], args[1], args[2]);
-
-        default: throw new IllegalArgumentException();
-        }
+        //System.out.println("dispatching to " + method);
+        int /*long#eoc r = Display.this.dispatch(method, args);
+        //System.out.println("result: " + r);
+        return r;
       }
     };
   #endif*/
@@ -2346,7 +2353,7 @@ protected void init () {
 	/* Create the filter hook */
 	if (!OS.IsWinCE) {
 /*#if USWT
-  msgFilterCallback = new CNICallback(dispatcher, MSG_FILTER_PROC, 4);
+  msgFilterCallback = new CNICallback(dispatcher, MSG_FILTER_PROC, 3);
   #else*/
 		msgFilterCallback = new Callback (this, "msgFilterProc", 3); //$NON-NLS-1$
 //#endif
@@ -2358,7 +2365,7 @@ protected void init () {
 	/* Create the idle hook */
 	if (!OS.IsWinCE) {
 /*#if USWT
-  foregroundIdleCallback = new CNICallback(dispatcher, FOREGROUND_IDLE_PROC, 4);
+  foregroundIdleCallback = new CNICallback(dispatcher, FOREGROUND_IDLE_PROC, 3);
   #else*/
 		foregroundIdleCallback = new Callback (this, "foregroundIdleProc", 3); //$NON-NLS-1$
 //#endif
@@ -3848,7 +3855,7 @@ public boolean sleep () {
 		OS.MsgWaitForMultipleObjectsEx (0, 0, OS.INFINITE, OS.QS_ALLINPUT, OS.MWMO_INPUTAVAILABLE);
 		return true;
 	}
-	return OS.WaitMessage ();
+        return OS.WaitMessage ();
 }
 
 /**

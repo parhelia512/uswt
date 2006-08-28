@@ -47,10 +47,14 @@ ifeq "$(platform)" "win32"
   g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
   gcj = gcj
   gij = gij
-  gcjh = gcjh
+  gcjh = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcjh
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
+	dlltool = mingw32-dlltool -k
   cflags = -Os -g
+  msvc = cl
+  msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
+	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -59,6 +63,11 @@ ifeq "$(platform)" "win32"
 		-DCINTERFACE \
 		-I$(build-dir)/native-sources \
 		-I$(build-dir)/headers
+
+	swt-lflags = \
+		-lgdi32 -lopengl32 -lole32 -lolepro32 -lusp10 -lcomdlg32 -limm32 \
+		-lcomctl32 -loleaut32 -lwininet -lmsvfw32 -lopengl32 -oleaut32 \
+		-mwindows -mconsole
 endif
 endif
 
@@ -82,7 +91,7 @@ $(build-dir)/rules.mk: $(script-dir)/make-rules.pl
 gen-dir = $(build-dir)/generation
 
 define gen-dir-find
-	if test ! -h $(gen-dir); then
+	if test ! -e $(gen-dir); then
 		mkdir -p $(dir $(gen-dir));
 		ln -s "../../org.eclipse.swt.tools/JNI Generation" $(gen-dir);
 	fi;
@@ -97,12 +106,13 @@ gen-properties = $(shell find $(gen-dir) -name 'org*.properties')
 $(gen-classes): $(gen-sources) $(swt-sources)
 	@mkdir -p $(build-dir)/classes
 	@echo "compiling native code generator"
-	@$(gcj) -C -d $(build-dir)/classes \
+	$(gcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(gen-dir)	$(gen-sources)
 
 swt-binding-dir = $(build-dir)/bindings
 swt-processed-binding-dir = $(build-dir)/processed-bindings
 swt-binding-object-dir = $(build-dir)/binding-objects
+swt-foreign-binding-object-dir = $(build-dir)/foreign-binding-objects
 
 .PHONY: swt-sources
 swt-sources: $(swt-sources)
@@ -116,7 +126,7 @@ swt-classes: $(swt-classes)
 $(swt-classes): $(swt-sources)
 	@echo "compiling swt sources"
 	@mkdir -p $(build-dir)/classes
-	@$(ugcj) -C -d $(build-dir)/classes --classpath $(build-dir)/sources $(^)
+	$(ugcj) -C -d $(build-dir)/classes --classpath $(build-dir)/sources $(^)
 
 .PHONY: swt-bindings
 swt-bindings: \
@@ -125,12 +135,12 @@ swt-bindings: \
 		$(gen-properties)
 	@echo "generating bindings"
 	@mkdir -p $(swt-binding-dir)
-	@$(gij) -cp $(build-dir)/classes:$(gen-dir) \
-		org.eclipse.swt.tools.internal.CNIGenerator	$(swt-binding-dir)/
+	$(gij) -cp $(build-dir)/classes:$(gen-dir) \
+		org.eclipse.swt.tools.internal.CNIGenerator	-aggregate $(swt-binding-dir)/
 
 .PHONY: swt-processed-bindings
 swt-processed-bindings: \
-		swt-bindings \
+# 		swt-bindings \
 		$(swt-native-sources) \
 		$(swt-headers)
 	@echo "processing bindings"
@@ -145,17 +155,44 @@ swt-processed-bindings: \
 		fi \
 	 done
 
+$(build-dir)/swt-foreign.dll: $(swt-native-sources)
+	@echo "linking foreign dll"
+	$(msvc) $(msvccflags) -LD $(swt-binding-dir)/*-foreign*.cpp \
+		$(build-dir)/native-sources/*-foreign*.cpp \
+		-Fe$(@) -link $(msvclflags) -def:$(build-dir)/bindings/swt-foreign.def \
+		-implib:$(build-dir)/swt-foreign-msvc.lib
+
+$(build-dir)/swt-foreign.lib: \
+		$(build-dir)/bindings/swt-foreign.def
+	@echo "generating $(@)"
+	@$(dlltool) --output-lib $(@) --def $(<)
+
+# .PHONY: swt-foreign-bindings
+# swt-foreign-bindings: \
+# 		$(swt-native-sources)
+# 	@echo "compiling foreign bindings"
+# 	@mkdir -p $(swt-foreign-binding-object-dir)
+# 	@set -e; for file in $(swt-binding-dir)/*-foreign*.cpp \
+# 			$(build-dir)/native-sources/*-foreign*.cpp; do \
+# 		echo "compiling $${file}"; \
+# 		in=$$(echo $${file} | sed -e 's:/:\\:g'); \
+# 		out=$$(echo $(swt-foreign-binding-object-dir)/$$(basename $${file} .cpp).o | \
+# 						sed -e 's:/:\\:g'); \
+# 		$(msvc) $(msvccflags) -c $${in} -Fo$${out}; \
+# 	 done
+
 # note the -O0 flag below - something breaks when the code is
 # optimized which I haven't figured out, so we turn it off for these
 # files.
 .PHONY: swt-binding-objects
-swt-binding-objects: swt-processed-bindings
+swt-binding-objects: \
+		swt-processed-bindings
 	@echo "compiling bindings"
 	@mkdir -p $(swt-binding-object-dir)
 	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
 		echo "compiling $${file}"; \
 		$(g++) $(cflags) -O0 -fpreprocessed -c $${file} \
-			-o $(swt-binding-object-dir)/$$(basename $${file}).o; \
+			-o $(swt-binding-object-dir)/$$(basename $${file} .cpp).o; \
 	 done
 
 $(build-dir)/os_custom-processed.cpp: \
@@ -175,10 +212,11 @@ $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@echo "compiling $(@) from $(<)"
 	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
-#		swt-binding-objects
 $(build-dir)/swt.a: \
+		$(build-dir)/rules.mk \
 		$(build-dir)/os_custom.o \
 		$(build-dir)/cni-callback.o \
+# 		swt-binding-objects \
 		$(swt-objects)
 	@rm -f $(@)
 	@echo "creating $(@)"
@@ -188,10 +226,15 @@ $(build-dir)/swt.a: \
 .PHONY: hello
 hello: $(build-dir)/hello
 
-$(build-dir)/hello: test/Hello.java $(build-dir)/swt.a
+$(build-dir)/hello: \
+		test/Hello.java \
+		$(build-dir)/swt.a \
+		$(build-dir)/swt-foreign.lib
 	@echo "compiling $(@) from $(<)"
-	@$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
-		--main=Hello $(swt-lflags) $(<) $(build-dir)/swt.a -o $(@)
+	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
+		-Wl,--allow-multiple-definition \
+		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) \
+		-o $(@)
 
 top-example-dir = org.eclipse.swt.examples
 example-dir = $(top-example-dir)/src
@@ -233,7 +276,7 @@ example-sources: $(example-sources)
 $(example-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/sources/%.java \
 		$(example-sources) \
-		$(swt-classes)
+# 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
 	@$(ugcj) $(cflags) --classpath $(build-dir)/sources:$(build-dir)/classes \
@@ -255,8 +298,9 @@ $(build-dir)/example: \
 		$(example-objects) \
 		$(build-dir)/swt.a
 	@echo "linking $(@)"
-	@$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
-		$(swt-lflags) $(^) -o $(@)
+	$(ugcj) -Wl,--allow-multiple-definition \
+		--main=org.eclipse.swt.examples.controlexample.ControlExample \
+		 $(^) $(swt-lflags) -o $(@)
 
 .PHONY: clean
 clean:

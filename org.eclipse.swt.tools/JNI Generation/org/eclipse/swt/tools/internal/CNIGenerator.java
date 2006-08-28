@@ -16,6 +16,7 @@ import org.eclipse.swt.SWT;
 public abstract class CNIGenerator {
 
   private static final Hashtable casts = new Hashtable();
+  private static final Hashtable fieldArrayLengths = new Hashtable();
 
   private static final int NORMAL_STYLE = 1;
   private static final int INLINE_STYLE = 2;
@@ -25,6 +26,9 @@ public abstract class CNIGenerator {
   static {
     casts.put(new ParameterKey("_XCheckIfEvent", 2),
               "(int (*)(Display*, XEvent*, char*))");
+    
+    fieldArrayLengths.put("org.eclipse.swt.internal.gdip.ColorPalette.Entries",
+                          new Integer(1));
   }
 
   private static int compare(Class a, Class b) {
@@ -95,21 +99,53 @@ public abstract class CNIGenerator {
         accessor = fields[i].getName();
 
       out.print("  ");
-      generateType3(out, type);
+      Integer arrayLength = (Integer) fieldArrayLengths.get
+        (c.getName() + "." + fields[i].getName());
+      generateType3(out, type, arrayLength != null);
       out.print(" ");
       out.print(accessor);
+      if (arrayLength != null) {
+        out.print("[");
+        out.print(arrayLength);
+        out.print("]");
+      }
       out.println(";");
 
       if (exclude.length() > 0) out.println("#endif");
     }    
   }  
 
+  private static PrintStream getOut(String name) throws Exception {
+    return new PrintStream(new BufferedOutputStream
+                           (new FileOutputStream(name)));  
+  }
+
+  private static PrintStream nativeOut(String prefix)
+    throws Exception
+  {
+    return getOut(prefix + "swt.cpp");
+  }
+
+  private static PrintStream foreignOut(String prefix)
+    throws Exception
+  {
+    return getOut(prefix + "swt-foreign.cpp");
+  }
+
+  private static PrintStream foreignDefOut(String prefix)
+    throws Exception
+  {
+    PrintStream out = getOut(prefix + "swt-foreign.def");
+    out.println("LIBRARY SWT-FOREIGN.DLL");
+    out.println("EXPORTS");
+    return out;
+  }
+
   private static PrintStream headerOut(String prefix, int style)
     throws Exception
   {
-    String name = prefix + (style == PROXY_STYLE ? "swt-foreign.h" : "swt.h");
-    PrintStream out = new PrintStream(new BufferedOutputStream
-                                      (new FileOutputStream(name)));
+    PrintStream out = getOut(prefix + (style == PROXY_STYLE ?
+                                       "swt-foreign.h" : "swt.h"));
     out.println("#ifndef SWT_H");
     out.println("#define SWT_H");
     return out;
@@ -118,9 +154,8 @@ public abstract class CNIGenerator {
   private static PrintStream proxyHeaderOut(String prefix, Class c)
     throws Exception
   {
-    String name = prefix + name(c) + "-proxy.h";
-    PrintStream out = new PrintStream
-      (new BufferedOutputStream(new FileOutputStream(name)));
+    PrintStream out = getOut(prefix + name(c) + "-proxy.h");
+
     out.print("#ifndef ");
     out.print(name(c));
     out.println("_PROXY_H");
@@ -135,10 +170,10 @@ public abstract class CNIGenerator {
                                                 int style)
     throws Exception
   {
-    String name = prefix + name(c) +
-      (style == PROXY_STYLE ? "-foreign-structs.h" : "-structs.h");
-    PrintStream out = new PrintStream
-      (new BufferedOutputStream(new FileOutputStream(name)));
+    PrintStream out = getOut(prefix + name(c) + (style == PROXY_STYLE ?
+                                                 "-foreign-structs.h" :
+                                                 "-structs.h"));
+
     out.print("#ifndef ");
     out.print(name(c));
     out.println("_STRUCTS_H");
@@ -157,10 +192,10 @@ public abstract class CNIGenerator {
                                                   int style)
     throws Exception
   {
-    String name = prefix + name(c) +
-      (style == PROXY_STYLE ? "-foreign-structs.cpp" : "-structs.cpp");
-    PrintStream out = new PrintStream
-      (new BufferedOutputStream(new FileOutputStream(name)));
+    PrintStream out = getOut(prefix + name(c) + (style == PROXY_STYLE ?
+                                                 "-foreign-structs.cpp" :
+                                                 "-structs.cpp"));
+
     out.print("#include \"");
     out.print(name(c));
     out.print(style == PROXY_STYLE ? "-foreign-structs.h" : "-structs.h");
@@ -172,10 +207,9 @@ public abstract class CNIGenerator {
   private static PrintStream nativeOut(String prefix, Class c, int style)
     throws Exception
   {
-    String name = prefix + name(c) +
-      (style == PROXY_STYLE ? "-foreign-natives.cpp" : "-natives.cpp");
-    PrintStream out = new PrintStream
-      (new BufferedOutputStream(new FileOutputStream(name)));
+    PrintStream out = getOut(prefix + name(c) + (style == PROXY_STYLE ?
+                                                 "-foreign-natives.cpp" :
+                                                 "-natives.cpp"));
     out.println(style == PROXY_STYLE ?
                 "#include \"swt-foreign.h\"" : "#include \"swt.h\"");
     out.println();
@@ -183,12 +217,13 @@ public abstract class CNIGenerator {
   }
 
   private static void generateStructureHeader(PrintStream out, Class c,
-                                              int style, MetaData metaData)
+                                              int style, MetaData metaData,
+                                              boolean include)
   {
     out.print("#ifndef NO_");
     out.println(name(c));
 
-    if (style == PROXY_STYLE || style == PROXY_CALL_STYLE) {
+    if (include && (style == PROXY_STYLE || style == PROXY_CALL_STYLE)) {
       out.print("#include \"");
       out.print(name(c));
       out.println("-proxy.h\"");
@@ -201,7 +236,9 @@ public abstract class CNIGenerator {
     out.println("#endif");
   }
 
-  private static void generateStructureHeaders(String prefix, Class[] classes,
+  private static void generateStructureHeaders(PrintStream nativeOut,
+                                               PrintStream foreignOut,
+                                               String prefix, Class[] classes,
                                                MetaData metaData)
     throws Exception
   {
@@ -211,32 +248,49 @@ public abstract class CNIGenerator {
       ClassData data = metaData.getMetaData(classes[i]);
       if (data.getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          PrintStream out = proxyHeaderOut(prefix, classes[i]);
-          try {
-            generateProxy(out, classes[i], metaData);
-            out.println("#endif");
-          } finally {
-            out.close();
-          }
+          if (nativeOut == null) {
+            PrintStream out = proxyHeaderOut(prefix, classes[i]);
+            try {
+              generateProxy(out, classes[i], metaData);
+              out.println("#endif");
+            } finally {
+              out.close();
+            }
 
-          out = structureHeaderOut(prefix, classes[i], PROXY_STYLE);
-          try {
-            generateStructureHeader(out, classes[i], PROXY_STYLE, metaData);
-            out.println("#endif");
-          } finally {
-            out.close();
+            out = structureHeaderOut(prefix, classes[i], PROXY_STYLE);
+            try {
+              generateStructureHeader(out, classes[i], PROXY_STYLE, metaData,
+                                      true);
+              out.println("#endif");
+            } finally {
+              out.close();
+            }
+          } else {
+            generateProxy(nativeOut, classes[i], metaData);
+            generateProxy(foreignOut, classes[i], metaData);
+
+            generateStructureHeader(foreignOut, classes[i], PROXY_STYLE,
+                                    metaData, false);
           }
         }
 
-        PrintStream out = structureHeaderOut(prefix, classes[i], NORMAL_STYLE);
-        try {
-          generateStructureHeader(out, classes[i],
+        if (nativeOut == null) {
+          PrintStream out = structureHeaderOut(prefix, classes[i],
+                                               NORMAL_STYLE);
+          try {
+            generateStructureHeader(out, classes[i],
+                                    (incompatibleABI(classes[i]) ?
+                                     PROXY_CALL_STYLE : NORMAL_STYLE),
+                                    metaData, true);
+            out.println("#endif");
+          } finally {
+            out.close();
+          }
+        } else {
+          generateStructureHeader(nativeOut, classes[i],
                                   (incompatibleABI(classes[i]) ?
                                    PROXY_CALL_STYLE : NORMAL_STYLE),
-                                  metaData);
-          out.println("#endif");
-        } finally {
-          out.close();
+                                  metaData, false);
         }
       }
     }
@@ -258,7 +312,9 @@ public abstract class CNIGenerator {
     out.println();
   }
 
-  private static void generateStructureFunctions(String prefix,
+  private static void generateStructureFunctions(PrintStream nativeOut,
+                                                 PrintStream foreignOut,
+                                                 String prefix,
                                                  Class[] classes,
                                                  MetaData metaData)
     throws Exception
@@ -268,24 +324,33 @@ public abstract class CNIGenerator {
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          PrintStream out = structureFunctionOut(prefix, classes[i],
-                                                 PROXY_STYLE);
-          try {
-            generateStructureFunctions(out, classes[i], PROXY_STYLE, metaData);
-          } finally {
-            out.close();
+          if (nativeOut == null) {
+            PrintStream out = structureFunctionOut(prefix, classes[i],
+                                                   PROXY_STYLE);
+            try {
+              generateStructureFunctions(out, classes[i], PROXY_STYLE,
+                                         metaData);
+            } finally {
+              out.close();
+            }
+          } else {
+            generateStructureFunctions(foreignOut, classes[i], PROXY_STYLE,
+                                       metaData);            
           }
         }
 
-        PrintStream out = structureFunctionOut(prefix, classes[i],
-                                               NORMAL_STYLE);
-        try {
-          generateStructureFunctions(out, classes[i], 
-                                     (incompatibleABI(classes[i]) ?
-                                      PROXY_CALL_STYLE : NORMAL_STYLE),
-                                     metaData);
-        } finally {
-          out.close();
+        int style = (incompatibleABI(classes[i]) ?
+                     PROXY_CALL_STYLE : NORMAL_STYLE);
+        if (nativeOut == null) {
+          PrintStream out = structureFunctionOut(prefix, classes[i],
+                                                 NORMAL_STYLE);
+          try {
+            generateStructureFunctions(out, classes[i], style, metaData);
+          } finally {
+            out.close();
+          }
+        } else {
+          generateStructureFunctions(nativeOut, classes[i], style, metaData);
         }
       }
     }
@@ -343,13 +408,19 @@ public abstract class CNIGenerator {
         accessor = fields[i].getName();
 
       if (style == PROXY_STYLE) {
-        out.print("  dst->");
-        out.print(accessor);
-        out.print(" = ");
-        out.print(data.getCast());
-        out.print(" src->");
-        out.print(accessor);
-        out.println(";");
+        if (type.isPrimitive()) {
+          out.print("  dst->");
+          out.print(accessor);
+          out.print(" = ");
+          out.print(data.getCast());
+          out.print(" src->");
+          out.print(accessor);
+          out.println(";");
+        } else if (type.isArray()) {
+          generateProxyArrayCopy(out, fields[i], accessor);
+        } else {
+          throw new RuntimeException("not implemented");
+        }
       } else {
         if (type.isPrimitive()) {
           out.print("  dst->");
@@ -469,6 +540,35 @@ public abstract class CNIGenerator {
       ("can't determine byte count for " + c.getName());
   }
 
+  private static void generateProxyArrayCopy(PrintStream out, Field f,
+                                             String accessor)
+  {
+    Class componentType = f.getType().getComponentType();
+    if (componentType.isPrimitive()) {
+      out.print("  for (unsigned i = 0; i < sizeof(src->");
+      out.print(accessor);
+      out.print(")");
+            
+      int byteCount = byteCount(componentType);
+      if (byteCount > 1) {
+        out.print(" / ");
+        out.print(String.valueOf(byteCount));
+      }
+
+      out.println("; ++i) {");
+            
+      out.print("    dst->");
+      out.print(accessor);
+      out.print("[i] = src->");
+      out.print(accessor);
+      out.println("[i];");
+            
+      out.println("  }");
+    } else {
+      throw new RuntimeException("not implemented");
+    }
+  }
+
   private static void generateWriterFields(PrintStream out, Class c, int style,
                                            MetaData metaData)
   {
@@ -508,13 +608,19 @@ public abstract class CNIGenerator {
         accessor = fields[i].getName();
 
       if (style == PROXY_STYLE) {
-        out.print("  dst->");
-        out.print(accessor);
-        out.print(" = (");
-        generateType(out, type);
-        out.print(") src->");
-        out.print(accessor);
-        out.println(";");
+        if (type.isPrimitive()) {
+          out.print("  dst->");
+          out.print(accessor);
+          out.print(" = (");
+          generateType3(out, type);
+          out.print(") src->");
+          out.print(accessor);
+          out.println(";");
+        } else if (type.isArray()) {
+          generateProxyArrayCopy(out, fields[i], accessor);
+        } else {
+          throw new RuntimeException("not implemented");
+        }
       } else {
         if (type.isPrimitive()) {
           out.print("  dst->");
@@ -626,7 +732,9 @@ public abstract class CNIGenerator {
     out.println("}");
   }
   
-  private static void generateNatives(String prefix, Class[] classes,
+  private static void generateNatives(PrintStream nativeOut,
+                                      PrintStream foreignOut,
+                                      String prefix, Class[] classes,
                                       MetaData metaData)
     throws Exception
   {
@@ -635,22 +743,74 @@ public abstract class CNIGenerator {
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          PrintStream out = nativeOut(prefix, classes[i], PROXY_STYLE);
-          try {
-            generateMethods(out, classes[i], PROXY_STYLE, metaData);
-          } finally {
-            out.close();
+          if (nativeOut == null) {
+            PrintStream out = nativeOut(prefix, classes[i], PROXY_STYLE);
+            try {
+              generateMethods(out, classes[i], PROXY_STYLE, metaData);
+            } finally {
+              out.close();
+            }
+          } else {
+            generateMethods(foreignOut, classes[i], PROXY_STYLE, metaData);
           }
         }
 
         int style = (incompatibleABI(classes[i]) ?
                      PROXY_CALL_STYLE : NORMAL_STYLE);
-        PrintStream out = nativeOut(prefix, classes[i], style);
-        try {
-          generateMethods(out, classes[i], style, metaData);
-        } finally {
-          out.close();
+        if (nativeOut == null) {
+          PrintStream out = nativeOut(prefix, classes[i], style);
+          try {
+            generateMethods(out, classes[i], style, metaData);
+          } finally {
+            out.close();
+          }
+        } else {
+          generateMethods(nativeOut, classes[i], style, metaData);
         }
+      }
+    }
+  }
+
+  private static void generateNativeDefs(PrintStream out, Class[] classes,
+                                         MetaData metaData)
+    throws Exception
+  {
+    sort(classes);
+
+    for (int i = 0; i < classes.length; ++i) {
+      if (metaData.getMetaData(classes[i]).getGenerate()) {
+        if (incompatibleABI(classes[i])) {
+          generateNativeDefs(out, classes[i]);
+        }
+      }
+    }
+  }
+
+  private static void generateNativeDefs(PrintStream out, Class c)
+    throws Exception
+  {
+    Method[] methods = c.getDeclaredMethods();
+    sort(methods);
+
+    for (int i = 0; i < methods.length; ++i) {
+      if ((methods[i].getModifiers() & Modifier.NATIVE) != 0) {
+        out.print("CNIProxy_");
+        out.print(methods[i].getName());
+        generateDecoration(out, methods[i]);
+//         out.print("@");
+//         int count = 0;
+//         Class[] parameters = methods[i].getParameterTypes();
+//         for (int j = 0; j < parameters.length; ++j) {
+//           if (parameters[j].isPrimitive()) {
+//             count += byteCount(parameters[j]);
+//           } else {
+//             // assume 32-bit pointers since this code should only be
+//             // run on win32:
+//             count += 4;
+//           }
+//         }
+//         out.println(String.valueOf(count));
+        out.println();
       }
     }
   }
@@ -693,6 +853,24 @@ public abstract class CNIGenerator {
     out.println(".h\"");
   }
 
+  private static void generateProxyIncludes(PrintStream out, Class[] classes) {
+    sort(classes);
+
+    for (int i = 0; i < classes.length; ++i) {
+      if (incompatibleABI(classes[i])) {
+        generateProxyInclude(out, classes[i]);
+      }
+    }
+
+    out.println();
+  }
+
+  private static void generateProxyInclude(PrintStream out, Class c) {
+    out.print("#include \"");
+    out.print(name(c));
+    out.println("-foreign-structs.h\"");
+  }
+
   private static int compareParameters(Method a, Method b) {
     Class[] pa = a.getParameterTypes();
     Class[] pb = b.getParameterTypes();
@@ -726,8 +904,20 @@ public abstract class CNIGenerator {
 
     for (int i = 0; i < methods.length; ++i) {
       if ((methods[i].getModifiers() & Modifier.NATIVE) != 0 &&
-          metaData.getMetaData(methods[i]).getGenerate())
+          (metaData.getMetaData(methods[i]).getGenerate() ||
+           style == PROXY_CALL_STYLE))
       {
+        // for debugging:
+        if (style == PROXY_CALL_STYLE) {
+          generateMethodPrototype(out, methods[i], NORMAL_STYLE);
+          out.println();
+          out.println("{");
+          out.println
+            ("  throw new java::lang::UnsupportedOperationException;");
+          out.println("}");          
+          continue;
+        }
+
         out.print("#ifndef NO_");
         out.println(JNIGenerator.getFunctionName(methods[i]));
 
@@ -743,6 +933,16 @@ public abstract class CNIGenerator {
           out.println();
 
           generateMethod(out, methods[i], NORMAL_STYLE, metaData);
+        }
+
+        if (style != PROXY_STYLE) {
+          out.println("#else");
+          
+          generateMethodPrototype(out, methods[i], NORMAL_STYLE);
+          out.println("{");
+          out.println
+            ("  throw new java::lang::UnsupportedOperationException;");
+          out.println("}");
         }
 
         out.println("#endif");
@@ -846,44 +1046,42 @@ public abstract class CNIGenerator {
                                         MetaData metaData)
   {
     boolean needsReturn = false;
-    if (style != PROXY_STYLE) {
-      Class[] types = m.getParameterTypes();
-      for (int i = 0; i < types.length; ++i) {
-        if (types[i].isPrimitive() || isSystemClass(types[i])) continue;
-        ParameterData data = metaData.getMetaData(m, i);
-        if (types[i] == String.class) {
-          out.print("  ");
-          if (data.getFlag("unicode")) {
-            out.print("const jchar* pp");
-            out.print(i);
-            out.print(" = 0;");
-          } else {
-            out.print("int al");
-            out.print(i);
-            out.print(" = JvGetStringUTFLength(p");
-            out.print(i);
-            out.println(");");
-
-            out.print("const char pp");
-            out.print(i);
-            out.print("[pl");
-            out.print(i);
-            out.println(") + 1];");
-          }
-        } else if (! types[i].isArray()) {
-          out.print("  ");
-          if (style == PROXY_CALL_STYLE) out.print("CNIProxy_");
-          out.print(name(types[i]));
-          out.print(" ps");
+    Class[] types = m.getParameterTypes();
+    for (int i = 0; i < types.length; ++i) {
+      if (types[i].isPrimitive() || isSystemClass(types[i])) continue;
+      ParameterData data = metaData.getMetaData(m, i);
+      if (types[i] == String.class) {
+        out.print("  ");
+        if (data.getFlag("unicode")) {
+          out.print("const jchar* pp");
           out.print(i);
-          if (data.getFlag("init")) out.print(" = { 0 }");
-          out.println(";");
+          out.print(" = 0;");
+        } else {
+          out.print("int al");
+          out.print(i);
+          out.print(" = JvGetStringUTFLength(p");
+          out.print(i);
+          out.println(");");
+
+          out.print("const char pp");
+          out.print(i);
+          out.print("[pl");
+          out.print(i);
+          out.println(") + 1];");
         }
-      
-        needsReturn |= (! (types[i].isPrimitive() || isSystemClass(types[i]) ||
-                           types[i] == String.class || types[i].isArray() ||
-                           data.getFlag("no_out")));
+      } else if (! types[i].isArray()) {
+        out.print("  ");
+        if (style == PROXY_CALL_STYLE) out.print("CNIProxy_");
+        out.print(name(types[i]));
+        out.print(" ps");
+        out.print(i);
+        if (data.getFlag("init")) out.print(" = { 0 }");
+        out.println(";");
       }
+      
+      needsReturn |= (! (types[i].isPrimitive() || isSystemClass(types[i]) ||
+                         types[i] == String.class || types[i].isArray() ||
+                         data.getFlag("no_out")));
     }
 
     if (needsReturn && m.getReturnType() != Void.TYPE) {
@@ -896,7 +1094,7 @@ public abstract class CNIGenerator {
   }
 
   private static void generateRead(PrintStream out, Method m, Class type,
-                                   ParameterData data, int i)
+                                   ParameterData data, int i, int style)
   {
     if (type.isPrimitive() || isSystemClass(type) || type.isArray()) return;
 
@@ -919,7 +1117,9 @@ public abstract class CNIGenerator {
     } else if (! data.getFlag("no_in")) {
       out.print("  if (p");
       out.print(i);
-      out.print(") get");
+      out.print(") ");
+      if (style == PROXY_STYLE) out.print("CNIProxy_");
+      out.print("get");
       out.print(name(type));
       out.print("Fields(p");
       out.print(i);
@@ -929,24 +1129,26 @@ public abstract class CNIGenerator {
     }
   }
 
-  private static void generateReads(PrintStream out, Method m,
+  private static void generateReads(PrintStream out, Method m, int style,
                                     MetaData metaData)
   {
     Class[] types = m.getParameterTypes();
     for (int i = 0; i < types.length; ++i) {
-      generateRead(out, m, types[i], metaData.getMetaData(m, i), i);
+      generateRead(out, m, types[i], metaData.getMetaData(m, i), i, style);
     }
   }
 
   private static void generateWrite(PrintStream out, Method m, Class type,
-                                    ParameterData data, int i)
+                                    ParameterData data, int i, int style)
   {
     if (type.isPrimitive() || isSystemClass(type) || type == String.class
         || type.isArray() || data.getFlag("no_out")) return;
 
     out.print("  if (p");
     out.print(i);
-    out.print(") set");
+    out.print(") ");
+    if (style == PROXY_STYLE) out.print("CNIProxy_");
+    out.print("set");
     out.print(name(type));
     out.print("Fields(p");
     out.print(i);
@@ -955,12 +1157,12 @@ public abstract class CNIGenerator {
     out.println(");");
   }
 
-  private static void generateWrites(PrintStream out, Method m,
+  private static void generateWrites(PrintStream out, Method m, int style,
                                      MetaData metaData)
   {
     Class[] types = m.getParameterTypes();
     for (int i = types.length - 1; i >= 0; --i) {
-      generateWrite(out, m, types[i], metaData.getMetaData(m, i), i);
+      generateWrite(out, m, types[i], metaData.getMetaData(m, i), i, style);
     }
   }
 
@@ -1428,7 +1630,7 @@ public abstract class CNIGenerator {
         generateGTKmemmove(out, m);
       } else {
         boolean needsReturn = generateLocals(out, m, style, metaData);
-        generateReads(out, m, metaData);
+        generateReads(out, m, style, metaData);
         if (data.getFlag("dynamic")) {
           generateDynamicCall(out, m, data, needsReturn, style, metaData);
         } else if (mightBeMacro(m, data)) {
@@ -1441,7 +1643,7 @@ public abstract class CNIGenerator {
         } else {
           generateCall(out, m, data, needsReturn, false, style, metaData);
         }
-        generateWrites(out, m, metaData);
+        generateWrites(out, m, style, metaData);
         generateReturn(out, m, needsReturn);
       }
     } else {
@@ -1460,7 +1662,9 @@ public abstract class CNIGenerator {
     out.println("}");
   }
 
-  private static void generateSystemHeaders(PrintStream out) {
+  private static void generateSystemIncludes(PrintStream out) {
+    out.println("#include \"java/lang/UnsupportedOperationException.h\"");
+
     if (SWT.getPlatform().equals("gtk")) {
       out.println("#include \"cairo_custom.h\"");
       out.println("#include \"cairo.h\"");
@@ -1481,65 +1685,108 @@ public abstract class CNIGenerator {
     out.println();
   }
 
-  private static void generateProxySystemHeaders(PrintStream out) {
+  private static void generateForeignSystemIncludes(PrintStream out) {
     if (SWT.getPlatform().equals("win32")) {
       out.println("#include \"windows.h\"");
       out.println("#include \"docobj.h\"");
       out.println("#include \"commctrl.h\"");
-      out.println("#include \"stdint.h\"");
+      out.println("#include \"gdiplus.h\"");
+      out.println("#include \"stdint_compat.h\"");
+      out.println("using namespace Gdiplus;");
+      out.println();
     }
   }
 
-  private static void generateAll(String prefix) throws Exception {
-    PrintStream out = headerOut(prefix, NORMAL_STYLE);
-    MyGeneratorApp app = new MyGeneratorApp(out, prefix);
+  private static void generateAll(String prefix, boolean aggregate) 
+    throws Exception
+  {
+    PrintStream nativeOut;
+    PrintStream foreignOut;
+    PrintStream foreignDefOut = null;
+
+    if (aggregate) {
+      nativeOut = nativeOut(prefix);
+      foreignOut = foreignOut(prefix);
+      foreignDefOut = foreignDefOut(prefix);
+    } else {
+      nativeOut = headerOut(prefix, NORMAL_STYLE);
+      foreignOut = headerOut(prefix, PROXY_STYLE);
+    }
+
+    MyGeneratorApp app = new MyGeneratorApp
+      (nativeOut, foreignOut, foreignDefOut, prefix, aggregate);
     try {
       System.out.println("first stage:");
+
+      generateForeignSystemIncludes(foreignOut);
+
       app.stage = 1;
       app.generateAll();
 
-      generateSystemHeaders(out);
+      generateSystemIncludes(nativeOut);
       
-      PrintStream pout = headerOut(prefix, PROXY_STYLE);
-      try {
-        generateProxySystemHeaders(pout);
-        pout.println("#endif");
-      } finally {
-        pout.close();
-      }
-
       System.out.println("\nsecond stage:");
       app.stage = 2;
       app.generateAll();
-      out.println("#endif");
-    } finally {
-      out.close();
-    }
 
-    System.out.println("\nthird stage:");
-    app.stage = 3;
-    app.generateAll();
+      if (! aggregate) {
+        nativeOut.println("#endif");
+        foreignOut.println("#endif");
+      }
+
+      System.out.println("\nthird stage:");
+      app.stage = 3;
+      app.generateAll();
+    } finally {
+      nativeOut.close();
+      foreignOut.close();
+      if (foreignDefOut != null) foreignDefOut.close();
+    }
+  }
+
+  private static void usageAndExit() {
+    System.err.println
+      ("usage: java " + CNIGenerator.class.getName() +
+       " [-aggregate] <output_prefix>");
+    System.exit(-1);
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 1) {
-      System.err.println
-        ("usage: java " + CNIGenerator.class.getName() +
-         " <output_prefix>");
-      System.exit(-1);
+    boolean aggregate = false;
+    String prefix = null;
+
+    for (int i = 0; i < args.length; ++i) {
+      String s = args[i];
+      if (s.equals("-aggregate")) {
+        aggregate = true;
+      } else {
+        if (prefix != null) usageAndExit();
+        prefix = s;
+      }
     }
 
-    generateAll(args[0]);
+    if (prefix == null) usageAndExit();
+
+    generateAll(prefix, aggregate);
   }
 
   private static class MyGeneratorApp extends JNIGeneratorApp {
-    public final PrintStream headerOut;
+    public final PrintStream nativeOut;
+    public final PrintStream foreignOut;
+    public final PrintStream foreignDefOut;
     public final String prefix;
+    public final boolean aggregate;
     public int stage = 1;
     
-    private MyGeneratorApp(PrintStream headerOut, String prefix) {
-      this.headerOut = headerOut;
+    private MyGeneratorApp(PrintStream nativeOut, PrintStream foreignOut,
+                           PrintStream foreignDefOut, String prefix,
+                           boolean aggregate)
+    {
+      this.nativeOut = nativeOut;
+      this.foreignOut = foreignOut;
+      this.foreignDefOut = foreignDefOut;
       this.prefix = prefix;
+      this.aggregate = aggregate;
     }
 
     public void generate() {
@@ -1552,21 +1799,31 @@ public abstract class CNIGenerator {
       
       switch (stage) {
       case 1:
-        generateIncludes(headerOut, getStructureClasses());
-        generateIncludes(headerOut, getNativesClasses());
+        generateIncludes(nativeOut, getStructureClasses());
+        generateIncludes(nativeOut, getNativesClasses());
+        if (! aggregate) {
+          generateProxyIncludes(foreignOut, getStructureClasses());
+        }
         break;
 
       case 2:
-        generateStructureFunctionIncludes(headerOut, getStructureClasses(),
-                                          getMetaData());
-        generateStructureHeaders(prefix, getStructureClasses(),
-                                 getMetaData());
+        if (! aggregate) {
+          generateStructureFunctionIncludes(nativeOut, getStructureClasses(),
+                                            getMetaData());
+        }
+        generateStructureHeaders(nativeOut, foreignOut, prefix,
+                                 getStructureClasses(), getMetaData());
         break;
 
       case 3:
-        generateStructureFunctions(prefix, getStructureClasses(),
-                                   getMetaData());
-        generateNatives(prefix, getNativesClasses(), getMetaData());
+        generateStructureFunctions(nativeOut, foreignOut, prefix,
+                                   getStructureClasses(), getMetaData());
+        generateNatives(nativeOut, foreignOut, prefix, getNativesClasses(),
+                        getMetaData());
+        if (foreignDefOut != null) {
+          generateNativeDefs(foreignDefOut, getNativesClasses(),
+                             getMetaData());
+        }
         break;
 
       default: throw new RuntimeException("unexpected stage: " + stage);
