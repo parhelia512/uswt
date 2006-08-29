@@ -33,9 +33,22 @@ class TreeDragAndDropEffect extends DragAndDropEffect {
 	TreeItem expandItem;
 	long expandBeginTime;
 	
+/*#if USWT
+	static CNICallback AcceptDragProc;
+  #else*/
 	static Callback AcceptDragProc;
+/*#endif*/
 	static {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return AcceptDragProc(args[0], args[1], args[2], args[3], args[4]);
+      }
+    };
+  AcceptDragProc = new CNICallback(dispatcher, 0, 5);
+  #else*/
 		AcceptDragProc = new Callback(TreeDragAndDropEffect.class, "AcceptDragProc", 5); //$NON-NLS-1$
+/*#endif*/
 		int acceptDragProc = AcceptDragProc.getAddress();
 		if (acceptDragProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}

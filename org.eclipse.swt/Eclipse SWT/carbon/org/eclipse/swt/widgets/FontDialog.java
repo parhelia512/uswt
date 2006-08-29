@@ -14,7 +14,12 @@ package org.eclipse.swt.widgets;
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.carbon.*;
+/*#if USWT
+import org.eclipse.swt.internal.CNICallback;
+import org.eclipse.swt.internal.CNIDispatcher;
+  #else*/
 import org.eclipse.swt.internal.Callback;
+/*#endif*/
 import org.eclipse.swt.internal.carbon.RGBColor;
 
 /**
@@ -226,7 +231,16 @@ public FontData open () {
 		OS.kEventClassFont, OS.kEventFontSelection,
 		OS.kEventClassFont, OS.kEventFontPanelClosed,
 	};
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return fontProc(args[0], args[1], args[2]);
+      }
+    };
+  CNICallback fontPanelCallback = new CNICallback(dispatcher, 0, 3);
+  #else*/
 	Callback fontPanelCallback = new Callback (this, "fontProc", 3);
+/*#endif*/
 	int fontPanelCallbackAddress = fontPanelCallback.getAddress ();
 	if (fontPanelCallbackAddress == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	int appTarget = OS.GetApplicationEventTarget ();

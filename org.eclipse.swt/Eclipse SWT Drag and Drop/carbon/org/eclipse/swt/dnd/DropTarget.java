@@ -95,14 +95,43 @@ public class DropTarget extends Widget {
 	static final String DROPTARGETID = "DropTarget"; //$NON-NLS-1$
 	static final int DRAGOVER_HYSTERESIS = 50;
 	
+/*#if USWT
+        private static final int DRAG_TRACKING_HANDLER = 1;
+        private static final int DRAG_RECEIVE_HANDLER = 2;
+
+	static CNICallback DrageTrackingHandler;
+	static CNICallback DragReceiveHandler;
+  #else*/
 	static Callback DragTrackingHandler;
 	static Callback DragReceiveHandler;
+/*#endif*/
 	
 	static {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+          case DRAG_TRACKING_HANDLER:
+            return DragTrackingHandler(args[0], args[1], args[2], args[3]);
+
+          case DRAG_RECEIVE_HANDLER:
+            return DragReceiveHandler(args[0], args[1], args[2]);
+
+          default: throw new IllegalArgumentException();
+        }
+      }
+    };
+  DragTrackingHandler = new CNICallback(dispatcher, DRAG_TRACKING_HANDLER, 4);
+  #else*/
 		DragTrackingHandler = new Callback(DropTarget.class, "DragTrackingHandler", 4); //$NON-NLS-1$
+/*#endif*/
 		int dragTrackingHandlerAddress = DragTrackingHandler.getAddress();
 		if (dragTrackingHandlerAddress == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  DragReceiveHandler = new CNICallback(dispatcher, DRAG_RECEIVE_HANDLER, 3);
+  #else*/
 		DragReceiveHandler = new Callback(DropTarget.class, "DragReceiveHandler", 3); //$NON-NLS-1$
+/*#endif*/
 		int dragReceiveHandlerAddress = DragReceiveHandler.getAddress();
 		if (dragReceiveHandlerAddress == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 		OS.InstallTrackingHandler(dragTrackingHandlerAddress, 0, null);

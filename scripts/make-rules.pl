@@ -10,7 +10,7 @@ use constant {
     ],
 
     ClassPaths => {
-        "unix" => [
+        "posix-gtk" => [
             "Eclipse SWT/gtk",
             "Eclipse SWT/cairo",
             "Eclipse SWT/emulated/bidi",
@@ -37,13 +37,35 @@ use constant {
             "Eclipse SWT OpenGL/common",
             "Eclipse SWT Theme/gtk",
         ],
+        "posix-carbon" => [
+            "Eclipse SWT/carbon",
+            "Eclipse SWT/common",
+            "Eclipse SWT/common_j2me",
+            "Eclipse SWT/emulated/bidi",
+            "Eclipse SWT/emulated/coolbar",
+            "Eclipse SWT/emulated/expand",
+            "Eclipse SWT PI/carbon",
+            "Eclipse SWT PI/common_j2me",
+            "Eclipse SWT Accessibility/common",
+            "Eclipse SWT Accessibility/carbon",
+            "Eclipse SWT Custom Widgets/common",
+            "Eclipse SWT Drag and Drop/common",
+            "Eclipse SWT Drag and Drop/emulated",
+            "Eclipse SWT Printing/common",
+            "Eclipse SWT Printing/carbon",
+            "Eclipse SWT Program/common",
+            "Eclipse SWT Program/carbon",
+            "Eclipse SWT OpenGL/carbon",
+            "Eclipse SWT OpenGL/common",
+            "Eclipse SWT Theme/carbon",
+        ],
         "win32" => [
             "Eclipse SWT/win32",
             "Eclipse SWT/common",
             "Eclipse SWT/common_j2me",
             "Eclipse SWT PI/win32",
             "Eclipse SWT PI/common_j2me",
-            "Eclipse SWT Accessibility/emulated",
+            "Eclipse SWT Accessibility/win32",
             "Eclipse SWT Accessibility/common",
             "Eclipse SWT Drag and Drop/emulated",
             "Eclipse SWT Drag and Drop/common",
@@ -59,11 +81,16 @@ use constant {
     },
 
     NativePaths => {
-        "unix" => [
+        "posix-gtk" => [
             "Eclipse SWT/common/library",
             "Eclipse SWT PI/gtk/library",
             "Eclipse SWT PI/cairo/library",
             "Eclipse SWT OpenGL/glx/library",
+        ],
+        "posix-carbon" => [
+            "Eclipse SWT/common/library",
+            "Eclipse SWT PI/carbon/library",
+            "Eclipse SWT OpenGL/carbon/library",
         ],
         "win32" => [
             "Eclipse SWT/common/library",
@@ -130,7 +157,7 @@ sub generateNative {
         $dirs .= "\"$parent/$dir\" ";
     }
     
-    my @files = `find $dirs -regextype posix-extended -regex '.*/[A-Za-z].*\.(c|cpp|h)'`;
+    my @files = `find $dirs -regex '.*/[A-Za-z].*\.c' -or -regex '.*/[A-Za-z].*\.cpp' -or -regex '.*/[A-Za-z].*\.h'`;
     my %map;
     for my $file (@files) {
         my $new = $file;
@@ -151,7 +178,7 @@ sub generateNative {
     }
 }
 
-die "usage: $0 unix|win32|osx"
+die "usage: $0 posix-gtk|win32|osx"
     if ($#ARGV != 0 || ! (defined ClassPaths->{$ARGV[0]}));
 
 my @sources;

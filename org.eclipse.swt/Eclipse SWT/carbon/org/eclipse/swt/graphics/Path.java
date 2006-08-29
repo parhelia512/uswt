@@ -180,6 +180,14 @@ int curveProc(int pt1, int controlPt, int pt2, int data) {
 	return 0;
 }
 
+/*#if USWT
+  private static final int NEW_PATH_PROC = 1;
+  private static final int LINE_PROC = 2;
+  private static final int CURVE_PROC = 3;
+  private static final int CLOSE_PATH_PROC = 4;
+  #endif*/
+
+
 float originX, originY;
 float[] point = new float[2];
 boolean first;
@@ -207,16 +215,51 @@ public void addString(String string, float x, float y, Font font) {
 	int length = string.length();
 	if (length == 0) return;
 	
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+        case NEW_PATH_PROC:
+          return newPathProc(args[0]);
+
+        case LINE_PROC:
+          return lineProc(args[0], args[1], args[2]);
+
+        case CURVE_PROC:
+          return curveProc(args[0], args[1], args[2], args[3]);
+
+        case CLOSE_PATH_PROC:
+          return closePathProc(args[0]);
+
+        default: throw new IllegalArgumentException();
+        }
+      }
+    };
+  CNICallback newPathCallback = new CNICallback(dispatcher, NEW_PATH_PROC, 1);
+  #else*/
 	Callback newPathCallback = new Callback(this, "newPathProc", 1);
+/*#endif*/
 	int newPathProc = newPathCallback.getAddress();
 	if (newPathProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  CNICallback lineCallback = new CNICallback(dispatcher, LINE_PROC, 3);
+  #else*/
 	Callback lineCallback = new Callback(this, "lineProc", 3);
+/*#endif*/
 	int lineProc = lineCallback.getAddress();
 	if (lineProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  CNICallback curveCallback = new CNICallback(dispatcher, CURVE_PROC, 4);
+  #else*/
 	Callback curveCallback = new Callback(this, "curveProc", 4);
+/*#endif*/
 	int curveProc = curveCallback.getAddress();
 	if (curveProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  CNICallback closePathCallback = new CNICallback(dispatcher, CLOSE_PATH_PROC, 1);
+  #else*/
 	Callback closePathCallback = new Callback(this, "closePathProc", 1);
+/*#endif*/
 	int closePathProc = closePathCallback.getAddress();
 	if (closePathProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 
@@ -469,7 +512,16 @@ public void getCurrentPoint(float[] point) {
  */
 public PathData getPathData() {
 	if (isDisposed()) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return applierFunc(args[0], args[1]);
+      }
+    };
+  CNICallback callback = new CNICallback(dispatcher, 0, 2);
+  #else*/
 	Callback callback = new Callback(this, "applierFunc", 2);
+/*#endif*/
 	int proc = callback.getAddress();
 	if (proc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	count = typeCount = 0;

@@ -105,10 +105,17 @@ public class Display extends Device {
 	static final int WAKE_CLASS = 'S' << 24 | 'W' << 16 | 'T' << 8 | '-';
 	static final int WAKE_KIND = 1;
 	Event [] eventQueue;
+/*#if USWT
+	CNICallback actionCallback, appleEventCallback, commandCallback, controlCallback, accessibilityCallback, appearanceCallback;
+	CNICallback drawItemCallback, itemDataCallback, itemNotificationCallback, itemCompareCallback, trayItemCallback;
+	CNICallback hitTestCallback, keyboardCallback, menuCallback, mouseHoverCallback, helpCallback, pollingCallback;
+	CNICallback mouseCallback, trackingCallback, windowCallback, colorCallback, textInputCallback;
+  #else*/
 	Callback actionCallback, appleEventCallback, commandCallback, controlCallback, accessibilityCallback, appearanceCallback;
 	Callback drawItemCallback, itemDataCallback, itemNotificationCallback, itemCompareCallback, trayItemCallback;
 	Callback hitTestCallback, keyboardCallback, menuCallback, mouseHoverCallback, helpCallback, pollingCallback;
 	Callback mouseCallback, trackingCallback, windowCallback, colorCallback, textInputCallback;
+/*#endif*/
 	int actionProc, appleEventProc, commandProc, controlProc, appearanceProc, accessibilityProc;
 	int drawItemProc, itemDataProc, itemNotificationProc, itemCompareProc, helpProc, trayItemProc;
 	int hitTestProc, keyboardProc, menuProc, mouseHoverProc, pollingProc;
@@ -158,13 +165,21 @@ public class Display extends Device {
 	/* Timers */
 	int [] timerIds;
 	Runnable [] timerList;
+/*#if USWT
+	CNICallback timerCallback;
+  #else*/
 	Callback timerCallback;
+/*#endif*/
 	int timerProc;
 	boolean allowTimers = true;
 		
 	/* Current caret */
 	Caret currentCaret;
+/*#if USWT
+	CNICallback caretCallback;
+  #else*/
 	Callback caretCallback;
+/*#endif*/
 	int caretID, caretProc;
 	
 	/* Grabs */
@@ -1993,79 +2008,281 @@ protected void init () {
 	initializeWidgetTable ();
 	initializeFonts ();
 }
+
+/*#if USWT
+  private static final int ACTION_PROC = 1;
+  private static final int APPLE_EVENT_PROC = 2;
+  private static final int CARET_PROC = 3;
+  private static final int COMMAND_PROC = 4;
+  private static final int CONTROL_PROC = 5;
+  private static final int ACCESSIBILITY_PROC = 6;
+  private static final int DRAW_ITEM_PROC = 7;
+  private static final int ITEM_COMPARE_PROC = 8;
+  private static final int ITEM_DATA_PROC = 9;
+  private static final int ITEM_NOTIFICATION_PROC = 10;
+  private static final int HELP_PROC = 11;
+  private static final int HIT_TEST_PROC = 12;
+  private static final int KEYBOARD_PROC = 13;
+  private static final int MENU_PROC = 14;
+  private static final int MOUSE_HOVER_PROC = 15;
+  private static final int MOUSE_PROC = 16;
+  private static final int TIMER_PROC = 17;
+  private static final int TRACKING_PROC = 18;
+  private static final int WINDOW_PROC = 19;
+  private static final int COLOR_PROC = 20;
+  private static final int TEXT_INPUT_PROC = 21;
+  private static final int APPEARANCE_PROC = 22;
+  private static final int TRAY_ITEM_PROC = 23;
+  private static final int POLLING_PROC = 24;
+  #endif*/
 	
 void initializeCallbacks () {
-	/* Create Callbacks */
+	/* Create Callbacks */	
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+        case ACTION_PROC:
+          return actionProc(args[0], args[1]);
+
+        case APPLE_EVENT_PROC:
+          return appleEventProc(args[0], args[1], args[2]);
+
+        case CARET_PROC:
+          return caretProc(args[0], args[1]);
+
+        case COMMAND_PROC:
+          return commandProc(args[0], args[1], args[2]);
+
+        case CONTROL_PROC:
+          return controlProc(args[0], args[1], args[2]);
+
+        case ACCESSIBILITY_PROC:
+          return accessibilityProc(args[0], args[1], args[2]);
+
+        case DRAW_ITEM_PROC:
+          return drawItemProc(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+
+        case ITEM_COMPARE_PROC:
+          return itemCompareProc(args[0], args[1], args[2], args[3]);
+
+        case ITEM_DATA_PROC:
+          return itemDataProc(args[0], args[1], args[2], args[3], args[4]);
+
+        case ITEM_NOTIFICATION_PROC:
+          return itemNotificationProc(args[0], args[1], args[2]);
+
+        case HELP_PROC:
+          return helpProc(args[0], args[1], args[2], args[3], args[4]);
+
+        case HIT_TEST_PROC:
+          return hitTestProc(args[0], args[1], args[2], args[3], args[4]);
+
+        case KEYBOARD_PROC:
+          return keyboardProc(args[0], args[1], args[2]);
+
+        case MENU_PROC:
+          return menuProc(args[0], args[1], args[2]);
+
+        case MOUSE_HOVER_PROC:
+          return mouseHoverProc(args[0], args[1]);
+
+        case MOUSE_PROC:
+          return mouseProc(args[0], args[1], args[2]);
+
+        case TIMER_PROC:
+          return timerProc(args[0], args[1]);
+
+        case TRACKING_PROC:
+          return trackingProc(args[0], args[1], args[2], args[3], args[4], args[5]);
+
+        case WINDOW_PROC:
+          return windowProc(args[0], args[1], args[2]);
+
+        case COLOR_PROC:
+          return colorProc(args[0], args[1], args[2], args[3]);
+
+        case TEXT_INPUT_PROC:
+          return textInputProc(args[0], args[1], args[2]);
+
+        case APPEARANCE_PROC:
+          return appearanceProc(args[0], args[1], args[2]);
+
+        case TRAY_ITEM_PROC:
+          return trayItemProc(args[0], args[1], args[2], args[3]);
+
+        case POLLING_PROC:
+          return pollingProc(args[0], args[1]);
+
+        default: throw new IllegalArgumentException();
+        }
+      }
+    };
+  actionCallback = new CNICallback(dispatcher, ACTION_PROC, 2);
+  #else*/
 	actionCallback = new Callback (this, "actionProc", 2);
+/*#endif*/
 	actionProc = actionCallback.getAddress ();
 	if (actionProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  appleEventCallback = new CNICallback(dispatcher, APPLE_EVENT_PROC, 3);
+  #else*/
 	appleEventCallback = new Callback (this, "appleEventProc", 3);
+/*#endif*/
 	appleEventProc = appleEventCallback.getAddress ();
 	if (appleEventProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  caretCallback = new CNICallback(dispatcher, CARET_PROC, 2);
+  #else*/
 	caretCallback = new Callback(this, "caretProc", 2);
+/*#endif*/
 	caretProc = caretCallback.getAddress();
 	if (caretProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  commandCallback = new CNICallback(dispatcher, COMMAND_PROC, 3);
+  #else*/
 	commandCallback = new Callback (this, "commandProc", 3);
+/*#endif*/
 	commandProc = commandCallback.getAddress ();
 	if (commandProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  controlCallback = new CNICallback(dispatcher, CONTROL_PROC, 3);
+  #else*/
 	controlCallback = new Callback (this, "controlProc", 3);
+/*#endif*/
 	controlProc = controlCallback.getAddress ();
 	if (controlProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  accessibilityCallback = new CNICallback(dispatcher, ACCESSIBILITY_PROC, 3);
+  #else*/
 	accessibilityCallback = new Callback (this, "accessibilityProc", 3);
+/*#endif*/
 	accessibilityProc = accessibilityCallback.getAddress ();
 	if (accessibilityProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  drawItemCallback = new CNICallback(dispatcher, DRAW_ITEM_PROC, 7);
+  #else*/
 	drawItemCallback = new Callback (this, "drawItemProc", 7);
+/*#endif*/
 	drawItemProc = drawItemCallback.getAddress ();
 	if (drawItemProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  itemCompareCallback = new CNICallback(dispatcher, ITEM_COMPARE_PROC, 4);
+  #else*/
 	itemCompareCallback = new Callback (this, "itemCompareProc", 4);
+/*#endif*/
 	itemCompareProc = itemCompareCallback.getAddress ();
 	if (itemCompareProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  itemDataCallback = new CNICallback(dispatcher, ITEM_DATA_PROC, 5);
+  #else*/
 	itemDataCallback = new Callback (this, "itemDataProc", 5);
+/*#endif*/
 	itemDataProc = itemDataCallback.getAddress ();
 	if (itemDataProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  itemNotificationCallback = new CNICallback(dispatcher, ITEM_NOTIFICATION_PROC, 3);
+  #else*/
 	itemNotificationCallback = new Callback (this, "itemNotificationProc", 3);
+/*#endif*/
 	itemNotificationProc = itemNotificationCallback.getAddress ();
 	if (itemNotificationProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  helpCallback = new CNICallback(dispatcher, HELP_PROC, 5);
+  #else*/
 	helpCallback = new Callback (this, "helpProc", 5);
+/*#endif*/
 	helpProc = helpCallback.getAddress ();
 	if (helpProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  hitTestCallback = new CNICallback(dispatcher, HIT_TEST_PROC, 5);
+  #else*/
 	hitTestCallback = new Callback (this, "hitTestProc", 5);
+/*#endif*/
 	hitTestProc = hitTestCallback.getAddress ();
 	if (hitTestProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  keyboardCallback = new CNICallback(dispatcher, KEYBOARD_PROC, 3);
+  #else*/
 	keyboardCallback = new Callback (this, "keyboardProc", 3);
+/*#endif*/
 	keyboardProc = keyboardCallback.getAddress ();
 	if (keyboardProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  menuCallback = new CNICallback(dispatcher, MENU_PROC, 3);
+  #else*/
 	menuCallback = new Callback (this, "menuProc", 3);
+/*#endif*/
 	menuProc = menuCallback.getAddress ();
 	if (menuProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  mouseHoverCallback = new CNICallback(dispatcher, MOUSE_HOVER_PROC, 2);
+  #else*/
 	mouseHoverCallback = new Callback (this, "mouseHoverProc", 2);
+/*#endif*/
 	mouseHoverProc = mouseHoverCallback.getAddress ();
 	if (mouseHoverProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  mouseCallback = new CNICallback(dispatcher, MOUSE_PROC, 3);
+  #else*/
 	mouseCallback = new Callback (this, "mouseProc", 3);
+/*#endif*/
 	mouseProc = mouseCallback.getAddress ();
 	if (mouseProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  timerCallback = new CNICallback(dispatcher, TIMER_PROC, 2);
+  #else*/
 	timerCallback = new Callback (this, "timerProc", 2);
+/*#endif*/
 	timerProc = timerCallback.getAddress ();
 	if (timerProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  trackingCallback = new CNICallback(dispatcher, TRACKING_PROC, 6);
+  #else*/
 	trackingCallback = new Callback (this, "trackingProc", 6);
+/*#endif*/
 	trackingProc = trackingCallback.getAddress ();
 	if (trackingProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  windowCallback = new CNICallback(dispatcher, WINDOW_PROC, 3);
+  #else*/
 	windowCallback = new Callback (this, "windowProc", 3);
+/*#endif*/
 	windowProc = windowCallback.getAddress ();
 	if (windowProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  colorCallback = new CNICallback(dispatcher, COLOR_PROC, 4);
+  #else*/
 	colorCallback = new Callback (this, "colorProc", 4);
+/*#endif*/
 	colorProc = colorCallback.getAddress ();
 	if (colorProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  textInputCallback = new CNICallback(dispatcher, TEXT_INPUT_PROC, 3);
+  #else*/
 	textInputCallback = new Callback (this, "textInputProc", 3);
+/*#endif*/
 	textInputProc = textInputCallback.getAddress ();
 	if (textInputProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  appearanceCallback = new CNICallback(dispatcher, APPEARANCE_PROC, 3);
+  #else*/
 	appearanceCallback = new Callback (this, "appearanceProc", 3);
+/*#endif*/
 	appearanceProc = appearanceCallback.getAddress ();
 	if (appearanceProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  trayItemCallback = new CNICallback(dispatcher, TRAY_ITEM_PROC, 4);
+  #else*/
 	trayItemCallback = new Callback (this, "trayItemProc", 4);
+/*#endif*/
 	trayItemProc = trayItemCallback.getAddress ();
 	if (trayItemProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
+/*#if USWT
+  pollingCallback = new CNICallback(dispatcher, POLLING_PROC, 2);
+  #else*/
 	pollingCallback = new Callback (this, "pollingProc", 2);
+/*#endif*/
 	pollingProc = pollingCallback.getAddress ();
 	if (pollingProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 

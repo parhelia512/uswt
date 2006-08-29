@@ -458,7 +458,16 @@ public void draw(GC gc, int x, int y, int selectionStart, int selectionEnd, Colo
 	*/
 	int rgn = 0;
 	CGRect rect = null;
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return regionToRects(args[0], args[1], args[2], args[3]);
+      }
+    };
+  CNICallback callback = null;
+  #else*/
 	Callback callback = null;
+/*#endif*/
 	for (int j = 0; j < styles.length; j++) {
 		StyleItem run = styles[j];
 		TextStyle style = run.style;
@@ -477,7 +486,11 @@ public void draw(GC gc, int x, int y, int selectionStart, int selectionEnd, Colo
 					OS.ATSUGetTextHighlight(layout, OS.Long2Fix(x), OS.Long2Fix(y + lineY + lineAscent[i]), highStart, highLen, rgn);
 					OS.CGContextSaveGState(gc.handle);
 					if (callback == null) {
+/*#if USWT
+  callback = new CNICallback(dispatcher, 0, 4);
+  #else*/
 						callback = new Callback(this, "regionToRects", 4);
+/*#endif*/
 						if (callback.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 					}
 					OS.QDRegionToRects(rgn, OS.kQDParseRegionFromTopLeft, callback.getAddress(), gc.handle);

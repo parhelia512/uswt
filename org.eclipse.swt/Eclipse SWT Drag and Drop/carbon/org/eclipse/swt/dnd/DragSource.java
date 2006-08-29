@@ -15,7 +15,12 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
+/*#if USWT
+import org.eclipse.swt.internal.CNICallback;
+import org.eclipse.swt.internal.CNIDispatcher;
+  #else*/
 import org.eclipse.swt.internal.Callback;
+/*#endif*/
 import org.eclipse.swt.internal.carbon.CGPoint;
 import org.eclipse.swt.internal.carbon.EventRecord;
 import org.eclipse.swt.internal.carbon.OS;
@@ -106,10 +111,23 @@ public class DragSource extends Widget {
 	DragAndDropEffect effect;
 
 	static final String DRAGSOURCEID = "DragSource"; //$NON-NLS-1$
+/*#if USWT
+	static CNICallback DragSendDataProc;
+  #else*/
 	static Callback DragSendDataProc;
+/*#endif*/
 	
 	static {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        return applierFunc(args[0], args[1], args[2], args[3]);
+      }
+    };
+  DragSendDataProc = new CNICallback(dispatcher, 0, 4);
+  #else*/
 		DragSendDataProc = new Callback(DragSource.class, "DragSendDataProc", 4); //$NON-NLS-1$
+/*#endif*/
 		int dragSendDataProcAddress = DragSendDataProc.getAddress();
 		if (dragSendDataProcAddress == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}

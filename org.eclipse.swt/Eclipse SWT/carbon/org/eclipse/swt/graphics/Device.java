@@ -46,8 +46,12 @@ public abstract class Device implements Drawable {
 
 	/* System Font */
 	Font systemFont;
-	
+
+/*#if USWT
+	CNICallback drawPatternCallback, axialShadingCallback;
+  #else*/
 	Callback drawPatternCallback, axialShadingCallback;
+/*#endif*/
 	int drawPatternProc, axialShadingProc;
 
 	final static Object CREATE_OBJECT = new Object();
@@ -173,14 +177,42 @@ protected void checkDevice () {
 protected void create (DeviceData data) {
 }
 
+/*#if USWT
+  private static final int DRAW_PATTERN_PROC = 1;
+  private static final int AXIAL_SHADING_PROC = 2;
+  #endif*/
+
 void createPatternCallbacks () {
+/*#if USWT
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+        switch (method) {
+        case DRAW_PATTERN_PROC:
+          return drawPatternProc(args[0], args[1]);
+
+        case AXIAL_SHADING_PROC:
+          return axialShadingProc(args[0], args[1], args[2]);
+
+        default: throw new IllegalArgumentException();
+        }
+      }
+    };
+  #endif*/
 	if (drawPatternCallback == null) {
+/*#if USWT
+  drawPatternCallback = new CNICallback(dispatcher, DRAW_PATTERN_PROC, 2);
+  #else*/
 		drawPatternCallback = new Callback(this, "drawPatternProc", 2);
+/*#endif*/
 		drawPatternProc = drawPatternCallback.getAddress();
 		if (drawPatternProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}
 	if (axialShadingCallback == null) {
+/*#if USWT
+  axialShadingCallback = new CNICallback(dispatcher, AXIAL_SHADING_PROC, 3);
+  #else*/
 		axialShadingCallback = new Callback(this, "axialShadingProc", 3);
+/*#endif*/
 		axialShadingProc = axialShadingCallback.getAddress();
 		if (axialShadingProc == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}

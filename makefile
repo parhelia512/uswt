@@ -2,13 +2,19 @@ MAKEFLAGS = -s
 
 ifdef lin64
   build-dir = build/lin64
-	platform = unix
+	platform = posix-gtk
 	jptr = jlong
 else
 ifdef lin32
   build-dir = build/lin32
-	platform = unix
+	platform = posix-gtk
 	jptr = jint
+else
+ifdef osxppc32
+  build-dir = build/osxppc32
+	platform = posix-carbon
+	jptr = jint
+	long-filter = cat
 else
 ifdef win32
   build-dir = build/win32
@@ -16,12 +22,14 @@ ifdef win32
 	jptr = jint
 	long-filter = cat
 else
-$(error please specify a one of the following: lin64=1, lin32=1, win32=1)
+$(error please specify a one of the following: \
+	lin64=1, lin32=1, osxppc32=1, win32=1)
+endif
 endif
 endif
 endif
 
-ifeq "$(platform)" "unix"
+ifeq "$(platform)" "posix-gtk"
   g++ = g++
   gcj = gcj
   gij = gij
@@ -44,6 +52,22 @@ ifeq "$(platform)" "unix"
 		-lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib -lXtst \
 		$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
 		-L/usr/X11R6/lib -lGL -lGLU -lm
+else
+ifeq "$(platform)" "posix-carbon"
+  g++ = g++
+  gcj = gcj
+  gij = gij
+  gcjh = gcjh
+  ar = ar
+  ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
+  cflags = -O0 -g -fPIC
+
+  swt-cflags = \
+		-DJPTR=$(jptr) \
+		-I$(build-dir)/native-sources \
+		-I$(build-dir)/headers
+
+	swt-lflags = -fPIC
 else
 ifeq "$(platform)" "win32"
   g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
@@ -72,6 +96,7 @@ ifeq "$(platform)" "win32"
 		-mwindows -mconsole
 endif
 endif
+endif
 
 ifeq "$(jptr)" "jlong"
 	swt-cflags += -DJPTR_IS_JLONG
@@ -95,10 +120,10 @@ $(build-dir)/rules.mk: $(script-dir)/make-rules.pl
 gen-dir = $(build-dir)/generation
 
 define gen-dir-find
-	if test ! -e $(gen-dir); then
-		mkdir -p $(dir $(gen-dir));
-		ln -s "../../org.eclipse.swt.tools/JNI Generation" $(gen-dir);
-	fi;
+	if test ! -e $(gen-dir); then \
+		mkdir -p $(dir $(gen-dir)); \
+		ln -s "../../org.eclipse.swt.tools/JNI Generation" $(gen-dir); \
+	fi; \
   find $(gen-dir)/org -name '[A-Za-z]*.java'
 endef
 
