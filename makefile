@@ -1,3 +1,5 @@
+MAKEFLAGS = -s
+
 ifdef lin64
   build-dir = build/lin64
 	platform = unix
@@ -26,7 +28,7 @@ ifeq "$(platform)" "unix"
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -Os -g -fPIC
+  cflags = -O0 -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -51,7 +53,7 @@ ifeq "$(platform)" "win32"
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 	dlltool = mingw32-dlltool -k
-  cflags = -Os -g
+  cflags = -O0 -g
   msvc = cl
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
@@ -79,6 +81,8 @@ else
 endif
 
 script-dir = scripts
+
+stamp-dir = $(build-dir)/stamps
 
 .PHONY: default
 default: $(gen-dir) $(build-dir)/swt.a
@@ -128,8 +132,7 @@ $(swt-classes): $(swt-sources)
 	@mkdir -p $(build-dir)/classes
 	$(ugcj) -C -d $(build-dir)/classes --classpath $(build-dir)/sources $(^)
 
-.PHONY: swt-bindings
-swt-bindings: \
+$(stamp-dir)/swt-bindings: \
 		$(swt-classes) \
 		$(gen-classes) \
 		$(gen-properties)
@@ -137,10 +140,11 @@ swt-bindings: \
 	@mkdir -p $(swt-binding-dir)
 	$(gij) -cp $(build-dir)/classes:$(gen-dir) \
 		org.eclipse.swt.tools.internal.CNIGenerator	-aggregate $(swt-binding-dir)/
+	@mkdir -p $(stamp-dir)
+	@touch $(@)
 
-.PHONY: swt-processed-bindings
-swt-processed-bindings: \
-# 		swt-bindings \
+$(stamp-dir)/swt-processed-bindings: \
+		$(stamp-dir)/swt-bindings \
 		$(swt-native-sources) \
 		$(swt-headers)
 	@echo "processing bindings"
@@ -154,6 +158,8 @@ swt-processed-bindings: \
 				$(swt-processed-binding-dir)/$${file##*/}; \
 		fi \
 	 done
+	@mkdir -p $(stamp-dir)
+	@touch $(@)
 
 $(build-dir)/swt-foreign.dll: $(swt-native-sources)
 	@echo "linking foreign dll"
@@ -184,9 +190,8 @@ $(build-dir)/swt-foreign.lib: \
 # note the -O0 flag below - something breaks when the code is
 # optimized which I haven't figured out, so we turn it off for these
 # files.
-.PHONY: swt-binding-objects
-swt-binding-objects: \
-		swt-processed-bindings
+$(stamp-dir)/swt-binding-objects: \
+		$(stamp-dir)/swt-processed-bindings
 	@echo "compiling bindings"
 	@mkdir -p $(swt-binding-object-dir)
 	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
@@ -194,6 +199,8 @@ swt-binding-objects: \
 		$(g++) $(cflags) -O0 -fpreprocessed -c $${file} \
 			-o $(swt-binding-object-dir)/$$(basename $${file} .cpp).o; \
 	 done
+	@mkdir -p $(stamp-dir)
+	@touch $(@)
 
 $(build-dir)/os_custom-processed.cpp: \
 		$(build-dir)/native-sources/os_custom.cpp \
@@ -216,7 +223,7 @@ $(build-dir)/swt.a: \
 		$(build-dir)/rules.mk \
 		$(build-dir)/os_custom.o \
 		$(build-dir)/cni-callback.o \
-# 		swt-binding-objects \
+		$(stamp-dir)/swt-binding-objects \
 		$(swt-objects)
 	@rm -f $(@)
 	@echo "creating $(@)"
@@ -276,10 +283,10 @@ example-sources: $(example-sources)
 $(example-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/sources/%.java \
 		$(example-sources) \
-# 		$(swt-classes)
+		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
-	@$(ugcj) $(cflags) --classpath $(build-dir)/sources:$(build-dir)/classes \
+	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
 		-c $(<) -o $(@)
 
 $(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%

@@ -186,10 +186,10 @@ my $rules = sub {
     my $class = shift;
     my $object = shift;
 
-    print "$object: $new $class\n";
+    print "$object: $new \$(swt-classes)\n";
     print "\t\@mkdir -p \$(dir \$(\@))\n";
     print "\t\@echo \"compiling \$(\@)\"\n";
-    print "\t\@\$(ugcj) -c \$(cflags) --classpath \$(build-dir)/sources \$(<) -o \$(@)\n\n";
+    print "\t\@\$(ugcj) -c \$(cflags) --classpath \$(build-dir)/classes \$(<) -o \$(@)\n\n";
 
     my $header = shift;
 
