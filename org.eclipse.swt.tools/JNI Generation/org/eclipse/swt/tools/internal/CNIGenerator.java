@@ -1335,8 +1335,6 @@ public abstract class CNIGenerator {
     } else {
       out.println("    static bool initialized = false;");
       out.println("    static void* handle = 0;");
-      out.print("    typedef ");
-      generateType(out, m.getReturnType());
       generateProcedureTypedef(out, m, metaData);
       out.println("    static Procedure procedure;");
       if (m.getReturnType() != Void.TYPE) {
