@@ -19,7 +19,9 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.accessibility.*;
 
 import java.io.*;
+/*#if not USWT*/
 import java.text.*;
+/*#endif*/
 import java.util.*;
 
 public class PaintExample {
@@ -381,6 +383,12 @@ public class PaintExample {
 	 * return the key.
 	 */
 	public static String getResourceString(String key, Object[] args) {
+/*#if USWT
+  StringBuffer sb = new StringBuffer();
+  sb.append(key).append(":");
+  for (int i = 0; i < args.length; ++i) sb.append(" ").append(args[i]);
+  return sb.toString();
+  #else*/
 		try {
 			return MessageFormat.format(getResourceString(key), args);
 		} catch (MissingResourceException e) {
@@ -388,6 +396,7 @@ public class PaintExample {
 		} catch (NullPointerException e) {
 			return "!" + key + "!";
 		}
+//#endif
 	}
 
 	/**

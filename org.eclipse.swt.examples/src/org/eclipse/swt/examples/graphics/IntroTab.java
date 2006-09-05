@@ -10,7 +10,9 @@
  *******************************************************************************/
 package org.eclipse.swt.examples.graphics;
 
+/*#if not USWT*/
 import java.util.Random;
+/*#endif*/
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
@@ -20,7 +22,9 @@ public class IntroTab extends AnimatedGraphicsTab {
 	
 	Font font;
 	Image image;
+/*#if not USWT*/
 	Random random = new Random();
+/*#endif*/
 	float x, y;
     float incX = 10.0f;
 	float incY = 5.0f;
@@ -69,7 +73,7 @@ public void next(int width, int height) {
 }
 
 public void paint(GC gc, int width, int height) {
-	if (!example.checkAdvancedGraphics()) return;
+  if (!example.checkAdvancedGraphics()) return;
 	Display display = Display.getCurrent();
 	if (image == null) {
 		image = example.loadImage(Display.getCurrent(), "irmaos.jpg");

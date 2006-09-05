@@ -10,8 +10,9 @@
  *******************************************************************************/
 package org.eclipse.swt.examples.paint;
 
-
+/*#if not USWT*/
 import java.util.Random;
+/*#endif*/
 import org.eclipse.swt.graphics.*;
 
 /**
@@ -19,7 +20,9 @@ import org.eclipse.swt.graphics.*;
  */
 public class AirbrushTool extends ContinuousPaintSession implements PaintTool {
 	private ToolSettings settings;
+/*#if not USWT*/
 	private Random random;
+/*#endif*/
 	private int cachedRadiusSquared;
 	private int cachedNumPoints;
 	
@@ -31,7 +34,9 @@ public class AirbrushTool extends ContinuousPaintSession implements PaintTool {
 	 */
 	public AirbrushTool(ToolSettings toolSettings, PaintSurface paintSurface) {
 		super(paintSurface);
+/*#if not USWT*/
 		random = new Random();
+/*#endif*/
 		setRetriggerTimer(10);
 		set(toolSettings);
 	}
@@ -69,8 +74,13 @@ public class AirbrushTool extends ContinuousPaintSession implements PaintTool {
 		for (int i = 0; i < cachedNumPoints; ++i) {
 			int randX, randY;
 			do {
+/*#if USWT
+  randX = (int) ((Math.random() - 0.5) * settings.airbrushRadius * 2.0);
+  randY = (int) ((Math.random() - 0.5) * settings.airbrushRadius * 2.0);
+  #else*/
 				randX = (int) ((random.nextDouble() - 0.5) * settings.airbrushRadius * 2.0);
 				randY = (int) ((random.nextDouble() - 0.5) * settings.airbrushRadius * 2.0);
+/*#endif*/
 			} while (randX * randX + randY * randY > cachedRadiusSquared);
 			cfig.add(new PointFigure(settings.commonForegroundColor, point.x + randX, point.y + randY));
 		}

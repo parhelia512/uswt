@@ -272,6 +272,13 @@ $(build-dir)/swt.a: \
 	@$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
 		$(swt-objects) $(wildcard $(swt-binding-object-dir)/*.o)
 
+.PHONY: clean
+clean:
+	@echo "removing $(build-dir)"
+	@rm -rf $(build-dir)
+
+## hello world ################################################################
+
 .PHONY: hello
 hello: $(build-dir)/hello
 
@@ -294,6 +301,8 @@ $(build-dir)/core-test: \
 	@echo "compiling $(@) from $(<)"
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
 		--main=CoreTest $(^) -o $(@)
+
+## control example ############################################################
 
 top-example-dir = org.eclipse.swt.examples
 example-dir = $(top-example-dir)/src
@@ -360,7 +369,126 @@ $(build-dir)/example: \
 	$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
 		 $(^) $(swt-lflags) -o $(@)
 
-.PHONY: clean
-clean:
-	@echo "removing $(build-dir)"
-	@rm -rf $(build-dir)
+## paint example ##############################################################
+
+paint-original-sources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/paint \
+	-name '[A-Za-z]*.java')
+paint-sources =  $(foreach x,$(paint-original-sources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/sources/%,$(x)))
+paint-classes = $(foreach x,$(paint-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/classes/%.class,$(x)))
+paint-objects = $(foreach x,$(paint-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/objects/%.o,$(x)))
+paint-resources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/paint \
+	-name '[A-Za-z]*.gif')
+paint-resource-objects = $(foreach x,$(paint-resources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/%.o,$(x)))
+
+.PHONY: paint
+paint: $(build-dir)/paint
+
+$(paint-classes): $(paint-sources)
+	@echo "compiling paint sources"
+	@mkdir -p $(build-dir)/classes
+	@$(ugcj) -C -d $(build-dir)/classes \
+		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
+
+.PHONY: paint-classes
+paint-classes: $(paint-classes)
+
+$(paint-sources): $(build-dir)/sources/%: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@)"
+	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
+
+$(paint-objects): $(build-dir)/objects/%.o: \
+		$(build-dir)/sources/%.java \
+		$(paint-sources) \
+		$(swt-classes)
+	@mkdir -p $(dir $(@))
+	@echo "compiling $(@)"
+	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
+		-c $(<) -o $(@)
+
+$(paint-resource-objects): $(build-dir)/%.o: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+
+$(build-dir)/examples_paint.o: $(example-dir)/examples_paint.properties
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource examples_paint.properties -c $(<) -o $(@)
+
+$(build-dir)/paint: \
+		$(build-dir)/examples_paint.o \
+		$(paint-resource-objects) \
+		$(paint-objects) \
+		$(build-dir)/swt.a
+	@echo "linking $(@)"
+	$(ugcj) --main=org.eclipse.swt.examples.paint.PaintExample \
+		 $(^) $(swt-lflags) -o $(@)
+
+## graphics example ###########################################################
+
+graphics-original-sources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/graphics \
+	-name '[A-Za-z]*.java')
+graphics-sources =  $(foreach x,$(graphics-original-sources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/sources/%,$(x)))
+graphics-classes = $(foreach x,$(graphics-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/classes/%.class,$(x)))
+graphics-objects = $(foreach x,$(graphics-original-sources),$(patsubst \
+	$(example-dir)/%.java,$(build-dir)/objects/%.o,$(x)))
+graphics-resources = $(shell find \
+	$(example-dir)/org/eclipse/swt/examples/graphics \
+	-name '[A-Za-z]*.gif' -or -name '[A-Za-z]*.jpg')
+graphics-resource-objects = $(foreach x,$(graphics-resources),$(patsubst \
+	$(example-dir)/%,$(build-dir)/%.o,$(x)))
+
+.PHONY: graphics
+graphics: $(build-dir)/graphics
+
+$(graphics-classes): $(graphics-sources)
+	@echo "compiling graphics sources"
+	@mkdir -p $(build-dir)/classes
+	@$(ugcj) -C -d $(build-dir)/classes \
+		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
+
+.PHONY: graphics-classes
+graphics-classes: $(graphics-classes)
+
+$(graphics-sources): $(build-dir)/sources/%: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@)"
+	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
+
+$(graphics-objects): $(build-dir)/objects/%.o: \
+		$(build-dir)/sources/%.java \
+		$(graphics-sources) \
+		$(swt-classes)
+	@mkdir -p $(dir $(@))
+	@echo "compiling $(@)"
+	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
+		-c $(<) -o $(@)
+
+$(graphics-resource-objects): $(build-dir)/%.o: $(example-dir)/%
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+
+$(build-dir)/examples_graphics.o: $(example-dir)/examples_graphics.properties
+	@mkdir -p $(dir $(@))
+	@echo "generating $(@) from $(<)"
+	@$(ugcj) --resource examples_graphics.properties -c $(<) -o $(@)
+
+$(build-dir)/graphics: \
+		$(build-dir)/examples_graphics.o \
+		$(graphics-resource-objects) \
+		$(graphics-objects) \
+		$(build-dir)/swt.a
+	@echo "linking $(@)"
+	$(ugcj) --main=org.eclipse.swt.examples.graphics.GraphicsExample \
+		 $(^) $(swt-lflags) -o $(@)
