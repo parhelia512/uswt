@@ -65,7 +65,7 @@ use constant {
             "Eclipse SWT/common_j2me",
             "Eclipse SWT PI/win32",
             "Eclipse SWT PI/common_j2me",
-            "Eclipse SWT Accessibility/win32",
+            "Eclipse SWT Accessibility/emulated",
             "Eclipse SWT Accessibility/common",
             "Eclipse SWT Drag and Drop/emulated",
             "Eclipse SWT Drag and Drop/common",
