@@ -149,7 +149,10 @@ public class ControlExample {
 	 */
 	static String getResourceString(String key, Object[] args) {
 /*#if USWT
-  return getResourceString(key);
+  StringBuffer sb = new StringBuffer();
+  sb.append(key).append(":");
+  for (int i = 0; i < args.length; ++i) sb.append(" ").append(args[i]);
+  return sb.toString();
   #else*/
 		try {
 			return MessageFormat.format(getResourceString(key), args);
