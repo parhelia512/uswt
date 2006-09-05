@@ -1,4 +1,4 @@
-MAKEFLAGS = -s
+#MAKEFLAGS = -s
 
 ifdef lin64
   build-dir = build/lin64
@@ -10,20 +10,24 @@ ifdef lin32
 	platform = posix-gtk
 	jptr = jint
 else
-ifdef osxppc32
-  build-dir = build/osxppc32
+ifdef osxppc
+  build-dir = build/osxppc
 	platform = posix-carbon
 	jptr = jint
-	long-filter = cat
+else
+ifdef osxi386
+  build-dir = build/osxi386
+	platform = posix-carbon
+	jptr = jint
 else
 ifdef win32
   build-dir = build/win32
 	platform = win32
 	jptr = jint
-	long-filter = cat
 else
 $(error please specify a one of the following: \
-	lin64=1, lin32=1, osxppc32=1, win32=1)
+	lin64=1, lin32=1, osxppc=1, osxi386=1, win32=1)
+endif
 endif
 endif
 endif
@@ -36,7 +40,7 @@ ifeq "$(platform)" "posix-gtk"
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -O0 -g -fPIC
+  cflags = -O0 -g -pg -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -54,10 +58,10 @@ ifeq "$(platform)" "posix-gtk"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(platform)" "posix-carbon"
-  g++ = g++
-  gcj = gcj
-  gij = gij
-  gcjh = gcjh
+  g++ = g++ -x objective-c++ -I/Users/dicej/sw/gcc-ulibgcj/include/c++/4.1.1
+	javac = javac
+	java = java
+  gcjh = /Users/dicej/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
   cflags = -O0 -g -fPIC
@@ -65,9 +69,13 @@ ifeq "$(platform)" "posix-carbon"
   swt-cflags = \
 		-DJPTR=$(jptr) \
 		-I$(build-dir)/native-sources \
-		-I$(build-dir)/headers
+		-I$(build-dir)/headers \
+		-I/System/Library/Frameworks/Foundation.framework/Headers \
+		-I/System/Library/Frameworks/WebKit.framework/Headers
 
-	swt-lflags = -fPIC
+	swt-lflags = -fPIC \
+		-framework Carbon -framework WebKit	-framework AGL -framework OpenGL \
+		-framework Cocoa -framework Foundation
 else
 ifeq "$(platform)" "win32"
   g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
@@ -93,7 +101,7 @@ ifeq "$(platform)" "win32"
 	swt-lflags = \
 		-lgdi32 -lopengl32 -lole32 -lolepro32 -lusp10 -lcomdlg32 -limm32 \
 		-lcomctl32 -loleaut32 -lwininet -lmsvfw32 -lopengl32 -oleaut32 \
-		-mwindows -mconsole
+		-mwindows -mconsole -Wl,--allow-multiple-definition
 endif
 endif
 endif
@@ -103,6 +111,16 @@ ifeq "$(jptr)" "jlong"
 	long-filter = sed -e 's:int */\*long\*/:long /*int*/:g'
 else
 	long-filter = cat
+endif
+
+ifndef java
+	java = $(gij)
+endif
+
+ifdef javac
+	gen-compile = $(javac) -classpath $(build-dir)/sources:$(gen-dir)
+else
+	gen-compile = $(gcj) -C --classpath $(build-dir)/sources:$(gen-dir)
 endif
 
 script-dir = scripts
@@ -135,8 +153,7 @@ gen-properties = $(shell find $(gen-dir) -name 'org*.properties')
 $(gen-classes): $(gen-sources) $(swt-sources)
 	@mkdir -p $(build-dir)/classes
 	@echo "compiling native code generator"
-	$(gcj) -C -d $(build-dir)/classes \
-		--classpath $(build-dir)/sources:$(gen-dir)	$(gen-sources)
+	$(gen-compile) -d $(build-dir)/classes $(gen-sources)
 
 swt-binding-dir = $(build-dir)/bindings
 swt-processed-binding-dir = $(build-dir)/processed-bindings
@@ -163,7 +180,7 @@ $(stamp-dir)/swt-bindings: \
 		$(gen-properties)
 	@echo "generating bindings"
 	@mkdir -p $(swt-binding-dir)
-	$(gij) -cp $(build-dir)/classes:$(gen-dir) \
+	$(java) -cp $(build-dir)/classes:$(gen-dir) \
 		org.eclipse.swt.tools.internal.CNIGenerator	-aggregate $(swt-binding-dir)/
 	@mkdir -p $(stamp-dir)
 	@touch $(@)
@@ -261,12 +278,22 @@ hello: $(build-dir)/hello
 $(build-dir)/hello: \
 		test/Hello.java \
 		$(build-dir)/swt.a \
-		$(build-dir)/swt-foreign.lib
+# 		$(build-dir)/swt-foreign.lib
 	@echo "compiling $(@) from $(<)"
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
-		-Wl,--allow-multiple-definition \
 		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) \
 		-o $(@)
+
+.PHONY: core-test
+core-test: $(build-dir)/core-test
+
+$(build-dir)/core-test: \
+		test/CoreTest.java \
+		test/Thrower.java \
+		$(build-dir)/swt.a
+	@echo "compiling $(@) from $(<)"
+	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
+		--main=CoreTest $(^) -o $(@)
 
 top-example-dir = org.eclipse.swt.examples
 example-dir = $(top-example-dir)/src
@@ -330,8 +357,7 @@ $(build-dir)/example: \
 		$(example-objects) \
 		$(build-dir)/swt.a
 	@echo "linking $(@)"
-	$(ugcj) -Wl,--allow-multiple-definition \
-		--main=org.eclipse.swt.examples.controlexample.ControlExample \
+	$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
 		 $(^) $(swt-lflags) -o $(@)
 
 .PHONY: clean

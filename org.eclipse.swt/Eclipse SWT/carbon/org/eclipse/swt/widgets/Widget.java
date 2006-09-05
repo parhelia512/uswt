@@ -1567,11 +1567,23 @@ boolean sendKeyEvent (int type, Event event) {
 	return event.doit;
 }
 
+private boolean neverSetBounds = true;
+
 int setBounds (int control, int x, int y, int width, int height, boolean move, boolean resize, boolean events) {
 	boolean sameOrigin = true, sameExtent = true;
 	if (OS.HIVIEW) {
 		CGRect oldBounds = new CGRect ();
+//	  System.out.println(this + " HIView oldBounds: " + oldBounds);
 		OS.HIViewGetFrame (control, oldBounds);
+
+//	  System.out.println(this + " HIView oldBounds after syscall: " + oldBounds);
+                if (neverSetBounds) {
+                  neverSetBounds = false;
+                  oldBounds.x = 0;
+                  oldBounds.y = 0;
+                  oldBounds.width = 0;
+                  oldBounds.height = 0;
+                }
 		Rect inset = getInset ();
 		oldBounds.x -= inset.left;
 		oldBounds.y -= inset.top;
@@ -1593,6 +1605,7 @@ int setBounds (int control, int x, int y, int width, int height, boolean move, b
 		sameOrigin = newBounds.x == oldBounds.x && newBounds.y == oldBounds.y;
 		sameExtent = newBounds.width == oldBounds.width && newBounds.height == oldBounds.height;
 		if (sameOrigin && sameExtent) return 0;
+//	  System.out.println(this + " HIView newBounds: " + newBounds);
 		OS.HIViewSetFrame (control, newBounds);
 		invalidateVisibleRegion (control);
 	} else {
@@ -1648,6 +1661,7 @@ int setBounds (int control, int x, int y, int width, int height, boolean move, b
 			OS.GetControlRegion (control, (short) OS.kControlStructureMetaPart, tempRgn);
 			invalWindowRgn (window, tempRgn);
 		}
+		System.out.println("1 - Setting the new control bounds to: " + newBounds);
 		OS.SetControlBounds (control, newBounds);
 		invalidateVisibleRegion (control);
 		if (visible) {

@@ -121,8 +121,13 @@ public class OS extends Platform {
 	public static final int kCGBitmapByteOrder32Little = 2 << 12;
 	public static final int kCGBitmapByteOrder16Big = 3 << 12;
 	public static final int kCGBitmapByteOrder32Big = 4 << 12;
+/*#if USWT
+	public static final int kCGBitmapByteOrder16Host = bigEndian() ? kCGBitmapByteOrder16Big : kCGBitmapByteOrder16Little;
+	public static final int kCGBitmapByteOrder32Host = bigEndian() ? kCGBitmapByteOrder32Big : kCGBitmapByteOrder32Little;
+  #else*/
 	public static final int kCGBitmapByteOrder16Host = __BIG_ENDIAN__() ? kCGBitmapByteOrder16Big : kCGBitmapByteOrder16Little;
 	public static final int kCGBitmapByteOrder32Host = __BIG_ENDIAN__() ? kCGBitmapByteOrder32Big : kCGBitmapByteOrder32Little;
+/*#endif*/
 	public static final int kCFAllocatorDefault = 0;
 	public static final int kCFNumberFormatterDecimalStyle = 1;
 	public static final int kCFURLPOSIXPathStyle = 0;
@@ -898,7 +903,11 @@ public static final native void DeleteGlobalRef(int globalRef);
 public static final native Object JNIGetObject(int globalRef);
 
 /** Natives */
+/*#if USWT
+public static final native boolean bigEndian();
+  #else*/
 public static final native boolean __BIG_ENDIAN__();
+/*#endif*/
 public static final native int kUTTagClassFilenameExtension();
 public static final native int kHIViewWindowContentID();
 public static final native int kPMDocumentFormatPDF();

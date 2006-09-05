@@ -26,6 +26,8 @@ public abstract class CNIGenerator {
   static {
     casts.put(new ParameterKey("_XCheckIfEvent", 2),
               "(int (*)(Display*, XEvent*, char*))");
+    casts.put(new ParameterKey("CGDataProviderCreateWithData", 3),
+              "(void (*)(void*, const void*, size_t))");
     
     fieldArrayLengths.put("org.eclipse.swt.internal.gdip.ColorPalette.Entries",
                           new Integer(1));
@@ -1668,6 +1670,13 @@ public abstract class CNIGenerator {
       out.println("#include \"cairo.h\"");
       out.println("#include \"cairo-xlib.h\"");
       out.println("#include \"glx.h\"");
+    } else if (SWT.getPlatform().equals("carbon")) {
+      out.println("#include \"NSGeometry.h\"");
+      out.println("#include \"AGL/agl.h\"");
+      out.println("#include \"objc/objc-runtime.h\"");
+      out.println("#include \"Carbon/Carbon.h\"");
+      out.println("#include \"HIWebView.h\"");
+      out.println("#include \"CarbonUtils.h\"");
     } else if (SWT.getPlatform().equals("win32")) {
       out.println("#include \"windows.h\"");
       out.println("#include \"docobj.h\"");
@@ -1795,36 +1804,42 @@ public abstract class CNIGenerator {
         return;
       }
       
-      switch (stage) {
-      case 1:
-        generateIncludes(nativeOut, getStructureClasses());
-        generateIncludes(nativeOut, getNativesClasses());
-        if (! aggregate) {
-          generateProxyIncludes(foreignOut, getStructureClasses());
-        }
-        break;
+      try {
+        switch (stage) {
+        case 1:
+          generateIncludes(nativeOut, getStructureClasses());
+          generateIncludes(nativeOut, getNativesClasses());
+          if (! aggregate) {
+            generateProxyIncludes(foreignOut, getStructureClasses());
+          }
+          break;
 
-      case 2:
-        if (! aggregate) {
-          generateStructureFunctionIncludes(nativeOut, getStructureClasses(),
-                                            getMetaData());
-        }
-        generateStructureHeaders(nativeOut, foreignOut, prefix,
-                                 getStructureClasses(), getMetaData());
-        break;
-
-      case 3:
-        generateStructureFunctions(nativeOut, foreignOut, prefix,
+        case 2:
+          if (! aggregate) {
+            generateStructureFunctionIncludes(nativeOut, getStructureClasses(),
+                                              getMetaData());
+          }
+          generateStructureHeaders(nativeOut, foreignOut, prefix,
                                    getStructureClasses(), getMetaData());
-        generateNatives(nativeOut, foreignOut, prefix, getNativesClasses(),
-                        getMetaData());
-        if (foreignDefOut != null) {
-          generateNativeDefs(foreignDefOut, getNativesClasses(),
-                             getMetaData());
-        }
-        break;
+          break;
 
-      default: throw new RuntimeException("unexpected stage: " + stage);
+        case 3:
+          generateStructureFunctions(nativeOut, foreignOut, prefix,
+                                     getStructureClasses(), getMetaData());
+          generateNatives(nativeOut, foreignOut, prefix, getNativesClasses(),
+                          getMetaData());
+          if (foreignDefOut != null) {
+            generateNativeDefs(foreignDefOut, getNativesClasses(),
+                               getMetaData());
+          }
+          break;
+
+        default: throw new RuntimeException("unexpected stage: " + stage);
+        }
+      } catch (RuntimeException e) {
+        throw e;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
 

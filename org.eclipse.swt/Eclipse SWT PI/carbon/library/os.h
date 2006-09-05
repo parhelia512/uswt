@@ -20,7 +20,15 @@
 
 #include "os_custom.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern jint CPSEnableForegroundOperation(jint *, jint, jint, jint, jint);
 extern jint CPSSetProcessName(jint *, jbyte *);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif /* INC_os_H */

@@ -19,4 +19,9 @@ public class CGRect {
 	public float width;
 	public float height;
 	public static final int sizeof = 16;
+
+	public String toString() {
+	  return "CGRect x: " + (int)x + " y: " + (int)y + " width: " + (int)width +
+	    " height: " + (int)height;
+	}
 }

@@ -162,6 +162,7 @@ void createHandle () {
 		ControlFontStyleRec fontStyle = new ControlFontStyleRec ();
 		fontStyle.flags |= OS.kControlUseJustMask;
 		fontStyle.just = (short) just;
+		System.out.println("Calling CreateStaticTextControl window: " + window);
 		OS.CreateStaticTextControl (window, null, 0, fontStyle, outControl);
 	}
 	if (outControl [0] == 0) error (SWT.ERROR_NO_HANDLES);

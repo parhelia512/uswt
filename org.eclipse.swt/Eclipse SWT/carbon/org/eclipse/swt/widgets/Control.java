@@ -633,15 +633,18 @@ boolean drawGripper (int x, int y, int width, int height, boolean vertical) {
 }
 
 void drawWidget (int control, int context, int damageRgn, int visibleRgn, int theEvent) {
+        System.out.println("drawWidget");
 	if (control != handle) return;
 	if (!hooks (SWT.Paint) && !filters (SWT.Paint)) return;
 
 	/* Retrieve the damage rect */
 	Rect rect = new Rect ();
 	OS.GetRegionBounds (visibleRgn, rect);
+        System.out.println("region bounds: " + rect.top + ", " + rect.left + ", " + rect.bottom + ", " + rect.right);
 	if (!OS.HIVIEW) {
 		Rect bounds = new Rect ();
 		OS.GetControlBounds (handle, bounds);
+                System.out.println("control bounds: " + bounds.top + ", " + bounds.left + ", " + bounds.bottom + ", " + bounds.right);
 		OS.OffsetRect (rect, (short) -bounds.left, (short) -bounds.top);
 	}
 
@@ -2487,6 +2490,7 @@ public void setBounds (int x, int y, int width, int height) {
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize, boolean events) {
+  System.out.println("setBounds x: " + x + " y: " + y + " width: " + width + " height: " + height);
 	return setBounds (topHandle (), x, y, width, height, move, resize, events);
 }
 
@@ -3065,6 +3069,7 @@ void setZOrder () {
 		/* Place the child at (0, 0) in the parent */
 		Rect parentRect = new Rect ();
 		OS.GetControlBounds (parentHandle, parentRect);
+		System.out.println("Got control bounds: " + parentRect);
 		Rect inset = getInset ();
 		Rect newBounds = new Rect ();
 		newBounds.left = (short) (parentRect.left + inset.left);
@@ -3073,6 +3078,7 @@ void setZOrder () {
 		newBounds.bottom = (short) (newBounds.top - inset.bottom - inset.top);
 		if (newBounds.bottom < newBounds.top) newBounds.bottom = newBounds.top;
 		if (newBounds.right < newBounds.left) newBounds.right = newBounds.left;
+		System.out.println("Set control bounds: " + newBounds);
 		OS.SetControlBounds (topHandle, newBounds);
 	}
 }
