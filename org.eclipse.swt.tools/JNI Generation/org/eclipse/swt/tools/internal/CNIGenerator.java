@@ -14,6 +14,7 @@ import java.util.StringTokenizer;
 import org.eclipse.swt.SWT;
 
 public abstract class CNIGenerator {
+  private static final boolean TRACE_FUNCTIONS = false;
 
   private static final Hashtable casts = new Hashtable();
   private static final Hashtable fieldArrayLengths = new Hashtable();
@@ -1647,6 +1648,9 @@ public abstract class CNIGenerator {
         generateReturn(out, m, needsReturn);
       }
     } else {
+      if (TRACE_FUNCTIONS) {
+	out.print(" printf(\"Called %s\\n\", \"" + name + "\");");
+      }
       out.print("  return inline_");
       out.print(m.getName());
       out.print("(");  
