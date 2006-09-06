@@ -43,7 +43,7 @@ ifeq "$(swt-platform)" "posix-gtk"
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -O0 -g -pg -fPIC
+  cflags = -Wall -O0 -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -67,7 +67,7 @@ ifeq "$(swt-platform)" "posix-carbon"
   gcjh = /Users/dicej/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
-  cflags = -O0 -g -fPIC
+  cflags = -Wall -O0 -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -88,7 +88,7 @@ ifeq "$(swt-platform)" "win32"
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 	dlltool = mingw32-dlltool -k
-  cflags = -O0 -g
+  cflags = -Wall -O0 -g
   msvc = cl
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
