@@ -1567,25 +1567,12 @@ boolean sendKeyEvent (int type, Event event) {
 	return event.doit;
 }
 
-/*#if USWT
-private boolean neverSetBounds = true;
-  #endif*/
-
 int setBounds (int control, int x, int y, int width, int height, boolean move, boolean resize, boolean events) {
 	boolean sameOrigin = true, sameExtent = true;
 	if (OS.HIVIEW) {
 		CGRect oldBounds = new CGRect ();
 		OS.HIViewGetFrame (control, oldBounds);
 
-/*#if USWT
-		if (neverSetBounds) {
-			neverSetBounds = false;
-			oldBounds.x = 0;
-			oldBounds.y = 0;
-			oldBounds.width = 0;
-			oldBounds.height = 0;
-		}
-  #endif*/
 		Rect inset = getInset ();
 		oldBounds.x -= inset.left;
 		oldBounds.y -= inset.top;
