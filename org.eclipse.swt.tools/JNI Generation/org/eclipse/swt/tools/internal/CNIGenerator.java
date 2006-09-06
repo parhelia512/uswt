@@ -1250,8 +1250,11 @@ public abstract class CNIGenerator {
             out.print(") : 0)");
           }
         } else {
-          out.print("&ps");
+          out.print("(p");
           out.print(i);
+          out.print("? &ps");
+          out.print(i);
+          out.print(" : 0)");
         }
         if (i < types.length - 1) out.print(", ");
       }
@@ -1634,6 +1637,8 @@ public abstract class CNIGenerator {
         generateReads(out, m, style, metaData);
         if (data.getFlag("dynamic")) {
           generateDynamicCall(out, m, data, needsReturn, style, metaData);
+//           out.println("  throw new java::lang::RuntimeException;");
+          if (m.getReturnType() != Void.TYPE) out.println("  return 0;");
         } else if (mightBeMacro(m, data)) {
           out.print("#ifdef ");
           out.println(name(m));
