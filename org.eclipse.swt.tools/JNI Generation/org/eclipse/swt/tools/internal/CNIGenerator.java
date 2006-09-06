@@ -1314,7 +1314,7 @@ public abstract class CNIGenerator {
       out.print("procedure");
       generateCallRightSide(out, m, data, 0, style, metaData);
       out.println();
-      out.println("    }");
+      out.println("    } else throw new java::lang::RuntimeException;");
     } else if (SWT.getPlatform().equals("carbon")) {
       out.println("    static bool initialized = false;");
       out.println("    static CFBundleRef bundle = 0;");
@@ -1337,7 +1337,7 @@ public abstract class CNIGenerator {
       out.print("(*procedure)");
       generateCallRightSide(out, m, data, 0, style, metaData);
       out.println();
-      out.println("    }");
+      out.println("    } else throw new java::lang::RuntimeException;");
     } else {
       out.println("    static bool initialized = false;");
       out.println("    static void* handle = 0;");
@@ -1363,7 +1363,7 @@ public abstract class CNIGenerator {
       out.print("(*procedure)");
       generateCallRightSide(out, m, data, 0, style, metaData);
       out.println();
-      out.println("    }");
+      out.println("    } else throw new java::lang::RuntimeException;");
     }
 
     out.println("  }");
@@ -1637,8 +1637,6 @@ public abstract class CNIGenerator {
         generateReads(out, m, style, metaData);
         if (data.getFlag("dynamic")) {
           generateDynamicCall(out, m, data, needsReturn, style, metaData);
-//           out.println("  throw new java::lang::RuntimeException;");
-          if (m.getReturnType() != Void.TYPE) out.println("  return 0;");
         } else if (mightBeMacro(m, data)) {
           out.print("#ifdef ");
           out.println(name(m));
@@ -1692,6 +1690,7 @@ public abstract class CNIGenerator {
       out.println("#include \"commctrl.h\"");
       out.println("#include \"stdint.h\"");
       out.println("#include \"com_custom.h\"");
+      out.println("#include \"stdio.h\"");
     }
     out.println("#include \"os.h\"");
     out.println();
