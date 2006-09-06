@@ -909,16 +909,16 @@ public abstract class CNIGenerator {
           (metaData.getMetaData(methods[i]).getGenerate() ||
            style == PROXY_CALL_STYLE))
       {
-        // for debugging:
-        if (style == PROXY_CALL_STYLE) {
-          generateMethodPrototype(out, methods[i], NORMAL_STYLE);
-          out.println();
-          out.println("{");
-          out.println
-            ("  throw new java::lang::UnsupportedOperationException;");
-          out.println("}");          
-          continue;
-        }
+//         // for debugging:
+//         if (style == PROXY_CALL_STYLE) {
+//           generateMethodPrototype(out, methods[i], NORMAL_STYLE);
+//           out.println();
+//           out.println("{");
+//           out.println
+//             ("  throw new java::lang::UnsupportedOperationException;");
+//           out.println("}");          
+//           continue;
+//         }
 
         out.print("#ifndef NO_");
         out.println(JNIGenerator.getFunctionName(methods[i]));

@@ -1,28 +1,28 @@
 #MAKEFLAGS = -s
 
 ifdef lin64
-  build-dir = build/lin64
-	platform = posix-gtk
+  platform = lin64
+	swt-platform = posix-gtk
 	jptr = jlong
 else
 ifdef lin32
-  build-dir = build/lin32
-	platform = posix-gtk
+  platform = lin32
+	swt-platform = posix-gtk
 	jptr = jint
 else
 ifdef osxppc
-  build-dir = build/osxppc
-	platform = posix-carbon
+  platform = osxppc
+	swt-platform = posix-carbon
 	jptr = jint
 else
 ifdef osxi386
-  build-dir = build/osxi386
-	platform = posix-carbon
+  platform = osxi386
+	swt-platform = posix-carbon
 	jptr = jint
 else
 ifdef win32
-  build-dir = build/win32
-	platform = win32
+  platform = win32
+	swt-platform = win32
 	jptr = jint
 else
 $(error please specify a one of the following: \
@@ -33,7 +33,10 @@ endif
 endif
 endif
 
-ifeq "$(platform)" "posix-gtk"
+build-dir = build/$(platform)
+foreign-dir = foreign/$(platform)
+
+ifeq "$(swt-platform)" "posix-gtk"
   g++ = g++
   gcj = gcj
   gij = gij
@@ -57,7 +60,7 @@ ifeq "$(platform)" "posix-gtk"
 		$$(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
-ifeq "$(platform)" "posix-carbon"
+ifeq "$(swt-platform)" "posix-carbon"
   g++ = g++ -x objective-c++ -I/Users/dicej/sw/gcc-ulibgcj/include/c++/4.1.1
 	javac = javac
 	java = java
@@ -77,7 +80,7 @@ ifeq "$(platform)" "posix-carbon"
 		-framework Carbon -framework WebKit	-framework AGL -framework OpenGL \
 		-framework Cocoa -framework Foundation
 else
-ifeq "$(platform)" "win32"
+ifeq "$(swt-platform)" "win32"
   g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
   gcj = gcj
   gij = gij
@@ -131,7 +134,7 @@ stamp-dir = $(build-dir)/stamps
 default: $(gen-dir) $(build-dir)/swt.a
 
 $(build-dir)/rules.mk: $(script-dir)/make-rules.pl
-	@perl $(<) $(platform) >$(@)
+	@perl $(<) $(swt-platform) >$(@)
 
 -include $(build-dir)/rules.mk
 
@@ -215,20 +218,6 @@ $(build-dir)/swt-foreign.lib: \
 	@echo "generating $(@)"
 	@$(dlltool) --output-lib $(@) --def $(<)
 
-# .PHONY: swt-foreign-bindings
-# swt-foreign-bindings: \
-# 		$(swt-native-sources)
-# 	@echo "compiling foreign bindings"
-# 	@mkdir -p $(swt-foreign-binding-object-dir)
-# 	@set -e; for file in $(swt-binding-dir)/*-foreign*.cpp \
-# 			$(build-dir)/native-sources/*-foreign*.cpp; do \
-# 		echo "compiling $${file}"; \
-# 		in=$$(echo $${file} | sed -e 's:/:\\:g'); \
-# 		out=$$(echo $(swt-foreign-binding-object-dir)/$$(basename $${file} .cpp).o | \
-# 						sed -e 's:/:\\:g'); \
-# 		$(msvc) $(msvccflags) -c $${in} -Fo$${out}; \
-# 	 done
-
 # note the -O0 flag below - something breaks when the code is
 # optimized which I haven't figured out, so we turn it off for these
 # files.
@@ -285,22 +274,11 @@ hello: $(build-dir)/hello
 $(build-dir)/hello: \
 		test/Hello.java \
 		$(build-dir)/swt.a \
-# 		$(build-dir)/swt-foreign.lib
+		$(foreign-dir)/swt-foreign.lib
 	@echo "compiling $(@) from $(<)"
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
 		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) \
 		-o $(@)
-
-.PHONY: core-test
-core-test: $(build-dir)/core-test
-
-$(build-dir)/core-test: \
-		test/CoreTest.java \
-		test/Thrower.java \
-		$(build-dir)/swt.a
-	@echo "compiling $(@) from $(<)"
-	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
-		--main=CoreTest $(^) -o $(@)
 
 ## control example ############################################################
 
@@ -364,7 +342,8 @@ $(build-dir)/example: \
 		$(build-dir)/examples_control.o \
 		$(example-resource-objects) \
 		$(example-objects) \
-		$(build-dir)/swt.a
+		$(build-dir)/swt.a \
+		$(foreign-dir)/swt-foreign.lib
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
 		 $(^) $(swt-lflags) -o $(@)
@@ -426,7 +405,8 @@ $(build-dir)/paint: \
 		$(build-dir)/examples_paint.o \
 		$(paint-resource-objects) \
 		$(paint-objects) \
-		$(build-dir)/swt.a
+		$(build-dir)/swt.a \
+		$(foreign-dir)/swt-foreign.lib
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.paint.PaintExample \
 		 $(^) $(swt-lflags) -o $(@)
@@ -488,7 +468,8 @@ $(build-dir)/graphics: \
 		$(build-dir)/examples_graphics.o \
 		$(graphics-resource-objects) \
 		$(graphics-objects) \
-		$(build-dir)/swt.a
+		$(build-dir)/swt.a \
+		$(foreign-dir)/swt-foreign.lib
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.graphics.GraphicsExample \
 		 $(^) $(swt-lflags) -o $(@)
