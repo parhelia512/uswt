@@ -73,7 +73,7 @@ public void next(int width, int height) {
 }
 
 public void paint(GC gc, int width, int height) {
-  if (!example.checkAdvancedGraphics()) return;
+	if (!example.checkAdvancedGraphics()) return;
 	Display display = Display.getCurrent();
 	if (image == null) {
 		image = example.loadImage(Display.getCurrent(), "irmaos.jpg");
