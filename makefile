@@ -90,7 +90,7 @@ ifeq "$(swt-platform)" "win32"
 	dlltool = mingw32-dlltool -k
   cflags = -Wall -O0 -g
   msvc = cl
-  swt-foreign-lib = ${swt-foreign-dir}/swt-foreign.lib
+  swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
 
