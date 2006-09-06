@@ -90,6 +90,7 @@ ifeq "$(swt-platform)" "win32"
 	dlltool = mingw32-dlltool -k
   cflags = -Wall -O0 -g
   msvc = cl
+  swt-foreign-lib = ${swt-foreign-dir}/swt-foreign.lib
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
 
@@ -274,7 +275,7 @@ hello: $(build-dir)/hello
 $(build-dir)/hello: \
 		test/Hello.java \
 		$(build-dir)/swt.a \
-		$(foreign-dir)/swt-foreign.lib
+		${swt-foreign-lib}
 	@echo "compiling $(@) from $(<)"
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
 		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) \
@@ -343,7 +344,7 @@ $(build-dir)/example: \
 		$(example-resource-objects) \
 		$(example-objects) \
 		$(build-dir)/swt.a \
-		$(foreign-dir)/swt-foreign.lib
+		${swt-foreign-lib}
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
 		 $(^) $(swt-lflags) -o $(@)
@@ -406,7 +407,7 @@ $(build-dir)/paint: \
 		$(paint-resource-objects) \
 		$(paint-objects) \
 		$(build-dir)/swt.a \
-		$(foreign-dir)/swt-foreign.lib
+		${swt-foreign-lib}
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.paint.PaintExample \
 		 $(^) $(swt-lflags) -o $(@)
@@ -469,7 +470,7 @@ $(build-dir)/graphics: \
 		$(graphics-resource-objects) \
 		$(graphics-objects) \
 		$(build-dir)/swt.a \
-		$(foreign-dir)/swt-foreign.lib
+		${swt-foreign-lib}
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.graphics.GraphicsExample \
 		 $(^) $(swt-lflags) -o $(@)
