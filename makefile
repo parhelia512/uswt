@@ -43,7 +43,7 @@ ifeq "$(swt-platform)" "posix-gtk"
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -Wall -O0 -g -fPIC
+  cflags = -Wall -Os -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -67,7 +67,7 @@ ifeq "$(swt-platform)" "posix-carbon"
   gcjh = /Users/dicej/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
-  cflags = -Wall -O0 -g -fPIC
+  cflags = -Wall -Os -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -88,7 +88,7 @@ ifeq "$(swt-platform)" "win32"
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 	dlltool = mingw32-dlltool -k
-  cflags = -Wall -O0 -g
+  cflags = -Wall -Os -g
   msvc = cl
   swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
@@ -219,16 +219,13 @@ $(build-dir)/swt-foreign.lib: \
 	@echo "generating $(@)"
 	@$(dlltool) --output-lib $(@) --def $(<)
 
-# note the -O0 flag below - something breaks when the code is
-# optimized which I haven't figured out, so we turn it off for these
-# files.
 $(stamp-dir)/swt-binding-objects: \
 		$(stamp-dir)/swt-processed-bindings
 	@echo "compiling bindings"
 	@mkdir -p $(swt-binding-object-dir)
 	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
 		echo "compiling $${file}"; \
-		$(g++) $(cflags) -O0 -fpreprocessed -c $${file} \
+		$(g++) $(cflags) -fpreprocessed -c $${file} \
 			-o $(swt-binding-object-dir)/$$(basename $${file} .cpp).o; \
 	 done
 	@mkdir -p $(stamp-dir)
