@@ -251,7 +251,7 @@ public abstract class CNIGenerator {
       ClassData data = metaData.getMetaData(classes[i]);
       if (data.getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          if (nativeOut == null) {
+          if (prefix != null) {
             PrintStream out = proxyHeaderOut(prefix, classes[i]);
             try {
               generateProxy(out, classes[i], metaData);
@@ -277,7 +277,7 @@ public abstract class CNIGenerator {
           }
         }
 
-        if (nativeOut == null) {
+        if (prefix != null) {
           PrintStream out = structureHeaderOut(prefix, classes[i],
                                                NORMAL_STYLE);
           try {
@@ -327,7 +327,7 @@ public abstract class CNIGenerator {
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          if (nativeOut == null) {
+          if (prefix != null) {
             PrintStream out = structureFunctionOut(prefix, classes[i],
                                                    PROXY_STYLE);
             try {
@@ -344,7 +344,7 @@ public abstract class CNIGenerator {
 
         int style = (incompatibleABI(classes[i]) ?
                      PROXY_CALL_STYLE : NORMAL_STYLE);
-        if (nativeOut == null) {
+        if (prefix != null) {
           PrintStream out = structureFunctionOut(prefix, classes[i],
                                                  NORMAL_STYLE);
           try {
@@ -746,7 +746,7 @@ public abstract class CNIGenerator {
     for (int i = 0; i < classes.length; ++i) {
       if (metaData.getMetaData(classes[i]).getGenerate()) {
         if (incompatibleABI(classes[i])) {
-          if (nativeOut == null) {
+          if (prefix != null) {
             PrintStream out = nativeOut(prefix, classes[i], PROXY_STYLE);
             try {
               generateMethods(out, classes[i], PROXY_STYLE, metaData);
@@ -760,7 +760,7 @@ public abstract class CNIGenerator {
 
         int style = (incompatibleABI(classes[i]) ?
                      PROXY_CALL_STYLE : NORMAL_STYLE);
-        if (nativeOut == null) {
+        if (prefix != null) {
           PrintStream out = nativeOut(prefix, classes[i], style);
           try {
             generateMethods(out, classes[i], style, metaData);
@@ -1722,14 +1722,15 @@ public abstract class CNIGenerator {
     if (aggregate) {
       nativeOut = nativeOut(prefix);
       foreignOut = foreignOut(prefix);
-      foreignDefOut = foreignDefOut(prefix);
     } else {
       nativeOut = headerOut(prefix, NORMAL_STYLE);
       foreignOut = headerOut(prefix, PROXY_STYLE);
     }
+    foreignDefOut = foreignDefOut(prefix);
 
     MyGeneratorApp app = new MyGeneratorApp
-      (nativeOut, foreignOut, foreignDefOut, prefix, aggregate);
+      (nativeOut, foreignOut, foreignDefOut, aggregate? null : prefix,
+       aggregate);
     try {
       System.out.println("first stage:");
 
