@@ -61,10 +61,10 @@ ifeq "$(swt-platform)" "posix-gtk"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(swt-platform)" "posix-carbon"
-  g++ = g++ -x objective-c++ -I/Users/dicej/sw/gcc-ulibgcj/include/c++/4.1.1
+  g++ = g++ -x objective-c++ -I/Users/eric/sw/gcc-ulibgcj/include/c++/4.1.1
 	javac = javac
 	java = java
-  gcjh = /Users/dicej/sw/gcc-ulibgcj/bin/gcjh
+  gcjh = /Users/eric/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
 ifdef osxi386
