@@ -67,7 +67,12 @@ ifeq "$(swt-platform)" "posix-carbon"
   gcjh = /Users/dicej/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
+ifdef osxi386
+  # optimized builds are broken for some mysterious reason on this platform
+  cflags = -Wall -O0 -g -fPIC
+else
   cflags = -Wall -Os -g -fPIC
+endif
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -89,6 +94,9 @@ ifeq "$(swt-platform)" "win32"
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 	dlltool = mingw32-dlltool -k
   cflags = -Wall -Os -g
+# this should not be necessary, but ControlExample currently crashes
+# otherwise:
+	binding-cflags = -O0
   msvc = cl
   swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
   msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
@@ -225,7 +233,7 @@ $(stamp-dir)/swt-binding-objects: \
 	@mkdir -p $(swt-binding-object-dir)
 	@set -e; for file in $(swt-processed-binding-dir)/*.cpp; do \
 		echo "compiling $${file}"; \
-		$(g++) $(cflags) -fpreprocessed -c $${file} \
+		$(g++) $(cflags) $(binding-cflags) -fpreprocessed -c $${file} \
 			-o $(swt-binding-object-dir)/$$(basename $${file} .cpp).o; \
 	 done
 	@mkdir -p $(stamp-dir)
@@ -275,8 +283,7 @@ $(build-dir)/hello: \
 		${swt-foreign-lib}
 	@echo "compiling $(@) from $(<)"
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
-		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) \
-		-o $(@)
+		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) -o $(@)
 
 ## control example ############################################################
 
@@ -471,3 +478,12 @@ $(build-dir)/graphics: \
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.graphics.GraphicsExample \
 		 $(^) $(swt-lflags) -o $(@)
+
+deploy-dir = /tmp/swt/$(platform)
+
+.PHONY: deploy
+deploy: $(build-dir)/example $(build-dir)/paint $(build-dir)/graphics
+	mkdir -p $(deploy-dir)
+	cp $(^) $(deploy-dir)
+	strip --strip-all $(deploy-dir)/*
+	upx $(deploy-dir)/*
