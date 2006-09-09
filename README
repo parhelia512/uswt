@@ -1,0 +1,52 @@
+Building micro-swt
+------------------
+
+Thanks for trying micro-swt.  The build system is quite rough at this
+point, so it's not for the inexperienced, but hopefully the following
+should help you get it working.  Note that you must already have
+micro-libgcj built and installed before proceeding.  Here we assume
+you've installed it under /usr/local/gcc-ulibgcj.
+
+The current build system consists of a makefile and a Perl script
+which generates dependencies based on the selected platform.
+Supported platforms are listed below.
+
+  lin64   (Linux/AMD64)
+  lin32   (Linux/i386)
+  osxppc  (OS X/PowerPC)
+  osxi386 (OS X/i386)
+  win32   (Windows/i386)
+
+For example, to build the library on a Linux/AMD64 machine, use the
+following:
+
+ $ make lin64=1
+
+That should ultimately produce a file at build/lin64/swt.a, plus a
+number of classes residing under build/lin64/classes/.  To compile and
+link against these files, use something like the following:
+
+ $ /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib \
+     -Wall -Os -g -fPIC --classpath=build/lin64/classes \
+		--main=Hello test/Hello.java build/lin64/swt.a \
+    $(pkg-config --libs-only-L cairo) -lcairo \
+    $(pkg-config --libs-only-L gtk+-2.0 gthread-2.0) \
+    -lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib -lXtst \
+    $(pkg-config --libs-only-L atk gtk+-2.0) -latk-1.0 -lgtk-x11-2.0 \
+    -L/usr/X11R6/lib -lGL -lGLU -lm -o build/lin64/hello
+
+See the makefile for other examples, including platform-specific build
+flags.  Those examples can be built as follows.
+
+ $ make lin64=1 hello example graphics paint
+
+Please note that you will need to edit the makefile by hand in some
+cases based on your system configuration, unless it happens to match
+mine exactly :).  Eventually, we'd like to adopt an automatic
+configuration system using something like autoconf, but we haven't
+reached that point yet.
+
+Please also note that the makefile is currently set up to build the
+win32 port via cross-development tools (ex. on a Linux host).  If you
+wish to compile it on a Windows machine, you'll need to modify the
+makefile accordingly.
