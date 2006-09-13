@@ -147,11 +147,26 @@ public boolean similarTo(StyleRange style) {
  * @return a shallow copy of this StyleRange
  */	
 public Object clone() {
+/*#if USWT
+	StyleRange ret = new StyleRange();
+	ret.font = font;
+	ret.foreground = foreground;
+	ret.background = background;
+	ret.underline = underline;
+	ret.strikeout = strikeout;
+	ret.metrics = metrics;
+	ret.rise = rise;
+	ret.start = start;
+	ret.length = length;
+	ret.fontStyle = fontStyle;
+	return ret;
+  #else*/
 	try {
 		return super.clone();
 	} catch (CloneNotSupportedException e) {
 		return null;
 	}
+/*#endif*/
 }
 
 /**
