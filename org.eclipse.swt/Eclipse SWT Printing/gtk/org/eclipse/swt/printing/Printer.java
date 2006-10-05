@@ -66,7 +66,6 @@ public final class Printer extends Device {
 /*#if USWT
   private static final int GTK_PRINTER_FUNC_LIST = 1;
   private static final int GTK_PRINTER_FUNC_DEFAULT = 2;
-  private static final int GTK_PRINTER_FUNC_FIND_NAMED_PRINTER = 3;
 
   private static final CNIDispatcher dispatcher = new CNIDispatcher() {
       public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
@@ -76,9 +75,6 @@ public final class Printer extends Device {
           
         case GTK_PRINTER_FUNC_DEFAULT:
           return GtkPrinterFunc_Default(args[0], args[1]);
-
-        case GTK_PRINTER_FUNC_FIND_NAMED_PRINTER:
-          return GtkPrinterFunc_FindNamedPrinter(args[0], args[1]);
           
         default:
           throw new IllegalArgumentException();
@@ -149,7 +145,13 @@ static int /*long*/ GtkPrinterFunc_Default (int /*long*/ printer, int /*long*/ u
 
 int /*long*/ gtkPrinterFromPrinterData() {
 /*#if USWT
-	CNICallback printerCallback = new CNICallback(dispatcher, GTK_PRINTER_FUNC_FIND_NAMED_PRINTER, 2);
+  CNIDispatcher dispatcher = new CNIDispatcher() {
+      public int /*long#eoc dispatch(int method, int /*long#eoc [] args) {
+          return GtkPrinterFunc_FindNamedPrinter(args[0], args[1]);
+      }
+    };
+
+	CNICallback printerCallback = new CNICallback(dispatcher, 0, 2);
   #else*/
 	Callback printerCallback = new Callback(this, "GtkPrinterFunc_FindNamedPrinter", 2); //$NON-NLS-1$
 //#endif

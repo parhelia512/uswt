@@ -43,7 +43,7 @@ ifeq "$(swt-platform)" "posix-gtk"
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -Wall -Os -g -fPIC
+  cflags = -Os -g -fPIC
 
   swt-cflags = \
 		-DJPTR=$(jptr) \
@@ -69,9 +69,9 @@ ifeq "$(swt-platform)" "posix-carbon"
   ugcj = /Users/dicej/sw/gcc-ulibgcj/bin/gcj -L/Users/dicej/sw/gcc-ulibgcj/lib
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
-  cflags = -Wall -O0 -g -fPIC
+  cflags = -O0 -g -fPIC
 else
-  cflags = -Wall -Os -g -fPIC
+  cflags = -Os -g -fPIC
 endif
 
   swt-cflags = \
@@ -93,7 +93,7 @@ ifeq "$(swt-platform)" "win32"
   ar = mingw32-ar
   ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
 	dlltool = mingw32-dlltool -k
-  cflags = -Wall -Os -g
+  cflags = -Os -g
 # this should not be necessary, but ControlExample currently crashes
 # otherwise:
 	binding-cflags = -O0
@@ -285,6 +285,8 @@ $(build-dir)/hello: \
 	$(ugcj) $(cflags) --classpath=$(build-dir)/classes \
 		--main=Hello $(<) $(build-dir)/swt.a $(swt-lflags) -o $(@)
 
+find-classes=$(2) $$(find $(1) -path '$(basename $(2))$$*.class')
+
 ## control example ############################################################
 
 top-example-dir = org.eclipse.swt.examples
@@ -307,6 +309,7 @@ example-resource-objects = $(foreach x,$(example-resources),$(patsubst \
 .PHONY: example
 example: $(build-dir)/example
 
+$(example-classes): $(swt-classes)
 $(example-classes): $(example-sources)
 	@echo "compiling example sources"
 	@mkdir -p $(build-dir)/classes
@@ -325,13 +328,13 @@ $(example-sources): $(build-dir)/sources/%: $(example-dir)/%
 example-sources: $(example-sources)
 
 $(example-objects): $(build-dir)/objects/%.o: \
-		$(build-dir)/sources/%.java \
+		$(build-dir)/classes/%.class \
 		$(example-sources) \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
-	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
-		-c $(<) -o $(@)
+	@$(ugcj) $(cflags) --classpath $(build-dir)/classes \
+		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
@@ -388,13 +391,13 @@ $(paint-sources): $(build-dir)/sources/%: $(example-dir)/%
 	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
 
 $(paint-objects): $(build-dir)/objects/%.o: \
-		$(build-dir)/sources/%.java \
+		$(build-dir)/classes/%.class \
 		$(paint-sources) \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
 	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
-		-c $(<) -o $(@)
+		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(paint-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
@@ -451,13 +454,13 @@ $(graphics-sources): $(build-dir)/sources/%: $(example-dir)/%
 	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
 
 $(graphics-objects): $(build-dir)/objects/%.o: \
-		$(build-dir)/sources/%.java \
+		$(build-dir)/classes/%.class \
 		$(graphics-sources) \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
 	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
-		-c $(<) -o $(@)
+		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(graphics-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
