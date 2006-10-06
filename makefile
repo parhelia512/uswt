@@ -1,4 +1,4 @@
-#MAKEFLAGS = -s
+MAKEFLAGS = -s
 
 ifdef lin64
   platform = lin64
@@ -69,7 +69,7 @@ ifeq "$(swt-platform)" "posix-carbon"
   ugcj = $(HOME)/sw/gcc-ulibgcj/bin/gcj
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
-  cflags = -O0 -g -fPIC
+  cflags = -O0 -g -fPIC -msse -msse2
 else
   cflags = -Os -g -fPIC
 endif
@@ -225,7 +225,7 @@ $(build-dir)/swt-foreign.dll: $(swt-native-sources)
 $(build-dir)/swt-foreign.lib: \
 		$(build-dir)/bindings/swt-foreign.def
 	@echo "generating $(@)"
-	@$(dlltool) --output-lib $(@) --def $(<)
+	$(dlltool) --output-lib $(@) --def $(<)
 
 $(stamp-dir)/swt-binding-objects: \
 		$(stamp-dir)/swt-processed-bindings
@@ -244,17 +244,17 @@ $(build-dir)/os_custom-processed.cpp: \
 		$(swt-native-sources) \
 		$(swt-headers)
 	@echo "processing $(<)"
-	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -E $(<) -o $(@)
+	$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -E $(<) -o $(@)
 	@sed -i -e 's/MacroProtect_//' $(@)
 
 $(build-dir)/os_custom.o: $(build-dir)/os_custom-processed.cpp
 	@echo "compiling $(@) from $(<)"
-	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
+	$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
 $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@) from $(<)"
-	@$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
+	$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
 $(build-dir)/swt.a: \
 		$(build-dir)/rules.mk \
@@ -264,13 +264,13 @@ $(build-dir)/swt.a: \
 		$(swt-objects)
 	@rm -f $(@)
 	@echo "creating $(@)"
-	@$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
+	$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
 		$(swt-objects) $(wildcard $(swt-binding-object-dir)/*.o)
 
 .PHONY: clean
 clean:
 	@echo "removing $(build-dir)"
-	@rm -rf $(build-dir)
+	rm -rf $(build-dir)
 
 ## hello world ################################################################
 
