@@ -42,7 +42,7 @@ ifeq "$(swt-platform)" "posix-gtk"
   gij = gij
   gcjh = gcjh
   ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
+  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
   cflags = -Os -g -fPIC
 
   swt-cflags = \
@@ -61,12 +61,12 @@ ifeq "$(swt-platform)" "posix-gtk"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(swt-platform)" "posix-carbon"
-  g++ = g++ -x objective-c++ -I$(HOME)/sw/gcc-ulibgcj/include/c++/4.2.0
+  g++ = $(HOME)/sw/gcc-ulibgcj/bin/gcc -x objective-c++
 	javac = javac
 	java = java
   gcjh = $(HOME)/sw/gcc-ulibgcj/bin/gcjh
   ar = ar
-  ugcj = $(HOME)/sw/gcc-ulibgcj/bin/gcj -L$(HOME)/sw/gcc-ulibgcj/lib
+  ugcj = $(HOME)/sw/gcc-ulibgcj/bin/gcj
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
   cflags = -O0 -g -fPIC
@@ -91,7 +91,7 @@ ifeq "$(swt-platform)" "win32"
   gij = gij
   gcjh = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcjh
   ar = mingw32-ar
-  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
+  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj
 	dlltool = mingw32-dlltool -k
   cflags = -Os -g
 # this should not be necessary, but ControlExample currently crashes
@@ -309,12 +309,11 @@ example-resource-objects = $(foreach x,$(example-resources),$(patsubst \
 .PHONY: example
 example: $(build-dir)/example
 
-$(example-classes): $(swt-classes)
-$(example-classes): $(example-sources)
+$(example-classes): $(example-sources) $(swt-classes)
 	@echo "compiling example sources"
 	@mkdir -p $(build-dir)/classes
 	@$(ugcj) -C -d $(build-dir)/classes \
-		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
+		--classpath $(build-dir)/sources:$(build-dir)/classes $(example-sources)
 
 .PHONY: example-classes
 example-classes: $(example-classes)
