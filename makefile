@@ -37,15 +37,17 @@ build-dir = build/$(platform)
 foreign-dir = foreign/$(platform)
 
 ifeq "$(swt-platform)" "posix-gtk"
-  g++ = g++
-  gcj = gcj
-  gij = gij
-  gcjh = gcjh
-  ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj -L/usr/local/gcc-ulibgcj/lib
-  cflags = -Wall -Os -g -fPIC
+	ulibgcj-dir = /usr/local/gcc-ulibgcj
 
-  swt-cflags = \
+	g++ = $(ulibgcj-dir)/bin/g++
+	gcj = gcj
+	gij = gij
+	gcjh = $(ulibgcj-dir)/bin/gcjh
+	ar = ar
+	ugcj = $(ulibgcj-dir)/bin/gcj -L$(ulibgcj-dir)/lib
+	cflags = -Wall -Os -g -fPIC
+
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		$$(pkg-config --cflags cairo) \
 		$$(pkg-config --cflags gtk+-2.0) \
@@ -61,20 +63,22 @@ ifeq "$(swt-platform)" "posix-gtk"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(swt-platform)" "posix-carbon"
-  g++ = g++ -x objective-c++ -I$(HOME)/sw/gcc-ulibgcj/include/c++/4.1.1
+	ulibgcj-dir = $(HOME)/sw/gcc-ulibgcj
+
+	g++ = g++ -x objective-c++ -I$(ulibgcj-dir)/include/c++/4.1.1
 	javac = javac
 	java = java
-  gcjh = $(HOME)/sw/gcc-ulibgcj/bin/gcjh
-  ar = ar
-  ugcj = $(HOME)/sw/gcc-ulibgcj/bin/gcj -L$(HOME)/sw/gcc-ulibgcj/lib
+	gcjh = $(ulibgcj-dir)/bin/gcjh
+	ar = ar
+	ugcj = $(ulibgcj-dir)/bin/gcj -L$(ulibgcj-dir)/lib
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
-  cflags = -Wall -O0 -g -fPIC
+	cflags = -Wall -O0 -g -fPIC
 else
-  cflags = -Wall -Os -g -fPIC
+	cflags = -Wall -Os -g -fPIC
 endif
 
-  swt-cflags = \
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		-I$(build-dir)/native-sources \
 		-I$(build-dir)/headers \
@@ -86,23 +90,25 @@ endif
 		-framework Cocoa -framework Foundation
 else
 ifeq "$(swt-platform)" "win32"
-  g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
-  gcj = gcj
-  gij = gij
-  gcjh = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcjh
-  ar = mingw32-ar
-  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj -L/usr/local/gcc-ulibgcj-w32/lib
+	ulibgcj-dir = /usr/local/gcc-ulibgcj-w32
+
+	g++ = $(ulibgcj-dir)/bin/mingw32-g++
+	gcj = gcj
+	gij = gij
+	gcjh = $(ulibgcj-dir)/bin/mingw32-gcjh
+	ar = mingw32-ar
+	ugcj = $(ulibgcj-dir)/bin/mingw32-gcj -L$(ulibgcj-dir)/lib
 	dlltool = mingw32-dlltool -k
-  cflags = -Wall -Os -g
+	cflags = -Wall -Os -g
 # this should not be necessary, but ControlExample currently crashes
 # otherwise:
 	binding-cflags = -O0
-  msvc = cl
-  swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
-  msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
+	msvc = cl
+	swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
+	msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
 
-  swt-cflags = \
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		-D_WIN32_WINNT=0x0501 \
 		-D_WIN32_IE=0x0500 \
