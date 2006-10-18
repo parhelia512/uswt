@@ -35,11 +35,12 @@ endif
 
 build-dir = build/$(platform)
 foreign-dir = foreign/$(platform)
+uswt-jar-file = uswt.jar
 
 ifeq "$(swt-platform)" "posix-gtk"
-  g++ = g++
-  gcj = gcj
-  gij = gij
+  g++ = /usr/local/gcc-ulibgcj/bin/g++
+  java = java
+  javac = javac
   gcjh = gcjh
   ar = ar
   ugcj = /usr/local/gcc-ulibgcj/bin/gcj
@@ -266,6 +267,10 @@ $(build-dir)/swt.a: \
 	@echo "creating $(@)"
 	$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
 		$(swt-objects) $(wildcard $(swt-binding-object-dir)/*.o)
+
+.PHONY: uswt-jar
+uswt-jar: swt-classes
+	jar -cf $(build-dir)/$(uswt-jar-file) -C $(build-dir)/classes/ org
 
 .PHONY: clean
 clean:
