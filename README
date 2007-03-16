@@ -46,6 +46,15 @@ mine exactly :).  Eventually, we'd like to adopt an automatic
 configuration system using something like autoconf, but we haven't
 reached that point yet.
 
+In particular, the makefile assumes that the 'gcj' and 'gij' commands
+in your PATH are built to use the standard libgcj (not micro-libgcj).
+This is important because the code responsible for generating the CNI
+bindings requires reflection and other Java features not included in
+micro-libgcj.  Please make sure either that your PATH satisfies the
+above property or that you modify the makefile to use absolute paths.
+On OS X, 'javac' and 'java' are used instead of 'gcj' and 'gij',
+respectively, since they are known to exist on that platform.
+
 Please also note that the makefile is currently set up to build the
 win32 port via cross-development tools (ex. on a Linux host).  If you
 wish to compile it on a Windows machine, you'll need to modify the

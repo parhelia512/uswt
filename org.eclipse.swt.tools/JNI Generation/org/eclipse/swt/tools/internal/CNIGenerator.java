@@ -1835,9 +1835,9 @@ public abstract class CNIGenerator {
     }
 
     public void generate() {
-      if (getMainClassName().contains(".cde.") ||
-          getMainClassName().contains(".gnome.") ||
-          getMainClassName().contains(".mozilla."))
+      if (getMainClassName().indexOf(".cde.") >= 0 ||
+          getMainClassName().indexOf(".gnome.") >= 0 ||
+          getMainClassName().indexOf(".mozilla.") >= 0)
       {
         return;
       }

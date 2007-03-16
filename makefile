@@ -40,15 +40,15 @@ uswt-jar-file = uswt.jar
 ifeq "$(swt-platform)" "posix-gtk"
 	ulibgcj-dir = /usr/local/gcc-ulibgcj
 
-  g++ = $(ulibgcj-dir)/bin/g++
-  java = java
-  javac = javac
-  gcjh = $(ulibgcj-dir)/bin/gcjh
-  ar = ar
-  ugcj = $(ulibgcj-dir)/bin/gcj
-  cflags = -Os -g -fPIC
+	g++ = $(ulibgcj-dir)/bin/g++
+	gcj = gcj
+	gij = gij
+	gcjh = $(ulibgcj-dir)/bin/gcjh
+	ar = ar
+	ugcj = $(ulibgcj-dir)/bin/gcj -L$(ulibgcj-dir)/lib
+	cflags = -Os -g -fPIC
 
-  swt-cflags = \
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		$$(pkg-config --cflags cairo) \
 		$$(pkg-config --cflags gtk+-2.0) \
@@ -66,12 +66,12 @@ else
 ifeq "$(swt-platform)" "posix-carbon"
 	ulibgcj-dir = $(HOME)/sw/gcc-ulibgcj
 
-  g++ = $(ulibgcj-dir)/bin/gcc -x objective-c++
+	g++ = g++ -x objective-c++ -I$(ulibgcj-dir)/include/c++/4.1.1
 	javac = javac
 	java = java
-  gcjh = $(ulibgcj-dir)/bin/gcjh
-  ar = ar
-  ugcj = $(ulibgcj-dir)/bin/gcj
+	gcjh = $(ulibgcj-dir)/bin/gcjh
+	ar = ar
+	ugcj = $(ulibgcj-dir)/bin/gcj -L$(ulibgcj-dir)/lib
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
   cflags = -O0 -g -fPIC -msse -msse2
@@ -79,7 +79,7 @@ else
   cflags = -Os -g -fPIC
 endif
 
-  swt-cflags = \
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		-I$(build-dir)/native-sources \
 		-I$(build-dir)/headers \
@@ -91,7 +91,7 @@ endif
 		-framework Cocoa -framework Foundation
 else
 ifeq "$(swt-platform)" "win32"
-	ulibgcj-dir = /usr/local/mingw32
+	ulibgcj-dir = /usr/local/gcc-ulibgcj-w32
 
   g++ = $(ulibgcj-dir)/bin/mingw32-g++
   gcj = gcj
@@ -104,12 +104,12 @@ ifeq "$(swt-platform)" "win32"
 # this should not be necessary, but ControlExample currently crashes
 # otherwise:
 	binding-cflags = -O0
-  msvc = cl
-  swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
-  msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
+	msvc = cl
+	swt-foreign-lib = $(foreign-dir)/swt-foreign.lib
+	msvccflags = "-Ic:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include" -I$(build-dir)/native-sources
 	msvclflags = "-LIBPATH:c:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib" gdiplus.lib gdi32.lib
 
-  swt-cflags = \
+	swt-cflags = \
 		-DJPTR=$(jptr) \
 		-D_WIN32_WINNT=0x0501 \
 		-D_WIN32_IE=0x0500 \
