@@ -208,7 +208,7 @@ my $rules = sub {
     print "$new: $old\n";
     print "\t\@mkdir -p \$(dir \$(\@))\n";
     print "\t\@echo \"generating \$(\@)\"\n";
-    print "\t\@perl \$(script-dir)/process.pl -DUSWT <\"\$(<)\" | \$(long-filter) >\$(@)\n\n";
+    print "\tperl \$(script-dir)/process.pl -DUSWT <\"\$(<)\" | \$(long-filter) >\$(@)\n\n";
 
     my $class = shift;
     my $object = shift;
@@ -216,14 +216,14 @@ my $rules = sub {
     print "$object: $class\n";
     print "\t\@mkdir -p \$(dir \$(\@))\n";
     print "\t\@echo \"compiling \$(\@)\"\n";
-    print "\t\@\$(ugcj) -c \$(cflags) --classpath \$(build-dir)/classes -o \$(@) \$(<) \$\$(find \$(build-dir)/classes -path '\$(basename \$(<))\$\$*.class')\n\n";
+    print "\t\$(ugcj) -c \$(cflags) --classpath \$(build-dir)/classes -o \$(@) \$(<) \$\$(find \$(build-dir)/classes -path '\$(basename \$(<))\$\$*.class')\n\n";
 
     my $header = shift;
 
     print "$header: $class\n";
     print "\t\@mkdir -p \$(dir \$(\@))\n";
     print "\t\@echo \"generating \$(\@)\"\n";
-    print "\t\@\$(gcjh) -d \$(build-dir)/headers --classpath \$(build-dir)/classes:\$(build-dir)/sources \$(patsubst \$(build-dir)/classes/\%.class,\%,\$(<))\n\n";
+    print "\t\$(gcjh) -d \$(build-dir)/headers --classpath \$(build-dir)/classes:\$(build-dir)/sources \$(patsubst \$(build-dir)/classes/\%.class,\%,\$(<))\n\n";
 };
 
 generate($rules, ClassPaths->{$ARGV[0]});

@@ -1,4 +1,4 @@
-MAKEFLAGS = -s
+#MAKEFLAGS = -s
 
 ifdef lin64
   platform = lin64
@@ -38,12 +38,14 @@ foreign-dir = foreign/$(platform)
 uswt-jar-file = uswt.jar
 
 ifeq "$(swt-platform)" "posix-gtk"
-  g++ = /usr/local/gcc-ulibgcj/bin/g++
+	ulibgcj-dir = /usr/local/gcc-ulibgcj
+
+  g++ = $(ulibgcj-dir)/bin/g++
   java = java
   javac = javac
-  gcjh = gcjh
+  gcjh = $(ulibgcj-dir)/bin/gcjh
   ar = ar
-  ugcj = /usr/local/gcc-ulibgcj/bin/gcj
+  ugcj = $(ulibgcj-dir)/bin/gcj
   cflags = -Os -g -fPIC
 
   swt-cflags = \
@@ -62,12 +64,14 @@ ifeq "$(swt-platform)" "posix-gtk"
 		-L/usr/X11R6/lib -lGL -lGLU -lm
 else
 ifeq "$(swt-platform)" "posix-carbon"
-  g++ = $(HOME)/sw/gcc-ulibgcj/bin/gcc -x objective-c++
+	ulibgcj-dir = $(HOME)/sw/gcc-ulibgcj
+
+  g++ = $(ulibgcj-dir)/bin/gcc -x objective-c++
 	javac = javac
 	java = java
-  gcjh = $(HOME)/sw/gcc-ulibgcj/bin/gcjh
+  gcjh = $(ulibgcj-dir)/bin/gcjh
   ar = ar
-  ugcj = $(HOME)/sw/gcc-ulibgcj/bin/gcj
+  ugcj = $(ulibgcj-dir)/bin/gcj
 ifdef osxi386
   # optimized builds are broken for some mysterious reason on this platform
   cflags = -O0 -g -fPIC -msse -msse2
@@ -87,13 +91,15 @@ endif
 		-framework Cocoa -framework Foundation
 else
 ifeq "$(swt-platform)" "win32"
-  g++ = /usr/local/gcc-ulibgcj-w32/bin/mingw32-g++
+	ulibgcj-dir = /usr/local/mingw32
+
+  g++ = $(ulibgcj-dir)/bin/mingw32-g++
   gcj = gcj
   gij = gij
-  gcjh = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcjh
-  ar = mingw32-ar
-  ugcj = /usr/local/gcc-ulibgcj-w32/bin/mingw32-gcj
-	dlltool = mingw32-dlltool -k
+  gcjh = $(ulibgcj-dir)/bin/mingw32-gcjh
+  ar = $(ulibgcj-dir)/bin/mingw32-ar
+  ugcj = $(ulibgcj-dir)/bin/mingw32-gcj -L$(ulibgcj-dir)/lib
+	dlltool = $(ulibgcj-dir)/bin/mingw32-dlltool -k
   cflags = -Os -g
 # this should not be necessary, but ControlExample currently crashes
 # otherwise:
@@ -317,7 +323,7 @@ example: $(build-dir)/example
 $(example-classes): $(example-sources) $(swt-classes)
 	@echo "compiling example sources"
 	@mkdir -p $(build-dir)/classes
-	@$(ugcj) -C -d $(build-dir)/classes \
+	$(ugcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(build-dir)/classes $(example-sources)
 
 .PHONY: example-classes
@@ -326,7 +332,7 @@ example-classes: $(example-classes)
 $(example-sources): $(build-dir)/sources/%: $(example-dir)/%
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@)"
-	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
+	perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
 
 .PHONY: example-sources
 example-sources: $(example-sources)
@@ -337,25 +343,24 @@ $(example-objects): $(build-dir)/objects/%.o: \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
-	@$(ugcj) $(cflags) --classpath $(build-dir)/classes \
+	$(ugcj) $(cflags) --classpath $(build-dir)/classes \
 		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+	$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
 
 $(build-dir)/examples_control.o: $(example-dir)/examples_control.properties
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource examples_control.properties -c $(<) -o $(@)
+	$(ugcj) --resource examples_control.properties -c $(<) -o $(@)
 
 $(build-dir)/example: \
 		$(build-dir)/examples_control.o \
 		$(example-resource-objects) \
 		$(example-objects) \
-		$(build-dir)/swt.a \
-		${swt-foreign-lib}
+		$(build-dir)/swt.a
 	@echo "linking $(@)"
 	$(ugcj) --main=org.eclipse.swt.examples.controlexample.ControlExample \
 		 $(^) $(swt-lflags) -o $(@)
@@ -383,7 +388,7 @@ paint: $(build-dir)/paint
 $(paint-classes): $(paint-sources)
 	@echo "compiling paint sources"
 	@mkdir -p $(build-dir)/classes
-	@$(ugcj) -C -d $(build-dir)/classes \
+	$(ugcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
 
 .PHONY: paint-classes
@@ -392,7 +397,7 @@ paint-classes: $(paint-classes)
 $(paint-sources): $(build-dir)/sources/%: $(example-dir)/%
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@)"
-	@perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
+	perl $(script-dir)/process.pl -DUSWT <$(<) >$(@)
 
 $(paint-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/classes/%.class \
@@ -400,18 +405,18 @@ $(paint-objects): $(build-dir)/objects/%.o: \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
-	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
+	$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
 		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(paint-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+	$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
 
 $(build-dir)/examples_paint.o: $(example-dir)/examples_paint.properties
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource examples_paint.properties -c $(<) -o $(@)
+	$(ugcj) --resource examples_paint.properties -c $(<) -o $(@)
 
 $(build-dir)/paint: \
 		$(build-dir)/examples_paint.o \
@@ -446,7 +451,7 @@ graphics: $(build-dir)/graphics
 $(graphics-classes): $(graphics-sources)
 	@echo "compiling graphics sources"
 	@mkdir -p $(build-dir)/classes
-	@$(ugcj) -C -d $(build-dir)/classes \
+	$(ugcj) -C -d $(build-dir)/classes \
 		--classpath $(build-dir)/sources:$(build-dir)/classes $(^)
 
 .PHONY: graphics-classes
@@ -463,18 +468,18 @@ $(graphics-objects): $(build-dir)/objects/%.o: \
 		$(swt-classes)
 	@mkdir -p $(dir $(@))
 	@echo "compiling $(@)"
-	@$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
+	$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
 		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
 
 $(graphics-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
+	$(ugcj) --resource $(patsubst $(example-dir)/%,%,$(<)) -c $(<) -o $(@)
 
 $(build-dir)/examples_graphics.o: $(example-dir)/examples_graphics.properties
 	@mkdir -p $(dir $(@))
 	@echo "generating $(@) from $(<)"
-	@$(ugcj) --resource examples_graphics.properties -c $(<) -o $(@)
+	$(ugcj) --resource examples_graphics.properties -c $(<) -o $(@)
 
 $(build-dir)/graphics: \
 		$(build-dir)/examples_graphics.o \

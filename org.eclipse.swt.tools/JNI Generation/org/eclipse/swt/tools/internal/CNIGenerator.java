@@ -1264,7 +1264,7 @@ public abstract class CNIGenerator {
   }
 
   private static void generateProcedureTypedef(PrintStream out, Method m,
-                                               MetaData metaData)
+                                               int style, MetaData metaData)
   {
     out.print("    typedef ");
     generateType(out, m.getReturnType());
@@ -1274,7 +1274,9 @@ public abstract class CNIGenerator {
     for (int i = 0; i < types.length; i++) {
       ParameterData pdata = metaData.getMetaData(m, i);
       String cast = cast(m, i, pdata);
-      if (cast.length() > 2) {
+      if (style == PROXY_CALL_STYLE) {
+        generateType3(out, types[i], false, true);
+      } else if (cast.length() > 2) {
         out.print(cast.substring(1, cast.length() - 1));
       } else {
         generateType3(out, types[i], pdata.getFlag("struct"));
@@ -1294,31 +1296,55 @@ public abstract class CNIGenerator {
     String name = name(m);
 
     if (SWT.getPlatform().equals("win32")) {
-      out.println("    static bool initialized = false;");
-      out.println("    static HMODULE module = 0;");
-      generateProcedureTypedef(out, m, metaData);
-      out.println("    static Procedure procedure = 0;");
-      out.println("    if (not initialized) {");
-      out.print("      if (module == 0) module = LoadLibrary(");
-      out.print(name);
-      out.println("_LIB);");
-      out.print("      if (module) procedure = (Procedure) ");
-      out.print("GetProcAddress(module, \"");
-      out.print(name);
-      out.println("\");");
-      out.println("      initialized = true;");
-      out.println("    }");
-      out.println("    if (procedure) {");
-      out.print("    ");
-      generateCallLeftSide(out, m, data, needsReturn, style);
-      out.print("procedure");
-      generateCallRightSide(out, m, data, 0, style, metaData);
-      out.println();
-      out.println("    } else throw new java::lang::RuntimeException;");
+      if (style == PROXY_CALL_STYLE) {
+        out.println("    static bool initialized = false;");
+        generateProcedureTypedef(out, m, style, metaData);
+        out.println("    static Procedure procedure = 0;");
+        out.println("    if (not initialized) {");
+        out.print("      if (foreignModule == 0) ");
+        out.println("foreignModule = LoadLibrary(\"swt-foreign.dll\");");
+        out.print("      if (foreignModule) procedure = (Procedure) ");
+        out.print("GetProcAddress(foreignModule, \"");
+        out.print("CNIProxy_");
+        out.print(name);
+        generateDecoration(out, m);
+        out.println("\");");
+        out.println("      initialized = true;");
+        out.println("    }");
+        out.println("    if (procedure) {");
+        out.print("    ");
+        generateCallLeftSide(out, m, data, needsReturn, style);
+        out.print("procedure");
+        generateCallRightSide(out, m, data, 0, style, metaData);
+        out.println();
+        out.println("    } else throw new java::lang::RuntimeException;");
+      } else {
+        out.println("    static bool initialized = false;");
+        out.println("    static HMODULE module = 0;");
+        generateProcedureTypedef(out, m, style, metaData);
+        out.println("    static Procedure procedure = 0;");
+        out.println("    if (not initialized) {");
+        out.print("      if (module == 0) module = LoadLibrary(");
+        out.print(name);
+        out.println("_LIB);");
+        out.print("      if (module) procedure = (Procedure) ");
+        out.print("GetProcAddress(module, \"");
+        out.print(name);
+        out.println("\");");
+        out.println("      initialized = true;");
+        out.println("    }");
+        out.println("    if (procedure) {");
+        out.print("    ");
+        generateCallLeftSide(out, m, data, needsReturn, style);
+        out.print("procedure");
+        generateCallRightSide(out, m, data, 0, style, metaData);
+        out.println();
+        out.println("    } else throw new java::lang::RuntimeException;");
+      }
     } else if (SWT.getPlatform().equals("carbon")) {
       out.println("    static bool initialized = false;");
       out.println("    static CFBundleRef bundle = 0;");
-      generateProcedureTypedef(out, m, metaData);
+      generateProcedureTypedef(out, m, style, metaData);
       out.println("    static Procedure procedure;");
       out.println("    if (not initialized) {");
       out.print("      if (bundle == 0) bundle = ");
@@ -1341,7 +1367,7 @@ public abstract class CNIGenerator {
     } else {
       out.println("    static bool initialized = false;");
       out.println("    static void* handle = 0;");
-      generateProcedureTypedef(out, m, metaData);
+      generateProcedureTypedef(out, m, style, metaData);
       out.println("    static Procedure procedure;");
       if (m.getReturnType() != Void.TYPE) {
         if (needsReturn) {
@@ -1407,7 +1433,7 @@ public abstract class CNIGenerator {
     String name = name(m);
 
     if (style == PROXY_CALL_STYLE) {
-      generateNormalCall(out, m, data, style);
+      throw new IllegalArgumentException();
     } else {
       if (name.equalsIgnoreCase("call")) {
         out.print("(");
@@ -1635,7 +1661,7 @@ public abstract class CNIGenerator {
       } else {
         boolean needsReturn = generateLocals(out, m, style, metaData);
         generateReads(out, m, style, metaData);
-        if (data.getFlag("dynamic")) {
+        if (data.getFlag("dynamic") || style == PROXY_CALL_STYLE) {
           generateDynamicCall(out, m, data, needsReturn, style, metaData);
         } else if (mightBeMacro(m, data)) {
           out.print("#ifdef ");
@@ -1691,6 +1717,9 @@ public abstract class CNIGenerator {
       out.println("#include \"stdint.h\"");
       out.println("#include \"com_custom.h\"");
       out.println("#include \"stdio.h\"");
+      out.println();
+      out.println("namespace { HMODULE foreignModule = 0; }");
+      out.println();
     }
     out.println("#include \"os.h\"");
     out.println();
