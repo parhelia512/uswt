@@ -66,7 +66,7 @@ else
 ifeq "$(swt-platform)" "posix-carbon"
 	ulibgcj-dir = $(HOME)/sw/gcc-ulibgcj
 
-	g++ = g++ -x objective-c++ -I$(ulibgcj-dir)/include/c++/4.1.1
+	g++ = $(ulibgcj-dir)/bin/g++ -x objective-c++ -I$(ulibgcj-dir)/include/c++/4.2.0
 	javac = javac
 	java = java
 	gcjh = $(ulibgcj-dir)/bin/gcjh
