@@ -41,10 +41,10 @@ ifeq "$(swt-platform)" "posix-gtk"
 	ulibgcj-dir = /usr/local/gcc-ulibgcj
 
 	g++ = $(ulibgcj-dir)/bin/g++
-	gcj = gcj
-	gij = gij
+	gcj = /usr/bin/gcj
+	gij = /usr/bin/gij
 	gcjh = $(ulibgcj-dir)/bin/gcjh
-	ar = ar
+	ar = /usr/bin/ar
 	ugcj = $(ulibgcj-dir)/bin/gcj -L$(ulibgcj-dir)/lib
 	cflags = -Os -g -fPIC
 
