@@ -263,16 +263,39 @@ $(build-dir)/cni-callback.o: $(build-dir)/native-sources/cni-callback.cpp
 	@echo "compiling $(@) from $(<)"
 	$(g++) $(cflags) -I$(build-dir) $(swt-cflags) -c $(<) -o $(@)
 
+nebula-sources = $(shell find nebula -name '*.java')
+nebula-classes = $(patsubst nebula/%.java,$(build-dir)/classes/%.class,$(nebula-sources))
+nebula-objects = $(patsubst nebula/%.java,$(build-dir)/objects/%.o,$(nebula-sources))
+
+define compile-class
+	@mkdir -p $(dir $(@))
+	@echo "compiling $(@)"
+	$(ugcj) $(cflags) --classpath $(build-dir)/classes \
+		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
+endef
+
+$(nebula-classes): $(nebula-sources) $(swt-classes)
+	@echo "compiling nebula sources"
+	@mkdir -p $(build-dir)/classes
+	$(ugcj) -C -d $(build-dir)/classes \
+		--classpath $(build-dir)/sources:$(build-dir)/classes $(nebula-sources)
+
+$(build-dir)/objects/%.o: \
+		$(build-dir)/classes/%.class
+	$(compile-class)
+
 $(build-dir)/swt.a: \
 		$(build-dir)/rules.mk \
 		$(build-dir)/os_custom.o \
 		$(build-dir)/cni-callback.o \
 		$(stamp-dir)/swt-binding-objects \
-		$(swt-objects)
+		$(swt-objects) \
+		$(nebula-objects)
 	@rm -f $(@)
 	@echo "creating $(@)"
 	$(ar) cru $(@) $(build-dir)/os_custom.o $(build-dir)/cni-callback.o \
-		$(swt-objects) $(wildcard $(swt-binding-object-dir)/*.o)
+		$(swt-objects) $(nebula-objects) \
+		$(wildcard $(swt-binding-object-dir)/*.o)
 
 .PHONY: uswt-jar
 uswt-jar: swt-classes
@@ -337,14 +360,12 @@ $(example-sources): $(build-dir)/sources/%: $(example-dir)/%
 .PHONY: example-sources
 example-sources: $(example-sources)
 
+
 $(example-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/classes/%.class \
 		$(example-sources) \
 		$(swt-classes)
-	@mkdir -p $(dir $(@))
-	@echo "compiling $(@)"
-	$(ugcj) $(cflags) --classpath $(build-dir)/classes \
-		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
+	$(compile-class)
 
 $(example-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
@@ -403,10 +424,7 @@ $(paint-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/classes/%.class \
 		$(paint-sources) \
 		$(swt-classes)
-	@mkdir -p $(dir $(@))
-	@echo "compiling $(@)"
-	$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
-		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
+	$(compile-classes)
 
 $(paint-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
@@ -466,10 +484,7 @@ $(graphics-objects): $(build-dir)/objects/%.o: \
 		$(build-dir)/classes/%.class \
 		$(graphics-sources) \
 		$(swt-classes)
-	@mkdir -p $(dir $(@))
-	@echo "compiling $(@)"
-	$(ugcj) $(cflags) --classpath $(build-dir)/classes:$(build-dir)/sources \
-		-c $(call find-classes,$(build-dir)/classes,$(<)) -o $(@)
+	$(compile-classes)
 
 $(graphics-resource-objects): $(build-dir)/%.o: $(example-dir)/%
 	@mkdir -p $(dir $(@))
