@@ -1268,7 +1268,11 @@ public abstract class CNIGenerator {
   {
     out.print("    typedef ");
     generateType(out, m.getReturnType());
-    out.print(" (*Procedure)(");
+    if (SWT.getPlatform().equals("win32")) {
+      out.print(" (WINAPI *Procedure)(");
+    } else {
+      out.print(" (*Procedure)(");
+    }
 
     Class[] types = m.getParameterTypes();
     for (int i = 0; i < types.length; i++) {
