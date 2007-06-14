@@ -14,8 +14,8 @@
 
 #ifdef NATIVE_STATS
 
-int OS_nativeFunctionCount = 695;
-int OS_nativeFunctionCallCount[695];
+int OS_nativeFunctionCount = 696;
+int OS_nativeFunctionCallCount[696];
 char * OS_nativeFunctionNames[] = {
 	"AbortDoc",
 	"ActivateActCtx",
@@ -23,7 +23,6 @@ char * OS_nativeFunctionNames[] = {
 	"AdjustWindowRectEx",
 	"AlphaBlend",
 	"Arc",
-	"AttachThreadInput",
 	"BeginDeferWindowPos",
 	"BeginPaint",
 	"BeginPath",
@@ -248,7 +247,6 @@ char * OS_nativeFunctionNames[] = {
 	"GetOpenFileNameW",
 	"GetPaletteEntries",
 	"GetParent",
-	"GetPath",
 	"GetPixel",
 	"GetPolyFillMode",
 	"GetProcAddress",
@@ -290,8 +288,10 @@ char * OS_nativeFunctionNames[] = {
 	"GetTickCount",
 	"GetUpdateRect",
 	"GetUpdateRgn",
-	"GetVersionExA",
-	"GetVersionExW",
+	"GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2",
+	"GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2",
+	"GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2",
+	"GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOW_2",
 	"GetWindow",
 	"GetWindowDC",
 	"GetWindowLongA",
@@ -456,6 +456,7 @@ char * OS_nativeFunctionNames[] = {
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_NMTTDISPINFOW_2II",
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVCUSTOMDRAW_2II",
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVDISPINFO_2II",
+	"MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2II",
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_NMUPDOWN_2II",
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_POINT_2II",
 	"MoveMemory__Lorg_eclipse_swt_internal_win32_SCRIPT_1ITEM_2II",

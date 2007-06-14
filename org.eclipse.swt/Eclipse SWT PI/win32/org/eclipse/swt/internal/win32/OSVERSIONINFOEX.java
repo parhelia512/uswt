@@ -6,9 +6,15 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    IBM Corporation - initial API and implementation
+ *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+package org.eclipse.swt.internal.win32;
 
-#include "swt.h"
-#include "xpcom_profile_structs.h"
-
+public abstract class OSVERSIONINFOEX extends OSVERSIONINFO {
+	public short wServicePackMajor;
+	public short wServicePackMinor;
+	public short wSuiteMask;
+	public byte wProductType;
+	public byte wReserved;
+	public static /*final*/ int sizeof = OS.IsUnicode ? 284 : 156;
+}

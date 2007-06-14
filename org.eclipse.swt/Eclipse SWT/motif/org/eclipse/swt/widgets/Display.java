@@ -277,7 +277,7 @@ public class Display extends Device {
 	static Display [] Displays = new Display [4];
 
 	/* Double Click */
-	int lastTime, lastButton, clickCount = 1;
+	int lastTime, lastButton;
 	
 	/* Current caret */
 	Caret currentCaret;
@@ -1047,28 +1047,6 @@ public Widget findWidget (int handle) {
  * @since 3.1
  */
 public Widget findWidget (int handle, int id) {
-	checkDevice ();
-	return null;
-}
-/**
- * Given a widget and a widget-specific id, returns the
- * instance of the <code>Widget</code> subclass which represents
- * the widget/id pair in the currently running application,
- * if such exists, or null if no matching widget can be found.
- *
- * @param widget the widget
- * @param id the id for the subwidget (usually an item)
- * @return the SWT subwidget (usually an item) that the widget/id pair represents
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
- * </ul>
- * 
- * @since 3.3
- */
-public Widget findWidget (Widget widget, int id) {
-	checkDevice ();
 	return null;
 }
 boolean fixKey (int[] keysym, byte[] buffer, int state) {
@@ -2378,8 +2356,8 @@ public int internal_new_GC (GCData data) {
 		data.device = this;
 		data.display = xDisplay;
 		data.drawable = xDrawable;
-		data.background = getSystemColor (SWT.COLOR_WHITE).handle;
-		data.foreground = getSystemColor (SWT.COLOR_BLACK).handle;
+		data.background = getSystemColor (SWT.COLOR_WHITE).handle.pixel;
+		data.foreground = getSystemColor (SWT.COLOR_BLACK).handle.pixel;
 		data.font = defaultFont;
 		data.colormap = OS.XDefaultColormap (xDisplay, OS.XDefaultScreen (xDisplay));
 	}

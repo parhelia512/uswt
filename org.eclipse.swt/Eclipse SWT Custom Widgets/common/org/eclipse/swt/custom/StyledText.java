@@ -191,7 +191,6 @@ public class StyledText extends Canvas {
 		Point selection = null;					// selected text
 		boolean mirrored;						// indicates the printing gc should be mirrored
 		int lineSpacing;
-		int printMargin;
 
 	/**
 	 * Creates an instance of <class>Printing</class>.
@@ -224,6 +223,7 @@ public class StyledText extends Canvas {
 		printerRenderer = new StyledTextRenderer(printer, null);
 		printerRenderer.setContent(copyContent(styledText.getContent()));
 		cacheLineData(styledText);
+
 	}
 	/**
 	 * Caches all line data that needs to be requested from a listener.
@@ -335,9 +335,6 @@ public class StyledText extends Canvas {
 			}
 		}
 		lineSpacing = styledText.lineSpacing * printerDPI.y / screenDPI.y;
-		if (printOptions.printLineNumbers) {
-			printMargin = 3 * printerDPI.x / screenDPI.x;
-		}
 	}
 	/**
 	 * Copies the text of the specified <class>StyledTextContent</class>.
@@ -435,36 +432,22 @@ public class StyledText extends Canvas {
 		Color foreground = gc.getForeground();
 		int paintY = clientArea.y;
 		int paintX = clientArea.x;
-		int width = clientArea.width;
 		int page = startPage;
 		int pageBottom = clientArea.y + clientArea.height;
 		int orientation =  gc.getStyle() & (SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT);
-		TextLayout printLayout = null;
-		if (printOptions.printLineNumbers || printOptions.header != null || printOptions.footer != null) {
-			printLayout = new TextLayout(printer);
-			printLayout.setFont(printerFont);
-		}
-		if (printOptions.printLineNumbers) {
-			int count = endLine - startLine + 1;
-			StringBuffer buffer = new StringBuffer("0");
-			while ((count /= 10) > 0) buffer.append("0");
-			printLayout.setText(buffer.toString());
-			int numberingWidth = printLayout.getBounds().width + printMargin;
-			if (numberingWidth > width) numberingWidth = width;
-			paintX += numberingWidth;
-			width -= numberingWidth;
-		}
+		
+		
 		for (int i = startLine; i <= endLine && page <= endPage; i++) {
 			if (paintY == clientArea.y) {
 				printer.startPage();
-				printDecoration(page, true, printLayout);
+				printDecoration(page, true);
 			}
-			TextLayout layout = printerRenderer.getTextLayout(i, orientation, width, lineSpacing);
+			TextLayout layout = printerRenderer.getTextLayout(i, orientation, clientArea.width, lineSpacing);
 			Color lineBackground = printerRenderer.getLineBackground(i, background);
 			int paragraphBottom = paintY + layout.getBounds().height; 
 			if (paragraphBottom <= pageBottom) {
 				//normal case, the whole paragraph fits in the current page
-				printLine(paintX, paintY, gc, foreground, lineBackground, layout, printLayout, i);
+				printLine(paintX, paintY, gc, foreground, lineBackground, layout);
 				paintY = paragraphBottom;
 			} else {
 				int lineCount = layout.getLineCount();
@@ -474,31 +457,31 @@ public class StyledText extends Canvas {
 				}
 				if (lineCount == 0) {
 					//the whole paragraph goes to the next page
-					printDecoration(page, false, printLayout);
+					printDecoration(page, false);
 					printer.endPage();
 					page++;
 					if (page <= endPage) {
 						printer.startPage();
-						printDecoration(page, true, printLayout);
+						printDecoration(page, true);
 						paintY = clientArea.y;
-						printLine(paintX, paintY, gc, foreground, lineBackground, layout, printLayout, i);
+						printLine(paintX, paintY, gc, foreground, lineBackground, layout);
 						paintY += layout.getBounds().height;
 					}
 				} else {
 					//draw paragraph top in the current page and paragraph bottom in the next
 					int height = paragraphBottom - paintY;
-					gc.setClipping(paintX, paintY, width, height);
-					printLine(paintX, paintY, gc, foreground, lineBackground, layout, printLayout, i);
-					printDecoration(page, false, printLayout);
+					gc.setClipping(paintX, paintY, clientArea.width, height);
+					printLine(paintX, paintY, gc, foreground, lineBackground, layout);
+					printDecoration(page, false);
 					printer.endPage();					
 					page++;
 					if (page <= endPage) {
 						printer.startPage();
-						printDecoration(page, true, printLayout);
+						printDecoration(page, true);
 						paintY = clientArea.y - height;
 						int layoutHeight = layout.getBounds().height;
-						gc.setClipping(paintX, clientArea.y, width, layoutHeight - height);
-						printLine(paintX, paintY, gc, foreground, lineBackground, layout, printLayout, i);
+						gc.setClipping(paintX, clientArea.y, clientArea.width, layoutHeight - height);
+						printLine(paintX, paintY, gc, foreground, lineBackground, layout);
 						paintY += layoutHeight;
 					}
 					gc.setClipping((Rectangle)null);
@@ -508,10 +491,9 @@ public class StyledText extends Canvas {
 		}
 		if (paintY > clientArea.y) {
 			// close partial page
-			printDecoration(page, false, printLayout);
+			printDecoration(page, false);
 			printer.endPage();
 		}
-		if (printLayout != null) printLayout.dispose();
 	}
 	/**
 	 * Print header or footer decorations.
@@ -519,20 +501,21 @@ public class StyledText extends Canvas {
 	 * @param page page number to print, if specified in the StyledTextPrintOptions header or footer.
 	 * @param header true = print the header, false = print the footer
 	 */
-	void printDecoration(int page, boolean header, TextLayout layout) {
+	void printDecoration(int page, boolean header) {
 		String text = header ? printOptions.header : printOptions.footer;
 		if (text == null) return;
 		int lastSegmentIndex = 0;
-		for (int i = 0; i < 3; i++) {
+		int segmentCount = 3;
+		for (int i = 0; i < segmentCount; i++) {
 			int segmentIndex = text.indexOf(StyledTextPrintOptions.SEPARATOR, lastSegmentIndex);
 			String segment;
 			if (segmentIndex == -1) {
 				segment = text.substring(lastSegmentIndex);
-				printDecorationSegment(segment, i, page, header, layout);
+				printDecorationSegment(segment, i, page, header);
 				break;
 			} else {
 				segment = text.substring(lastSegmentIndex, segmentIndex);
-				printDecorationSegment(segment, i, page, header, layout);
+				printDecorationSegment(segment, i, page, header);
 				lastSegmentIndex = segmentIndex + StyledTextPrintOptions.SEPARATOR.length();
 			}
 		}
@@ -547,7 +530,7 @@ public class StyledText extends Canvas {
 	 * @param page page number to print, if specified in the decoration segment.
 	 * @param header true = print the header, false = print the footer
 	 */
-	void printDecorationSegment(String segment, int alignment, int page, boolean header, TextLayout layout) {		
+	void printDecorationSegment(String segment, int alignment, int page, boolean header) {		
 		int pageIndex = segment.indexOf(StyledTextPrintOptions.PAGE_TAG);
 		if (pageIndex != -1) {
 			int pageTagLength = StyledTextPrintOptions.PAGE_TAG.length();
@@ -557,7 +540,9 @@ public class StyledText extends Canvas {
 			segment = buffer.toString();
 		}
 		if (segment.length() > 0) {
+			TextLayout layout = new TextLayout(printer);
 			layout.setText(segment);
+			layout.setFont(printerFont);
 			int segmentWidth = layout.getBounds().width;
 			int segmentHeight = printerRenderer.getLineHeight();
 			int drawX = 0, drawY;
@@ -574,13 +559,14 @@ public class StyledText extends Canvas {
 				drawY = clientArea.y + clientArea.height + segmentHeight;
 			}
 			layout.draw(gc, drawX, drawY);
+			layout.dispose();
 		}
 	}
-	void printLine(int x, int y, GC gc, Color foreground, Color background, TextLayout layout, TextLayout printLayout, int index) {
+	void printLine(int paintX, int paintY, GC gc, Color foreground, Color background, TextLayout layout) {
 		if (background != null) {
 			Rectangle rect = layout.getBounds();
 			gc.setBackground(background);
-			gc.fillRectangle(x, y, rect.width, rect.height);
+			gc.fillRectangle(paintX, paintY, rect.width, rect.height);
 			
 //			int lineCount = layout.getLineCount();
 //			for (int i = 0; i < lineCount; i++) {
@@ -591,18 +577,8 @@ public class StyledText extends Canvas {
 //				gc.fillRectangle(rect);
 //			}
 		}
-		if (printOptions.printLineNumbers) {
-			FontMetrics metrics = layout.getLineMetrics(0);
-			printLayout.setAscent(metrics.getAscent() + metrics.getDescent());
-			printLayout.setDescent(metrics.getDescent());
-			printLayout.setText(String.valueOf(index));
-			int paintX = x - printMargin - printLayout.getBounds().width;
-			printLayout.draw(gc, paintX, y);
-			printLayout.setAscent(-1);
-			printLayout.setDescent(-1);
-		}
 		gc.setForeground(foreground);
-		layout.draw(gc, x, y);
+		layout.draw(gc, paintX, paintY);
 	}
 	/**
 	 * Starts a print job and prints the pages specified in the constructor.
@@ -4439,23 +4415,19 @@ public Rectangle getTextBounds(int start, int end) {
 	for (int i = lineStart; i <= lineEnd; i++) {
 		int lineOffset = content.getOffsetAtLine(i);		
 		TextLayout layout = renderer.getTextLayout(i);
-		if (layout.getText().length() > 0) {
-			if (i == lineStart && i == lineEnd) {
-				rect = layout.getBounds(start - lineOffset, end - lineOffset);
-			} else if (i == lineStart) {
-				String line = content.getLine(i);
-				rect = layout.getBounds(start - lineOffset, line.length());
-			} else if (i == lineEnd) {
-				rect = layout.getBounds(0, end - lineOffset);
-			} else {
-				rect = layout.getBounds();
-			}
-			left = Math.min(left, rect.x);
-			right = Math.max(right, rect.x + rect.width);
-			height += rect.height;
+		if (i == lineStart && i == lineEnd) {
+			rect = layout.getBounds(start - lineOffset, end - lineOffset);
+		} else if (i == lineStart) {
+			String line = content.getLine(i);
+			rect = layout.getBounds(start - lineOffset, line.length());
+		} else if (i == lineEnd) {
+			rect = layout.getBounds(0, end - lineOffset);
 		} else {
-			height += renderer.getLineHeight();
+			rect = layout.getBounds();
 		}
+		left = Math.min (left, rect.x);
+		right = Math.max (right, rect.x + rect.width);
+		height += rect.height;
 		renderer.disposeTextLayout(layout);
 	}
 	rect = new Rectangle (left, y, right-left, height);

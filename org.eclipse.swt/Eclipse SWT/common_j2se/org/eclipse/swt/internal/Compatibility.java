@@ -175,7 +175,7 @@ public static OutputStream newFileOutputStream(String filename) throws IOExcepti
  * @return a inflater stream or <code>null</code>
  * @exception IOException
  * 
- * @since 3.3
+ * @since 3.2.1
  */
 public static InputStream newInflaterInputStream(InputStream stream) throws IOException {
 	return new InflaterInputStream(stream);

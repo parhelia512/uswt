@@ -106,12 +106,12 @@ public class Display extends Device {
 	static final int WAKE_KIND = 1;
 	Event [] eventQueue;
 	Callback actionCallback, appleEventCallback, commandCallback, controlCallback, accessibilityCallback, appearanceCallback;
-	Callback drawItemCallback, itemDataCallback, itemNotificationCallback, itemCompareCallback, trayItemCallback;
-	Callback hitTestCallback, keyboardCallback, menuCallback, mouseHoverCallback, helpCallback, pollingCallback;
+	Callback drawItemCallback, itemDataCallback, itemNotificationCallback, itemCompareCallback;
+	Callback hitTestCallback, keyboardCallback, menuCallback, mouseHoverCallback, helpCallback;
 	Callback mouseCallback, trackingCallback, windowCallback, colorCallback, textInputCallback;
 	int actionProc, appleEventProc, commandProc, controlProc, appearanceProc, accessibilityProc;
-	int drawItemProc, itemDataProc, itemNotificationProc, itemCompareProc, helpProc, trayItemProc;
-	int hitTestProc, keyboardProc, menuProc, mouseHoverProc, pollingProc;
+	int drawItemProc, itemDataProc, itemNotificationProc, itemCompareProc, helpProc;
+	int hitTestProc, keyboardProc, menuProc, mouseHoverProc;
 	int mouseProc, trackingProc, windowProc, colorProc, textInputProc;
 	EventTable eventTable, filterTable;
 	int queue, lastModifiers;
@@ -1161,29 +1161,6 @@ public Widget findWidget (int handle) {
  * @since 3.1
  */
 public Widget findWidget (int handle, int id) {
-	checkDevice ();
-	return null;
-}
-
-/**
- * Given a widget and a widget-specific id, returns the
- * instance of the <code>Widget</code> subclass which represents
- * the widget/id pair in the currently running application,
- * if such exists, or null if no matching widget can be found.
- *
- * @param widget the widget
- * @param id the id for the subwidget (usually an item)
- * @return the SWT subwidget (usually an item) that the widget/id pair represents
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
- * </ul>
- * 
- * @since 3.3
- */
-public Widget findWidget (Widget widget, int id) {
-	checkDevice ();
 	return null;
 }
 
@@ -1938,8 +1915,7 @@ public Image getSystemImage (int id) {
  */
 public Tray getSystemTray () {
 	checkDevice ();
-	if (tray != null) return tray;
-	return tray = new Tray (this, SWT.NONE);
+	return null;
 }
 
 /**
@@ -2062,12 +2038,6 @@ void initializeCallbacks () {
 	appearanceCallback = new Callback (this, "appearanceProc", 3);
 	appearanceProc = appearanceCallback.getAddress ();
 	if (appearanceProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
-	trayItemCallback = new Callback (this, "trayItemProc", 4);
-	trayItemProc = trayItemCallback.getAddress ();
-	if (trayItemProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
-	pollingCallback = new Callback (this, "pollingProc", 2);
-	pollingProc = pollingCallback.getAddress ();
-	if (pollingProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 
 	/* Install Event Handlers */
 	int[] mask1 = new int[] {
@@ -2294,11 +2264,6 @@ int keyboardProc (int nextHandler, int theEvent, int userData) {
 		if (widget != null) return widget.keyboardProc (nextHandler, theEvent, userData);
 	}
 	return OS.eventNotHandledErr;
-}
-
-int pollingProc (int inTimer, int inUserData) {
-	runAsyncMessages (false);
-	return 0;
 }
 
 /**
@@ -2768,11 +2733,7 @@ int mouseProc (int nextHandler, int theEvent, int userData) {
 			if (eventKind == OS.kEventMouseDown) {
 				clearMenuFlags ();
 				if (menuBar == null || menuBar.isEnabled ()) {
-					int [] id = new int [1];
-					int eventLoop = OS.GetCurrentEventLoop ();
-					OS.InstallEventLoopTimer (eventLoop, 10 / 1000.0, 10 / 1000.0, pollingProc, 0, id);
 					OS.MenuSelect (where);
-					OS.RemoveEventLoopTimer (id [0]);
 				}					 
 				clearMenuFlags ();
 				return OS.noErr;
@@ -2857,7 +2818,7 @@ int mouseHoverProc (int id, int handle) {
 		int chord = OS.GetCurrentEventButtonState ();
 		int modifiers = OS.GetCurrentEventKeyModifiers ();
 		Point pt = currentControl.toControl (getCursorLocation ());
-		currentControl.sendMouseEvent (SWT.MouseHover, (short)0, 0, true, chord, (short)pt.x, (short)pt.y, modifiers);
+		currentControl.sendMouseEvent (SWT.MouseHover, (short)0, true, chord, (short)pt.x, (short)pt.y, modifiers);
 	}
 	return 0;
 }
@@ -3082,16 +3043,14 @@ void releaseDisplay () {
 	colorCallback.dispose ();
 	textInputCallback.dispose ();
 	appearanceCallback.dispose ();
-	trayItemCallback.dispose ();
-	pollingCallback.dispose ();
 	actionCallback = appleEventCallback = caretCallback = commandCallback = appearanceCallback = null;
 	accessibilityCallback = controlCallback = drawItemCallback = itemDataCallback = itemNotificationCallback = null;
-	helpCallback = hitTestCallback = keyboardCallback = menuCallback = itemCompareCallback = trayItemCallback = null;
-	mouseHoverCallback = mouseCallback = trackingCallback = windowCallback = colorCallback = pollingCallback = null;
+	helpCallback = hitTestCallback = keyboardCallback = menuCallback = itemCompareCallback = null;
+	mouseHoverCallback = mouseCallback = trackingCallback = windowCallback = colorCallback = null;
 	textInputCallback = null;
-	actionProc = appleEventProc = caretProc = commandProc = appearanceProc = trayItemProc = 0;
+	actionProc = appleEventProc = caretProc = commandProc = appearanceProc = 0;
 	accessibilityProc = controlProc = drawItemProc = itemDataProc = itemNotificationProc = itemCompareProc = 0;
-	helpProc = hitTestProc = keyboardProc = menuProc = pollingProc = 0;
+	helpProc = hitTestProc = keyboardProc = menuProc = 0;
 	mouseHoverProc = mouseProc = trackingProc = windowProc = colorProc = 0;
 	textInputProc = 0;
 	timerCallback.dispose ();
@@ -3289,7 +3248,7 @@ boolean runEnterExit () {
 			int chord = OS.GetCurrentEventButtonState ();
 			int modifiers = OS.GetCurrentEventKeyModifiers ();
 			Point pt = currentControl.toControl (where.h, where.v);
-			currentControl.sendMouseEvent (SWT.MouseExit, (short)0, 0, true, chord, (short)pt.x, (short)pt.y, modifiers);
+			currentControl.sendMouseEvent (SWT.MouseExit, (short)0, true, chord, (short)pt.x, (short)pt.y, modifiers);
 			if (mouseHoverID != 0) OS.RemoveEventLoopTimer (mouseHoverID);
 			mouseHoverID = 0;
 			mouseMoved = false;
@@ -3301,7 +3260,7 @@ boolean runEnterExit () {
 			int chord = OS.GetCurrentEventButtonState ();
 			int modifiers = OS.GetCurrentEventKeyModifiers ();
 			Point pt = currentControl.toControl (where.h, where.v);
-			currentControl.sendMouseEvent (SWT.MouseEnter, (short)0, 0, true, chord, (short)pt.x, (short)pt.y, modifiers);
+			currentControl.sendMouseEvent (SWT.MouseEnter, (short)0, true, chord, (short)pt.x, (short)pt.y, modifiers);
 		}
 	}
 	if (control != null && mouseMoved) {
@@ -3454,7 +3413,7 @@ boolean runGrabs () {
 					if (type == SWT.MouseUp) {
 						mouseUpControl = grabControl;
 					} else {
-						grabControl.sendMouseEvent (type, (short)button, 0, true, chord, (short)x, (short)y, outModifiers [0]);
+						grabControl.sendMouseEvent (type, (short)button, true, chord, (short)x, (short)y, outModifiers [0]);
 					}
 				}
 			}
@@ -3977,12 +3936,6 @@ int trackingProc (int browser, int itemID, int property, int theRect, int startP
 	Widget widget = getWidget (browser);
 	if (widget != null) return widget.trackingProc (browser, itemID, property, theRect, startPt, modifiers);
 	return OS.noErr;
-}
-
-int trayItemProc (int target, int userData, int selector, int event) {
-	TrayItem item = (TrayItem) OS.JNIGetObject (userData);
-	if (item != null) return item.trayItemProc (target, userData, selector, event);
-	return 0;
 }
 
 /**

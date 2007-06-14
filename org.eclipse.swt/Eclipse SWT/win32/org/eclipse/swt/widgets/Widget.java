@@ -968,7 +968,7 @@ boolean sendKeyEvent (int type, int msg, int wParam, int lParam, Event event) {
 }
 
 boolean sendMouseEvent (int type, int button, int hwnd, int msg, int wParam, int lParam) {
-	return sendMouseEvent (type, button, display.getClickCount (type, button, hwnd, lParam), 0, false, hwnd, msg, wParam, lParam);
+	return sendMouseEvent (type, button, 0, 0, false, hwnd, msg, wParam, lParam);
 }
 
 boolean sendMouseEvent (int type, int button, int count, int detail, boolean send, int hwnd, int msg, int wParam, int lParam) {
@@ -1808,16 +1808,7 @@ LRESULT wmLButtonUp (int hwnd, int wParam, int lParam) {
 	} else {
 		result = LRESULT.ZERO;
 	}
-	/*
-	* Bug in Windows.  On some machines that do not have XBUTTONs,
-	* the MK_XBUTTON1 and OS.MK_XBUTTON2 bits are sometimes set,
-	* causing mouse capture to become stuck.  The fix is to test
-	* for the extra buttons only when they exist.
-	*/
-	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON;
-	if (OS.GetSystemMetrics (OS.SM_CMOUSEBUTTONS) > 3) {
-		mask |= OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
-	}
+	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON | OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
 	if (((wParam & 0xFFFF) & mask) == 0) {
 		if (OS.GetCapture () == hwnd) OS.ReleaseCapture ();
 	}
@@ -1875,16 +1866,7 @@ LRESULT wmMButtonUp (int hwnd, int wParam, int lParam) {
 	} else {
 		result = LRESULT.ZERO;
 	}
-	/*
-	* Bug in Windows.  On some machines that do not have XBUTTONs,
-	* the MK_XBUTTON1 and OS.MK_XBUTTON2 bits are sometimes set,
-	* causing mouse capture to become stuck.  The fix is to test
-	* for the extra buttons only when they exist.
-	*/
-	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON;
-	if (OS.GetSystemMetrics (OS.SM_CMOUSEBUTTONS) > 3) {
-		mask |= OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
-	}
+	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON | OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
 	if (((wParam & 0xFFFF) & mask) == 0) {
 		if (OS.GetCapture () == hwnd) OS.ReleaseCapture ();
 	}
@@ -2151,16 +2133,7 @@ LRESULT wmRButtonUp (int hwnd, int wParam, int lParam) {
 		OS.DefWindowProc (hwnd, OS.WM_RBUTTONUP, wParam, lParam);
 		result = LRESULT.ZERO;
 	}
-	/*
-	* Bug in Windows.  On some machines that do not have XBUTTONs,
-	* the MK_XBUTTON1 and OS.MK_XBUTTON2 bits are sometimes set,
-	* causing mouse capture to become stuck.  The fix is to test
-	* for the extra buttons only when they exist.
-	*/
-	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON;
-	if (OS.GetSystemMetrics (OS.SM_CMOUSEBUTTONS) > 3) {
-		mask |= OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
-	}
+	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON | OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
 	if (((wParam & 0xFFFF) & mask) == 0) {
 		if (OS.GetCapture () == hwnd) OS.ReleaseCapture ();
 	}
@@ -2365,16 +2338,7 @@ LRESULT wmXButtonUp (int hwnd, int wParam, int lParam) {
 	} else {
 		result = LRESULT.ZERO;
 	}
-	/*
-	* Bug in Windows.  On some machines that do not have XBUTTONs,
-	* the MK_XBUTTON1 and OS.MK_XBUTTON2 bits are sometimes set,
-	* causing mouse capture to become stuck.  The fix is to test
-	* for the extra buttons only when they exist.
-	*/
-	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON;
-	if (OS.GetSystemMetrics (OS.SM_CMOUSEBUTTONS) > 3) {
-		mask |= OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
-	}
+	int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON | OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
 	if (((wParam & 0xFFFF) & mask) == 0) {
 		if (OS.GetCapture () == hwnd) OS.ReleaseCapture ();
 	}

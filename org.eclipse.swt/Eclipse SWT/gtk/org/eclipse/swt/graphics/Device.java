@@ -24,15 +24,8 @@ import org.eclipse.swt.internal.gtk.*;
 public abstract class Device implements Drawable {
 	/**
 	 * the handle to the X Display
-	 * (Warning: This field is platform dependent)
-	 * <p>
-	 * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
-	 * public API. It is marked protected only so that it can be shared
-	 * within the packages provided by SWT. It is not available on all
-	 * platforms and should never be accessed from application code.
-	 * </p>
 	 */
-	protected int /*long*/ xDisplay;
+	int /*long*/ xDisplay;
 	int /*long*/ shellHandle;
 
 	/* Debugging */
@@ -547,7 +540,8 @@ public boolean getWarnings () {
  * @see #create
  */
 protected void init () {
-	if (xDisplay != 0) {
+	if (OS.GDK_WINDOWING_X11()) {
+		xDisplay = OS.GDK_DISPLAY ();
 		int[] event_basep = new int[1], error_basep = new int [1];
 		if (OS.XRenderQueryExtension (xDisplay, event_basep, error_basep)) {
 			int[] major_versionp = new int[1], minor_versionp = new int [1];
@@ -557,7 +551,7 @@ protected void init () {
 	}
 
 	if (debug) {
-		if (xDisplay != 0) {
+		if (OS.GDK_WINDOWING_X11()) {
 			/* Create the warning and error callbacks */
 			Class clazz = getClass ();
 			synchronized (clazz) {
@@ -582,18 +576,16 @@ protected void init () {
 	}
 	
 	/* Create GTK warnings and error callbacks */
-	if (xDisplay != 0) {
-		logCallback = new Callback (this, "logProc", 4);
-		logProc = logCallback.getAddress ();
-		if (logProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		
-		/* Set GTK warning and error handlers */
-		if (debug) {
-			int flags = OS.G_LOG_LEVEL_MASK | OS.G_LOG_FLAG_FATAL | OS.G_LOG_FLAG_RECURSION;
-			for (int i=0; i<log_domains.length; i++) {
-				byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
-				handler_ids [i] = OS.g_log_set_handler (log_domain, flags, logProc, 0);
-			}
+	logCallback = new Callback (this, "logProc", 4);
+	logProc = logCallback.getAddress ();
+	if (logProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+	
+	/* Set GTK warning and error handlers */
+	if (debug) {
+		int flags = OS.G_LOG_LEVEL_MASK | OS.G_LOG_FLAG_FATAL | OS.G_LOG_FLAG_RECURSION;
+		for (int i=0; i<log_domains.length; i++) {
+			byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
+			handler_ids [i] = OS.g_log_set_handler (log_domain, flags, logProc, 0);
 		}
 	}
 	
@@ -758,18 +750,16 @@ protected void release () {
 	emptyTab = 0;
 
 	/* Free the GTK error and warning handler */
-	if (xDisplay != 0) {
-		for (int i=0; i<handler_ids.length; i++) {
-			if (handler_ids [i] != 0) {
-				byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
-				OS.g_log_remove_handler (log_domain, handler_ids [i]);
-				handler_ids [i] = 0;
-			}
+	for (int i=0; i<handler_ids.length; i++) {
+		if (handler_ids [i] != 0) {
+			byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
+			OS.g_log_remove_handler (log_domain, handler_ids [i]);
+			handler_ids [i] = 0;
 		}
-		logCallback.dispose ();  logCallback = null;
-		handler_ids = null;  log_domains = null;
-		logProc = 0;
 	}
+	logCallback.dispose ();  logCallback = null;
+	handler_ids = null;  log_domains = null;
+	logProc = 0;
 }
 
 /**
@@ -789,25 +779,21 @@ public void setWarnings (boolean warnings) {
 	if (warnings) {
 		if (--warningLevel == 0) {
 			if (debug) return;
-			if (logProc != 0) {
-				for (int i=0; i<handler_ids.length; i++) {
-					if (handler_ids [i] != 0) {
-						byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
-						OS.g_log_remove_handler (log_domain, handler_ids [i]);
-						handler_ids [i] = 0;
-					}
+			for (int i=0; i<handler_ids.length; i++) {
+				if (handler_ids [i] != 0) {
+					byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
+					OS.g_log_remove_handler (log_domain, handler_ids [i]);
+					handler_ids [i] = 0;
 				}
 			}
 		}
 	} else {
 		if (warningLevel++ == 0) {
 			if (debug) return;
-			if (logProc != 0) {
-				int flags = OS.G_LOG_LEVEL_MASK | OS.G_LOG_FLAG_FATAL | OS.G_LOG_FLAG_RECURSION;
-				for (int i=0; i<log_domains.length; i++) {
-					byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
-					handler_ids [i] = OS.g_log_set_handler (log_domain, flags, logProc, 0);
-				}
+			int flags = OS.G_LOG_LEVEL_MASK | OS.G_LOG_FLAG_FATAL | OS.G_LOG_FLAG_RECURSION;
+			for (int i=0; i<log_domains.length; i++) {
+				byte [] log_domain = Converter.wcsToMbcs (null, log_domains [i], true);
+				handler_ids [i] = OS.g_log_set_handler (log_domain, flags, logProc, 0);
 			}
 		}
 	}

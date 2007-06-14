@@ -35,18 +35,15 @@ public final class PrinterData extends DeviceData {
 	/**
 	 * the printer driver
 	 * On Windows systems, this is the name of the driver (often "winspool").
-	 * On Mac OSX, this is the destination type ("Printer", "Fax", "File", or "Preview").
 	 * On X/Window systems, this is the name of a display connection to the
 	 * Xprt server (the default is ":1").
-	 * On GTK+, this is the backend type name (eg. GtkPrintBackendCups).
 	 */
-	// TODO: note that this api is not finalized for GTK+
 	public String driver;
 	
 	/**
 	 * the name of the printer
 	 * On Windows systems, this is the name of the 'device'.
-	 * On Mac OSX, X/Window systems, and GTK+, this is the printer's 'name'.
+	 * On X/Window systems, this is the printer's 'name'.
 	 */
 	public String name;
 	
@@ -64,14 +61,12 @@ public final class PrinterData extends DeviceData {
 	public int scope = ALL_PAGES;
 	
 	/**
-	 * the start page of a page range, used when scope is PAGE_RANGE.
-	 * This value can be from 1 to the maximum number of pages for the platform.
+	 * the start page of a page range, used when scope is PAGE_RANGE
 	 */
 	public int startPage = 0;
 
 	/**
-	 * the end page of a page range, used when scope is PAGE_RANGE.
-	 * This value can be from 1 to the maximum number of pages for the platform.
+	 * the end page of a page range, used when scope is PAGE_RANGE
 	 */
 	public int endPage = 0;
 	

@@ -219,14 +219,8 @@ public Browser(Composite parent, int style) {
 		nsEmbedString pathString = new nsEmbedString(mozillaPath);
 		int rc = XPCOM.NS_NewLocalFile(pathString.getAddress(), true, retVal);
 		pathString.dispose();
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (retVal[0] == 0) {
-			dispose();
-			error(XPCOM.NS_ERROR_NULL_POINTER);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (retVal[0] == 0) error(XPCOM.NS_ERROR_NULL_POINTER);
 		
 		nsILocalFile localFile = new nsILocalFile(retVal[0]);
 		rc = XPCOM.NS_InitEmbedding(localFile.getAddress(), 0);
@@ -237,51 +231,27 @@ public Browser(Composite parent, int style) {
 		}
 
 		rc = XPCOM.NS_GetComponentManager(result);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 		
 		nsIComponentManager componentManager = new nsIComponentManager(result[0]);
 		result[0] = 0;
 		rc = componentManager.CreateInstance(XPCOM.NS_APPSHELL_CID, 0, nsIAppShell.NS_IAPPSHELL_IID, result);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 		
 		AppShell = new nsIAppShell(result[0]);
 		rc = AppShell.Create(0, null);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		rc = AppShell.Spinup();
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		
 		WindowCreator = new WindowCreator();
 		WindowCreator.AddRef();
 		
 		rc = XPCOM.NS_GetServiceManager(result);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 		
 		nsIServiceManager serviceManager = new nsIServiceManager(result[0]);
 		result[0] = 0;		
@@ -289,23 +259,14 @@ public Browser(Composite parent, int style) {
 		byte[] aContractID = new byte[buffer.length + 1];
 		System.arraycopy(buffer, 0, aContractID, 0, buffer.length);
 		rc = serviceManager.GetServiceByContractID(aContractID, nsIWindowWatcher.NS_IWINDOWWATCHER_IID, result);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);		
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);		
 		serviceManager.Release();
 		
 		nsIWindowWatcher windowWatcher = new nsIWindowWatcher(result[0]);
 		result[0] = 0;
 		rc = windowWatcher.SetWindowCreator(WindowCreator.getAddress());
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		windowWatcher.Release();
 		
 		/* specify the user profile directory */
@@ -380,28 +341,16 @@ public Browser(Composite parent, int style) {
 		System.arraycopy(buffer, 0, aContractID, 0, buffer.length);
 		rc = serviceManager.GetServiceByContractID(aContractID, nsIPrefService.NS_IPREFSERVICE_IID, result);
 		serviceManager.Release();
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 
 		nsIPrefService prefService = new nsIPrefService(result[0]);
 		result[0] = 0;
 		buffer = new byte[1];
 		rc = prefService.GetBranch(buffer, result);	/* empty buffer denotes root preference level */
 		prefService.Release();
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 
 		nsIPrefBranch prefBranch = new nsIPrefBranch(result[0]);
 		result[0] = 0;
@@ -420,21 +369,12 @@ public Browser(Composite parent, int style) {
 		if (rc != XPCOM.NS_OK) {
 			prefLocales = "en-us,en" + TOKENIZER_LOCALE;	//$NON-NLS-1$
 		} else {
-			if (result[0] == 0) {
-				dispose();
-				error(XPCOM.NS_NOINTERFACE);
-			}
+			if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 			localizedString = new nsIPrefLocalizedString(result[0]);
 			result[0] = 0;
 			rc = localizedString.ToString(result);
-			if (rc != XPCOM.NS_OK) {
-				dispose();
-				error(rc);
-			}
-			if (result[0] == 0) {
-				dispose();
-				error(XPCOM.NS_NOINTERFACE);
-			}
+			if (rc != XPCOM.NS_OK) error(rc);
+			if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 			int length = XPCOM.strlen_PRUnichar(result[0]);
 			char[] dest = new char[length];
 			XPCOM.memmove(dest, result[0], length * 2);
@@ -474,14 +414,8 @@ public Browser(Composite parent, int style) {
 			if (localizedString == null) {
 				byte[] contractID = Converter.wcsToMbcs(null, XPCOM.NS_PREFLOCALIZEDSTRING_CONTRACTID, true);
 				rc = componentManager.CreateInstanceByContractID(contractID, 0, nsIPrefLocalizedString.NS_IPREFLOCALIZEDSTRING_IID, result);
-				if (rc != XPCOM.NS_OK) {
-					dispose();
-					error(rc);
-				}
-				if (result[0] == 0) {
-					dispose();
-					error(XPCOM.NS_NOINTERFACE);
-				}
+				if (rc != XPCOM.NS_OK) error(rc);
+				if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 				localizedString = new nsIPrefLocalizedString(result[0]);
 				result[0] = 0;
 			}
@@ -506,21 +440,12 @@ public Browser(Composite parent, int style) {
 		if (rc != XPCOM.NS_OK) {
 			prefCharset = "ISO-8859-1";	//$NON_NLS-1$
 		} else {
-			if (result[0] == 0) {
-				dispose();
-				error(XPCOM.NS_NOINTERFACE);
-			}
+			if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 			localizedString = new nsIPrefLocalizedString(result[0]);
 			result[0] = 0;
 			rc = localizedString.ToString(result);
-			if (rc != XPCOM.NS_OK) {
-				dispose();
-				error(rc);
-			}
-			if (result[0] == 0) {
-				dispose();
-				error(XPCOM.NS_NOINTERFACE);
-			}
+			if (rc != XPCOM.NS_OK) error(rc);
+			if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 			int length = XPCOM.strlen_PRUnichar(result[0]);
 			char[] dest = new char[length];
 			XPCOM.memmove(dest, result[0], length * 2);
@@ -537,14 +462,8 @@ public Browser(Composite parent, int style) {
 			if (localizedString == null) {
 				byte[] contractID = Converter.wcsToMbcs(null, XPCOM.NS_PREFLOCALIZEDSTRING_CONTRACTID, true);
 				rc = componentManager.CreateInstanceByContractID(contractID, 0, nsIPrefLocalizedString.NS_IPREFLOCALIZEDSTRING_IID, result);
-				if (rc != XPCOM.NS_OK) {
-					dispose();
-					error(rc);
-				}
-				if (result[0] == 0) {
-					dispose();
-					error(XPCOM.NS_NOINTERFACE);
-				}
+				if (rc != XPCOM.NS_OK) error(rc);
+				if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 				localizedString = new nsIPrefLocalizedString(result[0]);
 				result[0] = 0;
 			}
@@ -558,14 +477,8 @@ public Browser(Composite parent, int style) {
 		factory.AddRef();
 		
 		rc = componentManager.QueryInterface(nsIComponentRegistrar.NS_ICOMPONENTREGISTRAR_IID, result);
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
-		if (result[0] == 0) {
-			dispose();
-			error(XPCOM.NS_NOINTERFACE);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
+		if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 		
 		nsIComponentRegistrar componentRegistrar = new nsIComponentRegistrar(result[0]);
 		result[0] = 0;
@@ -576,10 +489,7 @@ public Browser(Composite parent, int style) {
 		byte[] aClassName = new byte[buffer.length + 1];
 		System.arraycopy(buffer, 0, aClassName, 0, buffer.length);
 		rc = componentRegistrar.RegisterFactory(XPCOM.NS_PROMPTSERVICE_CID, aClassName, aContractID, factory.getAddress());
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		factory.Release();
 		
 		HelperAppLauncherDialogFactory dialogFactory = new HelperAppLauncherDialogFactory();
@@ -592,10 +502,7 @@ public Browser(Composite parent, int style) {
 		aClassName = new byte[buffer.length + 1];
 		System.arraycopy(buffer, 0, aClassName, 0, buffer.length);
 		rc = componentRegistrar.RegisterFactory(XPCOM.NS_HELPERAPPLAUNCHERDIALOG_CID, aClassName, aContractID, dialogFactory.getAddress());
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		dialogFactory.Release();
 		
 		DownloadFactory downloadFactory = new DownloadFactory();
@@ -608,10 +515,7 @@ public Browser(Composite parent, int style) {
 		aClassName = new byte[buffer.length + 1];
 		System.arraycopy(buffer, 0, aClassName, 0, buffer.length);
 		rc = componentRegistrar.RegisterFactory(XPCOM.NS_DOWNLOAD_CID, aClassName, aContractID, downloadFactory.getAddress());
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		downloadFactory.Release();
 		
 		FilePickerFactory pickerFactory = new FilePickerFactory();
@@ -624,10 +528,7 @@ public Browser(Composite parent, int style) {
 		aClassName = new byte[buffer.length + 1];
 		System.arraycopy(buffer, 0, aClassName, 0, buffer.length);
 		rc = componentRegistrar.RegisterFactory(XPCOM.NS_FILEPICKER_CID, aClassName, aContractID, pickerFactory.getAddress());
-		if (rc != XPCOM.NS_OK) {
-			dispose();
-			error(rc);
-		}
+		if (rc != XPCOM.NS_OK) error(rc);
 		pickerFactory.Release();
 
 		componentRegistrar.Release();
@@ -652,27 +553,15 @@ public Browser(Composite parent, int style) {
 	gtkHandle = GTK.gtk_plug_new(embeddedHandle);
 
 	int rc = XPCOM.NS_GetComponentManager(result);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
-	if (result[0] == 0) {
-		dispose();
-		error(XPCOM.NS_NOINTERFACE);
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
+	if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);
 	
 	nsIComponentManager componentManager = new nsIComponentManager(result[0]);
 	result[0] = 0;
 	nsID NS_IWEBBROWSER_CID = new nsID("F1EAC761-87E9-11d3-AF80-00A024FFC08C"); //$NON-NLS-1$
 	rc = componentManager.CreateInstance(NS_IWEBBROWSER_CID, 0, nsIWebBrowser.NS_IWEBBROWSER_IID, result);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
-	if (result[0] == 0) {
-		dispose();
-		error(XPCOM.NS_NOINTERFACE);	
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
+	if (result[0] == 0) error(XPCOM.NS_NOINTERFACE);	
 	componentManager.Release();
 	
 	webBrowser = new nsIWebBrowser(result[0]); 
@@ -681,50 +570,26 @@ public Browser(Composite parent, int style) {
 	AddRef();
 
 	rc = webBrowser.SetContainerWindow(webBrowserChrome.getAddress());
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
 			
 	rc = webBrowser.QueryInterface(nsIBaseWindow.NS_IBASEWINDOW_IID, result);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
-	if (result[0] == 0) {
-		dispose();
-		error(XPCOM.NS_ERROR_NO_INTERFACE);
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
+	if (result[0] == 0) error(XPCOM.NS_ERROR_NO_INTERFACE);
 	
 	nsIBaseWindow baseWindow = new nsIBaseWindow(result[0]);	
 	rc = baseWindow.InitWindow(gtkHandle, 0, 0, 0, 2, 2);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(XPCOM.NS_ERROR_FAILURE);
-	}
+	if (rc != XPCOM.NS_OK) error(XPCOM.NS_ERROR_FAILURE);
 	rc = baseWindow.Create();
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(XPCOM.NS_ERROR_FAILURE);
-	}
+	if (rc != XPCOM.NS_OK) error(XPCOM.NS_ERROR_FAILURE);
 	rc = baseWindow.SetVisibility(true);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(XPCOM.NS_ERROR_FAILURE);
-	}
+	if (rc != XPCOM.NS_OK) error(XPCOM.NS_ERROR_FAILURE);
 	baseWindow.Release();
 
 	rc = webBrowser.AddWebBrowserListener(weakReference.getAddress(), nsIWebProgressListener.NS_IWEBPROGRESSLISTENER_IID);
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
 
 	rc = webBrowser.SetParentURIContentListener(uriContentListener.getAddress());
-	if (rc != XPCOM.NS_OK) {
-		dispose();
-		error(rc);
-	}
+	if (rc != XPCOM.NS_OK) error(rc);
 
 	Listener listener = new Listener() {
 		public void handleEvent(Event event) {
@@ -1950,10 +1815,19 @@ public boolean setText(String html) {
 		nsIWebBrowserStream stream = new nsIWebBrowserStream(result[0]);
 		rc = stream.OpenStream(uri.getAddress(), aContentType);
 		if (rc != XPCOM.NS_OK) error(rc);
-		int /*long*/ ptr = XPCOM.PR_Malloc(data.length);
+		int ptr = XPCOM.PR_Malloc(data.length);
 		XPCOM.memmove(ptr, data, data.length);
-		rc = stream.AppendToStream(ptr, data.length);
-		if (rc != XPCOM.NS_OK) error(rc);
+		int pageSize = 8192;
+		int pageCount = data.length / pageSize + 1;
+		int current = ptr;
+		for (int i = 0; i < pageCount; i++) {
+			int length = i == pageCount - 1 ? data.length % pageSize : pageSize;
+			if (length > 0) {
+				rc = stream.AppendToStream(current, length);
+				if (rc != XPCOM.NS_OK) error(rc);
+			}
+			current += pageSize;
+		}
 		rc = stream.CloseStream();
 		if (rc != XPCOM.NS_OK) error(rc);
 		XPCOM.PR_Free(ptr);
@@ -2429,7 +2303,8 @@ int /*long*/ SetFocus() {
 }	
 
 int /*long*/ GetVisibility(int /*long*/ aVisibility) {
-	return XPCOM.NS_OK;     	
+	XPCOM.memmove(aVisibility, new int[] {isVisible() ? 1 : 0}, 4);
+	return XPCOM.NS_OK; 	
 }
    
 int /*long*/ SetVisibility(int /*long*/ aVisibility) {
@@ -2571,10 +2446,10 @@ int /*long*/ OnStartURIOpen(int /*long*/ aURI, int /*long*/ retval) {
 	XPCOM.nsEmbedCString_delete(aSpec);
 	String value = new String(dest);
 	/*
-	* Feature in Mozilla.  Navigating to an HTTPS link without a user profile
-	* set causes a crash.  The workaround is to abort attempts to navigate to
-	* HTTPS pages if a profile is not being used.
-	*/
+	 * Feature in Mozilla.  Navigating to an HTTPS link without a user profile
+	 * set causes a crash.  The workaround is to abort attempts to navigate to
+	 * HTTPS pages if a profile is not being used.
+	 */
 	boolean isHttps = value.startsWith(XPCOM.HTTPS_PROTOCOL);
 	if (locationListeners.length == 0) {
 		XPCOM.memmove(retval, new int[] {isHttps && !usingProfile ? 1 : 0}, 4);

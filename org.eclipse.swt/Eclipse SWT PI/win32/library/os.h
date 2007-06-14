@@ -72,9 +72,13 @@
 #define NO_NMTTDISPINFO
 #define NO_NMTTDISPINFOA
 #define NO_NMTTDISPINFOW
+#define NO_NMTVITEMCHANGE
 #define NO_NONCLIENTMETRICS
 #define NO_NONCLIENTMETRICSA
 #define NO_NONCLIENTMETRICSW
+#define NO_OSVERSIONINFOEX
+#define NO_OSVERSIONINFOEXA
+#define NO_OSVERSIONINFOEXW
 #define NO_PRINTDLG
 #define NO_SCRIPT_ANALYSIS
 #define NO_SCRIPT_CONTROL
@@ -130,7 +134,6 @@
 #define NO_ActivateActCtx
 #define NO_ActivateKeyboardLayout
 #define NO_Arc
-#define NO_AttachThreadInput
 #define NO_AlphaBlend
 #define NO_BeginPath
 #define NO_CallNextHookEx
@@ -239,7 +242,6 @@
 #define NO_GetObjectA__IILorg_eclipse_swt_internal_win32_DIBSECTION_2
 #define NO_GetObjectA__IILorg_eclipse_swt_internal_win32_BITMAP_2
 #define NO_GetOpenFileNameA
-#define NO_GetPath
 #define NO_GetPolyFillMode
 #define NO_GetProfileStringA
 #define NO_GetProfileStringW
@@ -262,7 +264,9 @@
 #define NO_GetThemeMetric
 #define NO_GetThemeRect
 #define NO_GetThemeSysSize
-#define NO_GetVersionExA
+#define NO_GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2
+#define NO_GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2
+#define NO_GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2
 #define NO_GetWindowLongA
 #define NO_GetWindowOrgEx
 #define NO_GetWindowPlacement
@@ -313,6 +317,7 @@
 #define NO_MoveMemory__Lorg_eclipse_swt_internal_win32_NMTTDISPINFOW_2II
 #define NO_MoveMemory__ILorg_eclipse_swt_internal_win32_NMTTDISPINFOA_2I
 #define NO_MoveMemory__ILorg_eclipse_swt_internal_win32_NMTTDISPINFOW_2I
+#define NO_MoveMemory__ILorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2I
 #define NO_MoveMemory__Lorg_eclipse_swt_internal_win32_LOGFONTA_2II
 #define NO_MoveMemory__ILorg_eclipse_swt_internal_win32_LOGFONTA_2I
 #define NO_MoveMemory__Lorg_eclipse_swt_internal_win32_SCRIPT_1ITEM_2II
@@ -338,6 +343,8 @@
 #define NO_RegQueryInfoKeyA
 #define NO_RegQueryValueExA__I_3BI_3I_3B_3I
 #define NO_RegQueryValueExA__I_3BI_3I_3I_3I
+#define NO_RegQueryValueExW__I_3CI_3I_3C_3I
+#define NO_RegQueryValueExW__I_3CI_3I_3I_3I
 #define NO_RegisterClassA
 #define NO_RegisterClipboardFormatA
 #define NO_RegisterWindowMessageA
@@ -489,6 +496,17 @@
 #endif /* _WIN32_WCE */
 
 #define TrackMouseEvent _TrackMouseEvent
+
+#if (_WIN32_IE <= 0x0600)
+typedef struct tagTVITEMCHANGE {
+    NMHDR hdr;
+    UINT uChanged;
+    HTREEITEM hItem;
+    UINT uStateNew;
+    UINT uStateOld;
+    LPARAM lParam;
+} NMTVITEMCHANGE;
+#endif /* _WIN32_IE <= 0x0600 */
 
 #include "os_custom.h"
 

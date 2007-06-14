@@ -8,13 +8,13 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+package org.eclipse.swt.internal.win32;
 
-#ifndef INC_cocoa_H
-#define INC_cocoa_H
-
-#include <Carbon/Carbon.h>
-#include <WebKit/WebKit.h>
-#include <WebKit/HIWebView.h>
-#include <WebKit/CarbonUtils.h>
-
-#endif /* INC_cocoa_H */
+public class NMTVITEMCHANGE extends NMHDR {
+	public int uChanged;
+	public int hItem;
+	public int uStateNew;
+	public int uStateOld;
+	public int lParam;
+	public static int sizeof = 32;
+}

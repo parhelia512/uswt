@@ -56,17 +56,13 @@ public static Program findProgram (String extension) {
 	int [] phkResult = new int [1];
 	if (OS.RegOpenKeyEx (OS.HKEY_CLASSES_ROOT, key, 0, OS.KEY_READ, phkResult) != 0) {
 		return null;
-	}
-	Program program = null;
-	int [] lpcbData = new int [1];
-	int result = OS.RegQueryValueEx (phkResult [0], null, 0, null, (TCHAR) null, lpcbData);
-	if (result == 0) {
-		TCHAR lpData = new TCHAR (0, lpcbData [0] / TCHAR.sizeof);
-		result = OS.RegQueryValueEx (phkResult [0], null, 0, null, lpData, lpcbData);
-		if (result == 0) program = getProgram (lpData.toString (0, lpData.strlen ()));
-	}
+	}	
+	int [] lpcbData = new int [] {256};
+	TCHAR lpData = new TCHAR (0, lpcbData [0]);
+	int result = OS.RegQueryValueEx (phkResult [0], null, 0, null, lpData, lpcbData);
 	OS.RegCloseKey (phkResult [0]);
-	return program;
+	if (result != 0) return null;
+	return getProgram (lpData.toString (0, lpData.strlen ()));
 }
 
 /**
@@ -157,7 +153,7 @@ static Program getProgram (String key) {
 	/* Icon */
 	String DEFAULT_ICON = "\\DefaultIcon"; //$NON-NLS-1$
 	String iconName = getKeyValue (key + DEFAULT_ICON, true);
-	if (iconName == null) iconName = ""; //$NON-NLS-1$
+	if (iconName == null || iconName.length () == 0) return null;
 
 	Program program = new Program ();
 	program.name = name;

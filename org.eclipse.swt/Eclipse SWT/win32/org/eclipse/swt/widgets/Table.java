@@ -186,10 +186,7 @@ int callWindowProc (int hwnd, int msg, int wParam, int lParam) {
 int callWindowProc (int hwnd, int msg, int wParam, int lParam, boolean forceSelect) {
 	if (handle == 0) return 0;
 	if (handle != hwnd) {
-		int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
-		if (hwnd == hwndHeader) {
-			return OS.CallWindowProc (HeaderProc, hwnd, msg, wParam, lParam);
-		}
+		return OS.CallWindowProc (HeaderProc, hwnd, msg, wParam, lParam);
 	}
 	int topIndex = 0;
 	boolean checkSelection = false, checkActivate = false, redraw = false;
@@ -1254,9 +1251,9 @@ void createItem (TableItem item, int index) {
 
 	/* Insert the item */
 	setDeferResize (true);
-	ignoreSelect = ignoreShrink = true;
+	ignoreSelect = true;
 	int result = OS.SendMessage (handle, OS.LVM_INSERTITEM, 0, lvItem);
-	ignoreSelect = ignoreShrink = false;
+	ignoreSelect = false;
 	if (result == -1) error (SWT.ERROR_ITEM_NOT_ADDED);
 	System.arraycopy (items, index, items, index + 1, count - index);
 	items [index] = item;
@@ -1944,32 +1941,7 @@ public TableItem getItem (Point point) {
 	LVHITTESTINFO pinfo = new LVHITTESTINFO ();
 	pinfo.x = point.x;  pinfo.y = point.y;
 	OS.SendMessage (handle, OS.LVM_HITTEST, 0, pinfo);
-	if (pinfo.iItem != -1) {
-		/*
-		* Bug in Windows.  When the point that is used by
-		* LVM_HITTEST is inside the header, Windows returns
-		* the first item in the table.  The fix is to check
-		* when LVM_HITTEST returns the first item and make
-		* sure that when the point is within the header,
-		* the first item is not returned.
-		*/
-		if (pinfo.iItem == 0) {
-			int bits = OS.GetWindowLong (handle, OS.GWL_STYLE);
-			if ((bits & OS.LVS_NOCOLUMNHEADER) == 0) {
-				int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
-				if (hwndHeader != 0) {
-					RECT rect = new RECT ();					
-					OS.GetWindowRect (hwndHeader, rect);
-					POINT pt = new POINT ();
-					pt.x = pinfo.x;
-					pt.y = pinfo.y;
-					OS.MapWindowPoints (handle, 0, pt, 1);
-					if (OS.PtInRect (rect, pt)) return null;
-				}
-			}
-		}
-		return _getItem (pinfo.iItem);
-	}
+	if (pinfo.iItem != -1) return _getItem (pinfo.iItem);
 	return null;
 }
 
@@ -2212,6 +2184,16 @@ public int getTopIndex () {
 	* fix is to check for a negative number and return zero instead.
 	*/
 	return Math.max (0, OS.SendMessage (handle, OS.LVM_GETTOPINDEX, 0, 0));
+}
+
+boolean hasChildren () {
+	int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
+	int hwndChild = OS.GetWindow (handle, OS.GW_CHILD);
+	while (hwndChild != 0) {
+		if (hwndChild != hwndHeader) return true;
+		hwndChild = OS.GetWindow (hwndChild, OS.GW_HWNDNEXT);
+	}
+	return false;
 }
 
 int imageIndex (Image image) {
@@ -2994,13 +2976,11 @@ LRESULT sendMouseDownEvent (int type, int button, int msg, int wParam, int lPara
 	* wrong, this is unexpected.  The fix is to detect the
 	* case and avoid calling the window proc.
 	*/
-	if ((style & SWT.SINGLE) != 0 || hooks (SWT.MouseDown) || hooks (SWT.MouseUp)) {
-		if (pinfo.iItem == -1) {
-			if (!display.captureChanged && !isDisposed ()) {
-				if (OS.GetCapture () != handle) OS.SetCapture (handle);
-			}
-			return LRESULT.ZERO;
+	if (pinfo.iItem == -1) {
+		if (!display.captureChanged && !isDisposed ()) {
+			if (OS.GetCapture () != handle) OS.SetCapture (handle);
 		}
+		return LRESULT.ZERO;
 	}
 	
 	/*
@@ -3330,25 +3310,9 @@ void setDeferResize (boolean defer) {
 	if (defer) {
 		if (resizeCount++ == 0) {
 			wasResized = false;
-			if (hooks (SWT.MeasureItem) || hooks (SWT.EraseItem) || hooks (SWT.PaintItem)) {
-				if (drawCount == 0 && OS.IsWindowVisible (handle)) {
-					OS.SendMessage (handle, OS.WM_SETREDRAW, 0, 0);
-				}
-			}
 		}
 	} else {
 		if (--resizeCount == 0) {
-			if (hooks (SWT.MeasureItem) || hooks (SWT.EraseItem) || hooks (SWT.PaintItem)) {
-				if (drawCount == 0 /*&& OS.IsWindowVisible (handle)*/) {
-					OS.SendMessage (handle, OS.WM_SETREDRAW, 1, 0);
-					if (OS.IsWinCE) {
-						OS.InvalidateRect (handle, null, false);
-					} else {
-						int flags = OS.RDW_ERASE | OS.RDW_FRAME | OS.RDW_INVALIDATE | OS.RDW_ALLCHILDREN;
-						OS.RedrawWindow (handle, null, 0, flags);
-					}
-				}
-			}
 			if (wasResized) {
 				wasResized = false;
 				setResizeChildren (false);
@@ -3839,6 +3803,10 @@ public void setRedraw (boolean redraw) {
 }
 
 boolean setScrollWidth (TableItem item, boolean force) {
+	return setScrollWidth (item, force, false);
+}
+
+boolean setScrollWidth (TableItem item, boolean force, boolean fixRedraw) {
 	if (currentItem != null) {
 		if (currentItem != item) fixScrollWidth = true;
 		return false;
@@ -3933,7 +3901,29 @@ boolean setScrollWidth (TableItem item, boolean force) {
 		newWidth += INSET * 2;
 		int oldWidth = OS.SendMessage (handle, OS.LVM_GETCOLUMNWIDTH, 0, 0);
 		if (newWidth > oldWidth) {
+			/*
+			* Feature in Windows.  When LVM_SETCOLUMNWIDTH is sent,
+			* Windows draws right away instead of queuing a WM_PAINT.
+			* This can cause recursive calls when called from paint
+			* or from messages that are retrieving the item data,
+			* such as WM_NOTIFY, causing a stack overflow.  The fix
+			* is to turn off redraw and queue a repaint, collapsing
+			* the recursive calls.
+			*/
+			boolean redraw = fixRedraw && drawCount == 0 && OS.IsWindowVisible (handle);
+			if (redraw) OS.DefWindowProc (handle, OS.WM_SETREDRAW, 0, 0);
 			OS.SendMessage (handle, OS.LVM_SETCOLUMNWIDTH, 0, newWidth);
+			if (redraw) {
+				OS.DefWindowProc (handle, OS.WM_SETREDRAW, 1, 0);
+				if (OS.IsWinCE) {
+					int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);	
+					if (hwndHeader != 0) OS.InvalidateRect (hwndHeader, null, false);
+					OS.InvalidateRect (handle, null, false);
+				} else {
+					int flags = OS.RDW_ERASE | OS.RDW_FRAME | OS.RDW_INVALIDATE | OS.RDW_ALLCHILDREN;
+					OS.RedrawWindow (handle, null, 0, flags);
+				}
+			}
 			return true;
 		}
 	}
@@ -4301,22 +4291,6 @@ public void showColumn (TableColumn column) {
 		OS.SendMessage (handle, OS.LVM_GETSUBITEMRECT, -1, itemRect);
 		ignoreCustomDraw = false;
 	}
-	/*
-	* Bug in Windows.  When a table that is drawing grid lines
-	* is slowly scrolled horizontally to the left, the table does
-	* not redraw the newly exposed vertical grid lines.  The fix
-	* is to save the old scroll position, call the window proc,
-	* get the new scroll position and redraw the new area.
-	*/
-	int oldPos = 0;
-	int bits = OS.SendMessage (handle, OS.LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-	if ((bits & OS.LVS_EX_GRIDLINES) != 0) {
-		SCROLLINFO info = new SCROLLINFO ();
-		info.cbSize = SCROLLINFO.sizeof;
-		info.fMask = OS.SIF_POS;
-		OS.GetScrollInfo (handle, OS.SB_HORZ, info);
-		oldPos = info.nPos;
-	}
 	RECT rect = new RECT ();
 	OS.GetClientRect (handle, rect);
 	if (itemRect.left < rect.left) {
@@ -4327,24 +4301,6 @@ public void showColumn (TableColumn column) {
 		if (itemRect.left + width > rect.right) {
 			int dx = itemRect.left + width - rect.right;
 			OS.SendMessage (handle, OS.LVM_SCROLL, dx, 0);
-		}
-	}
-	/*
-	* Bug in Windows.  When a table that is drawing grid lines
-	* is slowly scrolled horizontally to the left, the table does
-	* not redraw the newly exposed vertical grid lines.  The fix
-	* is to save the old scroll position, call the window proc,
-	* get the new scroll position and redraw the new area.
-	*/
-	if ((bits & OS.LVS_EX_GRIDLINES) != 0) {
-		SCROLLINFO info = new SCROLLINFO ();
-		info.cbSize = SCROLLINFO.sizeof;
-		info.fMask = OS.SIF_POS;
-		OS.GetScrollInfo (handle, OS.SB_HORZ, info);
-		int newPos = info.nPos;
-		if (newPos < oldPos) {
-			rect.right = oldPos - newPos + GRID_WIDTH;
-			OS.InvalidateRect (handle, rect, true);
 		}
 	}
 }
@@ -4646,26 +4602,6 @@ LRESULT WM_KEYDOWN (int wParam, int lParam) {
 			* performed in WM_KEYDOWN from WM_CHAR.
 			*/
 			return LRESULT.ZERO;
-		case OS.VK_ADD:
-			if (OS.GetKeyState (OS.VK_CONTROL) < 0) {
-				int index = 0;
-				while (index < columnCount) {
-					if (!columns [index].getResizable ()) break;
-					index++;
-				}
-				if (index != columnCount || hooks (SWT.MeasureItem)) {
-					TableColumn [] newColumns = new TableColumn [columnCount];
-					System.arraycopy (columns, 0, newColumns, 0, columnCount);
-					for (int i=0; i<newColumns.length; i++) {
-						TableColumn column = newColumns [i];
-						if (!column.isDisposed () && column.getResizable ()) {
-							column.pack ();
-						}
-					}
-					return LRESULT.ZERO;
-				}
-			}
-			break;
 		case OS.VK_PRIOR:
 		case OS.VK_NEXT:
 		case OS.VK_HOME:
@@ -4676,13 +4612,23 @@ LRESULT WM_KEYDOWN (int wParam, int lParam) {
 			* so that internal messages are dispatched directly to the table.
 			* If the application expects to see a paint event, the window
 			* proc cannot be unsubclassed or the event will not be seen.
+			* 
+			* NOTE: The header tooltip can subclass the header proc so the
+			* current proc must be restored or header tooltips stop working.
 			*/
-			if (!hooks (SWT.Paint) && !filters (SWT.Paint)) {
-				unsubclass ();
+			int oldHeaderProc = 0, oldTableProc = 0;
+			int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
+			boolean fixSubclass = !hasChildren () && !hooks (SWT.Paint) && !filters (SWT.Paint);
+			if (fixSubclass) {
+				oldTableProc = OS.SetWindowLong (handle, OS.GWL_WNDPROC, TableProc);
+				oldHeaderProc = OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, HeaderProc);
 			}
 			int code = callWindowProc (handle, OS.WM_KEYDOWN, wParam, lParam);
 			result = code == 0 ? LRESULT.ZERO : new LRESULT (code);
-			subclass ();
+			if (fixSubclass) {
+				OS.SetWindowLong (handle, OS.GWL_WNDPROC, oldTableProc);
+				OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, oldHeaderProc);
+			}
 			//FALL THROUGH
 		case OS.VK_UP:
 		case OS.VK_DOWN:
@@ -4695,13 +4641,16 @@ LRESULT WM_KEYDOWN (int wParam, int lParam) {
 LRESULT WM_KILLFOCUS (int wParam, int lParam) {
 	LRESULT result = super.WM_KILLFOCUS (wParam, lParam);
 	/*
-	* Bug in Windows.  When focus is lost, Windows does not
-	* redraw the selection properly, leaving the image and
-	* check box appearing selected.  The fix is to redraw
+	* Bug in Windows.  When LVS_SHOWSELALWAYS is not specified,
+	* Windows hides the selection when focus is lost but does
+	* not redraw anything other than the text, leaving the image
+	* and check box appearing selected.  The fix is to redraw
 	* the table.
 	*/
-	if (imageList != null || (style & SWT.CHECK) != 0) {
-		OS.InvalidateRect (handle, null, false);
+	if ((style & SWT.HIDE_SELECTION) != 0) {
+		if (imageList != null || (style & SWT.CHECK) != 0) {
+			OS.InvalidateRect (handle, null, false);
+		}
 	}
 	return result;
 }
@@ -5101,18 +5050,6 @@ LRESULT WM_RBUTTONDOWN (int wParam, int lParam) {
 LRESULT WM_SETFOCUS (int wParam, int lParam) {
 	LRESULT result = super.WM_SETFOCUS (wParam, lParam);
 	/*
-	* Bug in Windows.  When focus is gained after the
-	* selection has been changed using LVM_SETITEMSTATE,
-	* Windows redraws the selected text but does not
-	* redraw the image or the check box, leaving them
-	* appearing unselected.  The fix is to redraw
-	* the table.
-	*/
-	if (imageList != null || (style & SWT.CHECK) != 0) {
-		OS.InvalidateRect (handle, null, false);
-	}
-	
-	/*
 	* Bug in Windows.  For some reason, the table does
 	* not set the default focus rectangle to be the first
 	* item in the table when it gets focus and there is
@@ -5191,15 +5128,23 @@ LRESULT WM_HSCROLL (int wParam, int lParam) {
 	* so that internal messages are dispatched directly to the table.
 	* If the application expects to see a paint event or has a child
 	* whose font, foreground or background color might be needed,
-	* the window proc cannot be unsubclassed.
+	* the window proc cannot be unsubclassed
+	* 
+	* NOTE: The header tooltip can subclass the header proc so the
+	* current proc must be restored or header tooltips stop working.
 	*/
-	if (OS.GetWindow (handle, OS.GW_CHILD) == 0) {
-		if (!hooks (SWT.Paint) && !filters (SWT.Paint)) {
-			unsubclass ();
-		}
+	int oldHeaderProc = 0, oldTableProc = 0;
+	int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
+	boolean fixSubclass = !hasChildren () && !hooks (SWT.Paint) && !filters (SWT.Paint);
+	if (fixSubclass) {
+		oldTableProc = OS.SetWindowLong (handle, OS.GWL_WNDPROC, TableProc);
+		oldHeaderProc = OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, HeaderProc);
 	}
 	LRESULT result = super.WM_HSCROLL (wParam, lParam);
-	subclass ();
+	if (fixSubclass) {
+		OS.SetWindowLong (handle, OS.GWL_WNDPROC, oldTableProc);
+		OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, oldHeaderProc);
+	}
 	
 	/*
 	* Bug in Windows.  When a table that is drawing grid lines
@@ -5232,14 +5177,22 @@ LRESULT WM_VSCROLL (int wParam, int lParam) {
 	* If the application expects to see a paint event or has a child
 	* whose font, foreground or background color might be needed,
 	* the window proc cannot be unsubclassed.
+	*
+	* NOTE: The header tooltip can subclass the header proc so the
+	* current proc must be restored or header tooltips stop working.
 	*/
-	if (OS.GetWindow (handle, OS.GW_CHILD) == 0) {
-		if (!hooks (SWT.Paint) && !filters (SWT.Paint)) {
-			unsubclass ();
-		}
+	int oldHeaderProc = 0, oldTableProc = 0;
+	int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
+	boolean fixSubclass = !hasChildren () && !hooks (SWT.Paint) && !filters (SWT.Paint);
+	if (fixSubclass) {
+		oldTableProc = OS.SetWindowLong (handle, OS.GWL_WNDPROC, TableProc);
+		oldHeaderProc = OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, HeaderProc);
 	}
 	LRESULT result = super.WM_VSCROLL (wParam, lParam);
-	subclass ();
+	if (fixSubclass) {
+		OS.SetWindowLong (handle, OS.GWL_WNDPROC, oldTableProc);
+		OS.SetWindowLong (hwndHeader, OS.GWL_WNDPROC, oldHeaderProc);
+	}
 	
 	/*
 	* Bug in Windows.  When a table is drawing grid lines and the
@@ -5260,7 +5213,6 @@ LRESULT WM_VSCROLL (int wParam, int lParam) {
 			case OS.SB_LINEDOWN:
 			case OS.SB_LINEUP:
 				int headerHeight = 0;
-				int hwndHeader = OS.SendMessage (handle, OS.LVM_GETHEADER, 0, 0);
 				if (hwndHeader != 0) {
 					RECT rect = new RECT ();					
 					OS.GetWindowRect (hwndHeader, rect);
@@ -5354,7 +5306,7 @@ LRESULT wmNotifyChild (int wParam, int lParam) {
 					lastIndexOf = plvfi.iItem;
 					if (!checkData (item, lastIndexOf, false)) break;
 					TableItem newItem = fixScrollWidth ? null : item;
-					if (setScrollWidth (newItem, true)) {
+					if (setScrollWidth (newItem, true, true)) {
 						OS.InvalidateRect (handle, null, true);
 					}
 				}
@@ -5442,13 +5394,7 @@ LRESULT wmNotifyChild (int wParam, int lParam) {
 			}
 			break;
 		}
-		case OS.LVN_MARQUEEBEGIN: {
-			if ((style & SWT.SINGLE) != 0) return LRESULT.ONE;
-			if (hooks (SWT.MouseDown) || hooks (SWT.MouseUp)) {
-				return LRESULT.ONE;
-			}
-			break;
-		}
+		case OS.LVN_MARQUEEBEGIN: return LRESULT.ONE;
 		case OS.LVN_BEGINDRAG:
 		case OS.LVN_BEGINRDRAG: {
 			dragStarted = true;

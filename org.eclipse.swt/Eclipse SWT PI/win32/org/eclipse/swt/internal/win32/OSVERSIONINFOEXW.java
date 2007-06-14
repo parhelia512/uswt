@@ -6,9 +6,11 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    IBM Corporation - initial API and implementation
+ *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+package org.eclipse.swt.internal.win32;
 
-#include "swt.h"
-#include "xpcom_profile_structs.h"
-
+public class OSVERSIONINFOEXW extends OSVERSIONINFOEX {
+	public char[] szCSDVersion = new char[128];
+	public static final int sizeof = 284;
+}

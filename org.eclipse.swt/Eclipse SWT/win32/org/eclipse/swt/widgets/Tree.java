@@ -73,7 +73,7 @@ public class Tree extends Composite {
 	ImageList imageList, headerImageList;
 	TreeItem currentItem;
 	TreeColumn sortColumn;
-	int hwndParent, hwndHeader, hAnchor, hInsert, lastID;
+	int hwndParent, hwndHeader, hAnchor, hInsert, lastID, hSelect;
 	int hFirstIndexOf, hLastIndexOf, lastIndexOf, itemCount, sortDirection;
 	boolean dragStarted, gestureCompleted, insertAfter, shrink, ignoreShrink;
 	boolean ignoreSelect, ignoreExpand, ignoreDeselect, ignoreResize;
@@ -1251,12 +1251,14 @@ int callWindowProc (int hwnd, int msg, int wParam, int lParam) {
 					tvItem.mask = OS.TVIF_HANDLE | OS.TVIF_STATE;
 					tvItem.hItem = hItem;
 					OS.SendMessage (handle, OS.TVM_GETITEM, 0, tvItem);
+					hSelect = hItem;
 					ignoreDeselect = ignoreSelect = lockSelection = true;
 					OS.SendMessage (handle, OS.TVM_SELECTITEM, OS.TVGN_CARET, hItem);
+					ignoreDeselect = ignoreSelect = lockSelection = false;
+					hSelect = 0;
 					if ((tvItem.state & OS.TVIS_SELECTED) == 0) {
 						OS.SendMessage (handle, OS.TVM_SETITEM, 0, tvItem);
 					}
-					ignoreDeselect = ignoreSelect = lockSelection = false;
 				}
 			}
 			break;
@@ -4756,6 +4758,19 @@ int windowProc (int hwnd, int msg, int wParam, int lParam) {
 				info.cbSize = SCROLLINFO.sizeof;
 				info.fMask = OS.SIF_ALL;
 				OS.GetScrollInfo (hwndParent, OS.SB_VERT, info);
+				/*
+				* Update the nPos field to match the nTrackPos field
+				* so that the tree scrolls when the scroll bar of the
+				* parent is dragged.
+				* 
+				* NOTE: For some reason, this code is only necessary
+				* on Windows Vista.
+				*/
+				if (!OS.IsWinCE && OS.WIN32_VERSION >= OS.VERSION (6, 0)) {
+					if ((wParam & 0xFFFF) == OS.SB_THUMBTRACK) {
+						info.nPos = info.nTrackPos;
+					}
+				}
 				OS.SetScrollInfo (handle, OS.SB_VERT, info, true);
 				int code = OS.SendMessage (handle, OS.WM_VSCROLL, wParam, lParam);
 				OS.GetScrollInfo (handle, OS.SB_VERT, info);
@@ -5016,9 +5031,11 @@ LRESULT WM_KEYDOWN (int wParam, int lParam) {
 							*/
 //							OS.SendMessage (handle, OS.WM_SETREDRAW, 0, 0);
 						}
+						hSelect = hNewItem;
 						ignoreSelect = true;
 						OS.SendMessage (handle, OS.TVM_SELECTITEM, OS.TVGN_CARET, hNewItem);
 						ignoreSelect = false;
+						hSelect = 0;
 						if (oldSelected) {
 							tvItem.state = OS.TVIS_SELECTED;
 							tvItem.hItem = hItem;
@@ -5304,6 +5321,7 @@ LRESULT WM_LBUTTONDOWN (int wParam, int lParam) {
 		}
 		return LRESULT.ZERO;
 	}
+	hSelect = lpht.hItem;
 	dragStarted = gestureCompleted = false;
 	ignoreDeselect = ignoreSelect = true;
 	int code = callWindowProc (handle, OS.WM_LBUTTONDOWN, wParam, lParam);
@@ -5325,6 +5343,7 @@ LRESULT WM_LBUTTONDOWN (int wParam, int lParam) {
 		}
 	}
 	ignoreDeselect = ignoreSelect = false;
+	hSelect = 0;
 	if (dragStarted) {
 		if (!display.captureChanged && !isDisposed ()) {
 			if (OS.GetCapture () != handle) OS.SetCapture (handle);
@@ -5472,16 +5491,7 @@ LRESULT WM_MOUSEMOVE (int wParam, int lParam) {
 	LRESULT result = super.WM_MOUSEMOVE (wParam, lParam);
 	if (result != null) return result;
 	if (itemToolTipHandle != 0 && hwndHeader != 0) {
-		/*
-		* Bug in Windows.  On some machines that do not have XBUTTONs,
-		* the MK_XBUTTON1 and OS.MK_XBUTTON2 bits are sometimes set,
-		* causing mouse capture to become stuck.  The fix is to test
-		* for the extra buttons only when they exist.
-		*/
-		int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON;
-		if (OS.GetSystemMetrics (OS.SM_CMOUSEBUTTONS) > 3) {
-			mask |= OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
-		}
+		int mask = OS.MK_LBUTTON | OS.MK_MBUTTON | OS.MK_RBUTTON | OS.MK_XBUTTON1 | OS.MK_XBUTTON2;
 		if (((wParam & 0xFFFF) & mask) == 0) {
 			TVHITTESTINFO lpht = new TVHITTESTINFO ();
 			lpht.x = (short) (lParam & 0xFFFF);
@@ -5976,6 +5986,28 @@ LRESULT WM_SETFONT (int wParam, int lParam) {
 	return result;
 }
 
+LRESULT WM_SETREDRAW (int wParam, int lParam) {
+	LRESULT result = super.WM_SETREDRAW (wParam, lParam);
+	if (result != null) return result;
+	/*
+	* Bug in Windows.  Under certain circumstances, when
+	* WM_SETREDRAW is used to turn off drawing and then
+	* WM_GETITEMRECT is sent to get the bounds of an item
+	* that is not inside the client area, Windows segment
+	* faults.  The fix is to call the default window proc
+	* rather than the default tree proc.
+	* 
+	* NOTE:  This problem is intermittent and happens on
+	* Windows Vista running under the theme manager.
+	* 
+	*/
+	if (!OS.IsWinCE && OS.WIN32_VERSION >= OS.VERSION (6, 0)) {
+		int code = OS.DefWindowProc (handle, OS.WM_SETREDRAW, wParam, lParam);
+		return code == 0 ? LRESULT.ZERO : new LRESULT (code);
+	}
+	return result;
+}
+
 LRESULT WM_SIZE (int wParam, int lParam) {
 	/*
 	 * Bug in Windows.  When TVS_NOHSCROLL is set when the
@@ -6208,6 +6240,39 @@ LRESULT wmNotifyChild (int wParam, int lParam) {
 			updateScrollBar ();
 			break;
 		}
+		/*
+		* Bug in Windows.  On Vista, when TVM_SELECTITEM is called
+		* with TVGN_CARET in order to set the selection, for some
+		* reason, Windows deselects the previous two items that
+		* were selected.  The fix is to stop the selection from
+		* changing on all but the item that is supposed to be
+		* selected.
+		*/
+		case OS.TVN_ITEMCHANGINGA:
+		case OS.TVN_ITEMCHANGINGW:{
+			if (!OS.IsWinCE && OS.WIN32_VERSION >= OS.VERSION (6, 0)) {
+				if ((style & SWT.MULTI) != 0) {
+					if (hSelect != 0) {
+						NMTVITEMCHANGE pnm = new NMTVITEMCHANGE ();
+						OS.MoveMemory (pnm, lParam, NMTVITEMCHANGE.sizeof);
+						if (hSelect == pnm.hItem) break;
+						if ((pnm.uStateOld & OS.TVIS_SELECTED) != 0) {
+							if ((pnm.uStateNew & OS.TVIS_SELECTED) == 0) {
+								TVITEM tvItem = new TVITEM ();
+								tvItem.mask = OS.TVIF_HANDLE | OS.TVIF_STATE;
+								tvItem.state = OS.TVIS_SELECTED;
+								tvItem.stateMask = OS.TVIS_SELECTED;
+								tvItem.hItem = pnm.hItem;
+								OS.SendMessage (handle, OS.TVM_SETITEM, 0, tvItem);
+								return LRESULT.ONE;
+							}
+						}
+					}
+//					if (lockSelection) return LRESULT.ONE;
+				}
+			}			
+			break;
+		}
 		case OS.TVN_SELCHANGINGA:
 		case OS.TVN_SELCHANGINGW: {
 			if ((style & SWT.MULTI) != 0) {
@@ -6325,9 +6390,11 @@ LRESULT wmNotifyChild (int wParam, int lParam) {
 			int offset = NMHDR.sizeof + 4 + TVITEM.sizeof;
 			OS.MoveMemory (tvItem, lParam + offset, TVITEM.sizeof);
 			if (tvItem.hItem != 0 && (tvItem.state & OS.TVIS_SELECTED) == 0) {
+				hSelect = tvItem.hItem;
 				ignoreSelect = ignoreDeselect = true;
 				OS.SendMessage (handle, OS.TVM_SELECTITEM, OS.TVGN_CARET, tvItem.hItem);
 				ignoreSelect = ignoreDeselect = false;
+				hSelect = 0;
 			}
 			dragStarted = true;
 			break;

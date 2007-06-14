@@ -296,10 +296,6 @@ void deregister () {
 	if (imContext != 0) display.removeWidget (imContext);
 }
 
-int /*long*/ eventWindow () {
-	return paintWindow ();
-}
-
 boolean filterKey (int keyval, int /*long*/ event) {
 	int time = OS.gdk_event_get_time (event);
 	if (time != lastEventTime) {
@@ -780,6 +776,11 @@ void setCursor (int /*long*/ cursor) {
 
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
+}
+
+void setForegroundColor (GdkColor color) {
+	super.setForegroundColor (color);
+	OS.gtk_widget_modify_text (handle, 0, color);
 }
 
 /**

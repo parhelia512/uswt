@@ -25,8 +25,5 @@
 #include <cairo.h>
 #include <cairo-xlib.h>
 #include <string.h>
-#include <dlfcn.h>
-
-#include "cairo_custom.h"
 
 #endif /* INC_cairo_H */

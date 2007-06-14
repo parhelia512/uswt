@@ -275,17 +275,6 @@ public class OS extends Platform {
 	public static final int GTK_POLICY_NEVER = 0x2;
 	public static final int GTK_POS_TOP = 0x2;
 	public static final int GTK_POS_BOTTOM = 0x3;
-	public static final int GTK_PRINT_CAPABILITY_PAGE_SET     = 1 << 0;
-	public static final int GTK_PRINT_CAPABILITY_COPIES       = 1 << 1;
-	public static final int GTK_PRINT_CAPABILITY_COLLATE      = 1 << 2;
-	public static final int GTK_PRINT_CAPABILITY_REVERSE      = 1 << 3;
-	public static final int GTK_PRINT_CAPABILITY_SCALE        = 1 << 4;
-	public static final int GTK_PRINT_CAPABILITY_GENERATE_PDF = 1 << 5;
-	public static final int GTK_PRINT_CAPABILITY_GENERATE_PS  = 1 << 6;
-	public static final int GTK_PRINT_CAPABILITY_PREVIEW      = 1 << 7;
-	public static final int GTK_PRINT_PAGES_ALL = 0;
-	public static final int GTK_PRINT_PAGES_CURRENT = 1;
-	public static final int GTK_PRINT_PAGES_RANGES = 2;
 	public static final int GTK_PROGRESS_CONTINUOUS = 0x0;
 	public static final int GTK_PROGRESS_DISCRETE = 0x1;
 	public static final int GTK_PROGRESS_LEFT_TO_RIGHT = 0x0;
@@ -295,8 +284,6 @@ public class OS extends Platform {
 	public static final int GTK_RELIEF_NORMAL = 0;
 	public static final int GTK_RC_BG = 1 << 1;
 	public static final int GTK_RC_FG = 1 << 0;
-	public static final int GTK_RC_TEXT = 1 << 2;
-	public static final int GTK_RESPONSE_APPLY = 0xfffffff6;
 	public static final int GTK_RESPONSE_CANCEL = 0xfffffffa;
 	public static final int GTK_RESPONSE_OK = 0xfffffffb;
 	public static final int GTK_SCROLL_NONE = 0;
@@ -343,10 +330,6 @@ public class OS extends Platform {
 	public static final int GTK_TREE_VIEW_DROP_INTO_OR_BEFORE = 2;
 	public static final int GTK_TREE_VIEW_DROP_INTO_OR_AFTER = 3;
 	public static final int GDK_UNMAP = 15;
-	public static final int GTK_UNIT_PIXEL = 0;
-	public static final int GTK_UNIT_POINTS = 1;
-	public static final int GTK_UNIT_INCH = 2;
-	public static final int GTK_UNIT_MM = 3;
 	public static final int GTK_VISIBILITY_FULL = 0x2;
 	public static final int GTK_VISIBILITY_NONE = 0x0;
 	public static final int GTK_VISIBLE = 0x100;
@@ -469,7 +452,7 @@ public class OS extends Platform {
 	public static final byte[] pixbuf = ascii("pixbuf");
 	public static final byte[] text = ascii("text");
 	public static final byte[] xalign = ascii("xalign");
-	public static final byte[] GTK_PRINT_SETTINGS_OUTPUT_URI = ascii("output-uri");
+	public static final byte[] ypad = ascii("ypad");
 	
 	public static final int GTK_VERSION = VERSION(gtk_major_version(), gtk_minor_version(), gtk_micro_version()); 
 	
@@ -1078,15 +1061,6 @@ public static final boolean GTK_IS_BUTTON(int /*long*/ obj) {
 		lock.unlock();
 	}
 }
-public static final native boolean _GTK_IS_WINDOW(int /*long*/ obj);
-public static final boolean GTK_IS_WINDOW(int /*long*/ obj) {
-	lock.lock();
-	try {
-		return _GTK_IS_WINDOW(obj);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native boolean _GTK_IS_CELL_RENDERER_PIXBUF(int /*long*/ obj);
 public static final boolean GTK_IS_CELL_RENDERER_PIXBUF(int /*long*/ obj) {
 	lock.lock();
@@ -1137,6 +1111,15 @@ public static final boolean GTK_IS_PLUG(int /*long*/ obj) {
 	lock.lock();
 	try {
 		return _GTK_IS_PLUG(obj);
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native boolean _GTK_IS_WINDOW(int /*long*/ obj);
+public static final boolean GTK_IS_WINDOW(int /*long*/ obj) {
+	lock.lock();
+	try {
+		return _GTK_IS_WINDOW(obj);
 	} finally {
 		lock.unlock();
 	}
@@ -1308,15 +1291,6 @@ public static final int /*long*/ G_OBJECT_GET_CLASS (int /*long*/ object) {
 	lock.lock();
 	try {
 		return _G_OBJECT_GET_CLASS(object);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _G_OBJECT_TYPE_NAME (int /*long*/ object);
-public static final int /*long*/ G_OBJECT_TYPE_NAME (int /*long*/ object) {
-	lock.lock();
-	try {
-		return _G_OBJECT_TYPE_NAME(object);
 	} finally {
 		lock.unlock();
 	}
@@ -1774,15 +1748,6 @@ public static final int /*long*/ g_object_ref(int /*long*/ object) {
 }
 public static final native void _g_object_set(int /*long*/ object, byte[] first_property_name, boolean data, int /*long*/ terminator);
 public static final void g_object_set(int /*long*/ object, byte[] first_property_name, boolean data, int /*long*/ terminator) {
-	lock.lock();
-	try {
-		_g_object_set(object, first_property_name, data, terminator);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _g_object_set(int /*long*/ object, byte[] first_property_name, GdkColor data, int /*long*/ terminator);
-public static final void g_object_set(int /*long*/ object, byte[] first_property_name, GdkColor data, int /*long*/ terminator) {
 	lock.lock();
 	try {
 		_g_object_set(object, first_property_name, data, terminator);
@@ -2538,15 +2503,6 @@ public static final void gdk_event_handler_set(int /*long*/ func, int /*long*/ d
 		lock.unlock();
 	}
 }
-public static final native int /*long*/ _gdk_event_peek();
-public static final int /*long*/ gdk_event_peek() {
-	lock.lock();
-	try {
-		return _gdk_event_peek();
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native void _gdk_event_put(int /*long*/ event);
 public static final void gdk_event_put(int /*long*/ event) {
 	lock.lock();
@@ -3137,6 +3093,15 @@ public static final int /*long*/ gdk_screen_get_default() {
 	lock.lock();
 	try {
 		return _gdk_screen_get_default();
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native int _gdk_screen_get_monitor_at_point (int /*long*/ screen, int x, int y);
+public static final int gdk_screen_get_monitor_at_point (int /*long*/ screen, int x, int y) {
+	lock.lock();
+	try {
+		return _gdk_screen_get_monitor_at_point (screen, x, y);
 	} finally {
 		lock.unlock();
 	}
@@ -3771,33 +3736,6 @@ public static final void gtk_button_set_relief(int /*long*/ button, int newstyle
 		lock.unlock();
 	}
 }
-public static final native void _gtk_cell_layout_clear(int /*long*/ cell_layout);
-public static final void gtk_cell_layout_clear(int /*long*/ cell_layout) {
-	lock.lock();
-	try {
-		_gtk_cell_layout_clear(cell_layout);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_cell_layout_set_attributes(int /*long*/ cell_layout, int /*long*/ cell, byte[] attribute, int column, int sentinel);
-public static final void gtk_cell_layout_set_attributes(int /*long*/ cell_layout, int /*long*/ cell, byte[] attribute, int column, int sentinel) {
-	lock.lock();
-	try {
-		_gtk_cell_layout_set_attributes(cell_layout, cell, attribute, column, sentinel);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_cell_layout_pack_start(int /*long*/ cell_layout, int /*long*/ cell, boolean expand);
-public static final void gtk_cell_layout_pack_start(int /*long*/ cell_layout, int /*long*/ cell, boolean expand) {
-	lock.lock();
-	try {
-		_gtk_cell_layout_pack_start(cell_layout, cell, expand);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native void _gtk_cell_renderer_get_size(int /*long*/ cell, int /*long*/ widget, GdkRectangle area, int[] x_offset, int[] y_offset, int[] width, int[] height);
 public static final void gtk_cell_renderer_get_size(int /*long*/ cell, int /*long*/ widget, GdkRectangle area, int[] x_offset, int[] y_offset, int[] width, int[] height) {
 	lock.lock();
@@ -3983,87 +3921,6 @@ public static final void gtk_combo_set_popdown_strings(int /*long*/ combo, int /
 	lock.lock();
 	try {
 		_gtk_combo_set_popdown_strings(combo, strings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_combo_box_entry_new_text();
-public static final int /*long*/ gtk_combo_box_entry_new_text() {
-	lock.lock();
-	try {
-		return _gtk_combo_box_entry_new_text();
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_combo_box_new_text();
-public static final int /*long*/ gtk_combo_box_new_text() {
-	lock.lock();
-	try {
-		return _gtk_combo_box_new_text();
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_combo_box_insert_text(int /*long*/ combo_box, int position, byte[] text);
-public static final void gtk_combo_box_insert_text(int /*long*/ combo_box, int position, byte[] text) {
-	lock.lock();
-	try {
-		_gtk_combo_box_insert_text(combo_box, position, text);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_combo_box_remove_text(int /*long*/ combo_box, int position);
-public static final void gtk_combo_box_remove_text(int /*long*/ combo_box, int position) {
-	lock.lock();
-	try {
-		_gtk_combo_box_remove_text(combo_box, position);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_combo_box_get_active(int /*long*/ combo_box);
-public static final int gtk_combo_box_get_active(int /*long*/ combo_box) {
-	lock.lock();
-	try {
-		return _gtk_combo_box_get_active(combo_box);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_combo_box_get_model(int /*long*/ combo_box);
-public static final int /*long*/ gtk_combo_box_get_model(int /*long*/ combo_box) {
-	lock.lock();
-	try {
-		return _gtk_combo_box_get_model(combo_box);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_combo_box_set_active(int /*long*/ combo_box, int index);
-public static final void gtk_combo_box_set_active(int /*long*/ combo_box, int index) {
-	lock.lock();
-	try {
-		_gtk_combo_box_set_active(combo_box, index);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_combo_box_popup(int /*long*/ combo_box);
-public static final void gtk_combo_box_popup(int /*long*/ combo_box) {
-	lock.lock();
-	try {
-		_gtk_combo_box_popup(combo_box);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_combo_box_popdown(int /*long*/ combo_box);
-public static final void gtk_combo_box_popdown(int /*long*/ combo_box) {
-	lock.lock();
-	try {
-		_gtk_combo_box_popdown(combo_box);
 	} finally {
 		lock.unlock();
 	}
@@ -5130,6 +4987,15 @@ public static final boolean gtk_init_check(int /*long*/[] argc, int /*long*/[] a
 		lock.unlock();
 	}
 }
+public static final native int /*long*/ _gtk_label_get_layout(int /*long*/ label);
+public static final int /*long*/ gtk_label_get_layout(int /*long*/ label) {
+	lock.lock();
+	try {
+		return _gtk_label_get_layout(label);
+	} finally {
+		lock.unlock();
+	}
+}
 public static final native int _gtk_label_get_mnemonic_keyval(int /*long*/ label);
 public static final int gtk_label_get_mnemonic_keyval(int /*long*/ label) {
 	lock.lock();
@@ -5616,159 +5482,6 @@ public static final void gtk_object_sink(int /*long*/ object) {
 		lock.unlock();
 	}
 }
-public static final native int /*long*/ _gtk_page_setup_new ();
-public static final int /*long*/ gtk_page_setup_new () {
-	lock.lock();
-	try {
-		return _gtk_page_setup_new ();
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_page_setup_get_orientation(int /*long*/ setup);
-public static final int gtk_page_setup_get_orientation(int /*long*/ setup) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_orientation(setup);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_orientation(int /*long*/ setup, int orientation);
-public static final void gtk_page_setup_set_orientation(int /*long*/ setup, int orientation) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_orientation(setup, orientation);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_page_setup_get_paper_size(int /*long*/ setup);
-public static final int /*long*/ gtk_page_setup_get_paper_size(int /*long*/ setup) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_paper_size(setup);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_paper_size(int /*long*/ setup, int /*long*/ size);
-public static final void gtk_page_setup_set_paper_size(int /*long*/ setup, int /*long*/ size) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_paper_size(setup, size);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_top_margin(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_top_margin(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_top_margin(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_top_margin(int /*long*/ setup, double margin, int unit);
-public static final void gtk_page_setup_set_top_margin(int /*long*/ setup, double margin, int unit) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_top_margin(setup, margin, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_bottom_margin(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_bottom_margin(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_bottom_margin(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_bottom_margin(int /*long*/ setup, double margin, int unit);
-public static final void gtk_page_setup_set_bottom_margin(int /*long*/ setup, double margin, int unit) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_bottom_margin(setup, margin, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_left_margin(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_left_margin(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_left_margin(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_left_margin(int /*long*/ setup, double margin, int unit);
-public static final void gtk_page_setup_set_left_margin(int /*long*/ setup, double margin, int unit) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_left_margin(setup, margin, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_right_margin(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_right_margin(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_right_margin(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_page_setup_set_right_margin(int /*long*/ setup, double margin, int unit);
-public static final void gtk_page_setup_set_right_margin(int /*long*/ setup, double margin, int unit) {
-	lock.lock();
-	try {
-		_gtk_page_setup_set_right_margin(setup, margin, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_paper_width(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_paper_width(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_paper_width(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_paper_height(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_paper_height(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_paper_height(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_page_width(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_page_width(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_page_width(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_page_setup_get_page_height(int /*long*/ setup, int unit);
-public static final double gtk_page_setup_get_page_height(int /*long*/ setup, int unit) {
-	lock.lock();
-	try {
-		return _gtk_page_setup_get_page_height(setup, unit);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native void _gtk_paint_handle(int /*long*/ style, int /*long*/ window, int state_type, int shadow_type, GdkRectangle area, int /*long*/ widget, byte[] detail, int x , int y, int width, int height, int orientation);
 public static final void gtk_paint_handle(int /*long*/ style, int /*long*/ window, int state_type, int shadow_type, GdkRectangle area, int /*long*/ widget, byte[] detail, int x , int y, int width, int height, int orientation) {
 	lock.lock();
@@ -5923,87 +5636,6 @@ public static final void gtk_paint_vline(int /*long*/ style, int /*long*/ window
 		lock.unlock();
 	}
 }
-public static final native int /*long*/ _gtk_paper_size_new(byte [] name);
-public static final int /*long*/ gtk_paper_size_new(byte [] name) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_new(name);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_paper_size_new_from_ppd(byte [] ppd_name, byte [] ppd_display_name, double width, double height);
-public static final int /*long*/ gtk_paper_size_new_from_ppd(byte [] ppd_name, byte [] ppd_display_name, double width, double height) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_new_from_ppd(ppd_name, ppd_display_name, width, height);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_paper_size_new_custom(byte [] name, byte [] display_name, double width, double height, int unit);
-public static final int /*long*/ gtk_paper_size_new_custom(byte [] name, byte [] display_name, double width, double height, int unit) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_new_custom(name, display_name, width, height, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_paper_size_get_name(int /*long*/ size);
-public static final int /*long*/ gtk_paper_size_get_name(int /*long*/ size) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_get_name(size);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_paper_size_get_display_name(int /*long*/ size);
-public static final int /*long*/ gtk_paper_size_get_display_name(int /*long*/ size) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_get_display_name(size);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_paper_size_get_ppd_name(int /*long*/ size);
-public static final int /*long*/ gtk_paper_size_get_ppd_name(int /*long*/ size) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_get_ppd_name(size);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_paper_size_get_width(int /*long*/ size, int unit);
-public static final double gtk_paper_size_get_width(int /*long*/ size, int unit) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_get_width(size, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_paper_size_get_height(int /*long*/ size, int unit);
-public static final double gtk_paper_size_get_height(int /*long*/ size, int unit) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_get_height(size, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native boolean _gtk_paper_size_is_custom(int /*long*/ size);
-public static final boolean gtk_paper_size_is_custom(int /*long*/ size) {
-	lock.lock();
-	try {
-		return _gtk_paper_size_is_custom(size);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native int /*long*/ _gtk_plug_get_id(int /*long*/ plug);
 public static final int /*long*/ gtk_plug_get_id(int /*long*/ plug) {
 	lock.lock();
@@ -6018,366 +5650,6 @@ public static final int /*long*/ gtk_plug_new(int /*long*/ socket_id) {
 	lock.lock();
 	try {
 		return _gtk_plug_new(socket_id);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_printer_get_backend(int /*long*/ printer);
-public static final int /*long*/ gtk_printer_get_backend(int /*long*/ printer) {
-	lock.lock();
-	try {
-		return _gtk_printer_get_backend(printer);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_printer_get_name(int /*long*/ printer);
-public static final int /*long*/ gtk_printer_get_name(int /*long*/ printer) {
-	lock.lock();
-	try {
-		return _gtk_printer_get_name(printer);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native boolean _gtk_printer_is_default(int /*long*/ printer);
-public static final boolean gtk_printer_is_default(int /*long*/ printer) {
-	lock.lock();
-	try {
-		return _gtk_printer_is_default(printer);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_enumerate_printers(int /*long*/ func, int /*long*/data, int /*long*/ destroy, boolean wait);
-public static final void gtk_enumerate_printers(int /*long*/ func, int /*long*/data, int /*long*/ destroy, boolean wait) {
-	lock.lock();
-	try {
-		_gtk_enumerate_printers(func, data, destroy, wait);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_job_new(byte[] title, int /*long*/ printer, int /*long*/ settings, int /*long*/ page_setup);
-public static final int /*long*/ gtk_print_job_new(byte[] title, int /*long*/ printer, int /*long*/ settings, int /*long*/ page_setup) {
-	lock.lock();
-	try {
-		return _gtk_print_job_new(title, printer, settings, page_setup);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_job_get_settings(int /*long*/ job);
-public static final int /*long*/ gtk_print_job_get_settings(int /*long*/ job) {
-	lock.lock();
-	try {
-		return _gtk_print_job_get_settings(job);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_job_get_printer(int /*long*/ job);
-public static final int /*long*/ gtk_print_job_get_printer(int /*long*/ job) {
-	lock.lock();
-	try {
-		return _gtk_print_job_get_printer(job);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_job_get_title(int /*long*/ job);
-public static final int /*long*/ gtk_print_job_get_title(int /*long*/ job) {
-	lock.lock();
-	try {
-		return _gtk_print_job_get_title(job);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_job_get_status(int /*long*/ job);
-public static final int gtk_print_job_get_status(int /*long*/ job) {
-	lock.lock();
-	try {
-		return _gtk_print_job_get_status(job);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native boolean _gtk_print_job_set_source_file(int /*long*/ job, byte[] filename, int /*long*/ error[]);
-public static final boolean gtk_print_job_set_source_file(int /*long*/ job, byte[] filename, int /*long*/ error[]) {
-	lock.lock();
-	try {
-		return _gtk_print_job_set_source_file(job, filename, error);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_job_get_surface(int /*long*/ job, int /*long*/ error[]);
-public static final int /*long*/ gtk_print_job_get_surface(int /*long*/ job, int /*long*/ error[]) {
-	lock.lock();
-	try {
-		return _gtk_print_job_get_surface(job, error);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_job_send(int /*long*/ job, int /*long*/ callback, int /*long*/ user_data, int /*long*/ dnotify);
-public static final void gtk_print_job_send(int /*long*/ job, int /*long*/ callback, int /*long*/ user_data, int /*long*/ dnotify) {
-	lock.lock();
-	try {
-		_gtk_print_job_send(job, callback, user_data, dnotify);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_settings_new();
-public static final int /*long*/ gtk_print_settings_new() {
-	lock.lock();
-	try {
-		return _gtk_print_settings_new();
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_foreach(int /*long*/ settings, int /*long*/ func, int /*long*/ data);
-public static final void gtk_print_settings_foreach(int /*long*/ settings, int /*long*/ func, int /*long*/ data) {
-	lock.lock();
-	try {
-		_gtk_print_settings_foreach(settings, func, data);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_settings_get(int /*long*/ settings, byte [] key);
-public static final int /*long*/ gtk_print_settings_get(int /*long*/ settings, byte [] key) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get(settings, key);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set(int /*long*/ settings, byte [] key, byte [] value);
-public static final void gtk_print_settings_set(int /*long*/ settings, byte [] key, byte [] value) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set(settings, key, value);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_settings_get_printer(int /*long*/ settings);
-public static final int /*long*/ gtk_print_settings_get_printer(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_printer(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_printer(int /*long*/ settings, byte[] printer);
-public static final void gtk_print_settings_set_printer(int /*long*/ settings, byte[] printer) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_printer(settings, printer);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_settings_get_orientation(int /*long*/ settings);
-public static final int gtk_print_settings_get_orientation(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_orientation(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_orientation(int /*long*/ settings, int orientation);
-public static final void gtk_print_settings_set_orientation(int /*long*/ settings, int orientation) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_orientation(settings, orientation);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native boolean _gtk_print_settings_get_collate(int /*long*/ settings);
-public static final boolean gtk_print_settings_get_collate(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_collate(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_collate(int /*long*/ settings, boolean collate);
-public static final void gtk_print_settings_set_collate(int /*long*/ settings, boolean collate) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_collate(settings, collate);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_settings_get_n_copies(int /*long*/ settings);
-public static final int gtk_print_settings_get_n_copies(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_n_copies(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_n_copies(int /*long*/ settings, int num_copies);
-public static final void gtk_print_settings_set_n_copies(int /*long*/ settings, int num_copies) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_n_copies(settings, num_copies);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_settings_get_print_pages(int /*long*/ settings);
-public static final int gtk_print_settings_get_print_pages(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_print_pages(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_print_pages(int /*long*/ settings, int pages);
-public static final void gtk_print_settings_set_print_pages(int /*long*/ settings, int pages) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_print_pages(settings, pages);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_settings_get_page_ranges(int /*long*/ settings, int[] num_ranges);
-public static final int /*long*/ gtk_print_settings_get_page_ranges(int /*long*/ settings, int[] num_ranges) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_page_ranges(settings, num_ranges);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_settings_set_page_ranges(int /*long*/ settings, int[] page_ranges, int num_ranges);
-public static final void gtk_print_settings_set_page_ranges(int /*long*/ settings, int[] page_ranges, int num_ranges) {
-	lock.lock();
-	try {
-		_gtk_print_settings_set_page_ranges(settings, page_ranges, num_ranges);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_print_settings_get_paper_width(int /*long*/ settings, int unit);
-public static final double gtk_print_settings_get_paper_width(int /*long*/ settings, int unit) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_paper_width(settings, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native double _gtk_print_settings_get_paper_height(int /*long*/ settings, int unit);
-public static final double gtk_print_settings_get_paper_height(int /*long*/ settings, int unit) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_paper_height(settings, unit);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_settings_get_resolution(int /*long*/ settings);
-public static final int gtk_print_settings_get_resolution(int /*long*/ settings) {
-	lock.lock();
-	try {
-		return _gtk_print_settings_get_resolution(settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_unix_dialog_new(byte[] title, int /*long*/ parent);
-public static final int /*long*/ gtk_print_unix_dialog_new(byte[] title, int /*long*/ parent) {
-	lock.lock();
-	try {
-		return _gtk_print_unix_dialog_new(title, parent);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_unix_dialog_set_page_setup(int /*long*/ dialog, int /*long*/ page_setup);
-public static final void gtk_print_unix_dialog_set_page_setup(int /*long*/ dialog, int /*long*/ page_setup) {
-	lock.lock();
-	try {
-		_gtk_print_unix_dialog_set_page_setup(dialog, page_setup);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_unix_dialog_get_page_setup(int /*long*/ dialog);
-public static final int /*long*/ gtk_print_unix_dialog_get_page_setup(int /*long*/ dialog) {
-	lock.lock();
-	try {
-		return _gtk_print_unix_dialog_get_page_setup(dialog);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_unix_dialog_set_current_page(int /*long*/ dialog, int current_page);
-public static final void gtk_print_unix_dialog_set_current_page(int /*long*/ dialog, int current_page) {
-	lock.lock();
-	try {
-		_gtk_print_unix_dialog_set_current_page(dialog, current_page);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int _gtk_print_unix_dialog_get_current_page(int /*long*/ dialog);
-public static final int gtk_print_unix_dialog_get_current_page(int /*long*/ dialog) {
-	lock.lock();
-	try {
-		return _gtk_print_unix_dialog_get_current_page(dialog);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_unix_dialog_set_settings(int /*long*/ dialog, int /*long*/ settings);
-public static final void gtk_print_unix_dialog_set_settings(int /*long*/ dialog, int /*long*/ settings) {
-	lock.lock();
-	try {
-		_gtk_print_unix_dialog_set_settings(dialog, settings);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_unix_dialog_get_settings(int /*long*/ dialog);
-public static final int /*long*/ gtk_print_unix_dialog_get_settings(int /*long*/ dialog) {
-	lock.lock();
-	try {
-		return _gtk_print_unix_dialog_get_settings(dialog);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _gtk_print_unix_dialog_get_selected_printer(int /*long*/ dialog);
-public static final int /*long*/ gtk_print_unix_dialog_get_selected_printer(int /*long*/ dialog) {
-	lock.lock();
-	try {
-		return _gtk_print_unix_dialog_get_selected_printer(dialog);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_print_unix_dialog_set_manual_capabilities(int /*long*/ dialog, int /*long*/ capabilities);
-public static final void gtk_print_unix_dialog_set_manual_capabilities(int /*long*/ dialog, int /*long*/ capabilities) {
-	lock.lock();
-	try {
-		_gtk_print_unix_dialog_set_manual_capabilities(dialog, capabilities);
 	} finally {
 		lock.unlock();
 	}
@@ -6576,24 +5848,6 @@ public static final void gtk_scale_set_draw_value(int /*long*/ scale, boolean dr
 	lock.lock();
 	try {
 		_gtk_scale_set_draw_value(scale, draw_value);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_rc_style_set_fg(int /*long*/ style, int index, GdkColor color);
-public static final void gtk_rc_style_set_fg(int /*long*/ style, int index, GdkColor color) {
-	lock.lock();
-	try {
-		_gtk_rc_style_set_fg(style, index, color);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native void _gtk_rc_style_set_text(int /*long*/ style, int index, GdkColor color);
-public static final void gtk_rc_style_set_text(int /*long*/ style, int index, GdkColor color) {
-	lock.lock();
-	try {
-		_gtk_rc_style_set_text(style, index, color);
 	} finally {
 		lock.unlock();
 	}
@@ -9011,6 +8265,15 @@ public static final int /*long*/ gtk_window_get_icon_list(int /*long*/ window) {
 		lock.unlock();
 	}
 }
+public static final native boolean _gtk_window_get_modal(int /*long*/ window);
+public static final boolean gtk_window_get_modal(int /*long*/ window) {
+	lock.lock();
+	try {
+		return _gtk_window_get_modal(window);
+	} finally {
+		lock.unlock();
+	}
+}
 public static final native int _gtk_window_get_mnemonic_modifier(int /*long*/ window);
 public static final int gtk_window_get_mnemonic_modifier(int /*long*/ window) {
 	lock.lock();
@@ -9399,15 +8662,6 @@ public static final int /*long*/ pango_cairo_create_layout(int /*long*/ cairo) {
 		lock.unlock();
 	}
 }
-public static final native void _pango_cairo_font_map_set_resolution(int /*long*/ fontmap, double dpi);
-public static final void pango_cairo_font_map_set_resolution(int /*long*/ fontmap, double dpi) {
-	lock.lock();
-	try {
-		_pango_cairo_font_map_set_resolution(fontmap, dpi);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native void _pango_cairo_layout_path(int /*long*/ cairo, int /*long*/ layout);
 public static final void pango_cairo_layout_path(int /*long*/ cairo, int /*long*/ layout) {
 	lock.lock();
@@ -9701,6 +8955,15 @@ public static final int pango_layout_get_alignment(int /*long*/ layout) {
 	lock.lock();
 	try {
 		return _pango_layout_get_alignment(layout);
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native int /*long*/ _pango_layout_get_context(int /*long*/ layout);
+public static final int /*long*/ pango_layout_get_context(int /*long*/ layout) {
+	lock.lock();
+	try {
+		return _pango_layout_get_context(layout);
 	} finally {
 		lock.unlock();
 	}

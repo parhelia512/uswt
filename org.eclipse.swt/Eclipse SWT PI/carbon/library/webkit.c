@@ -9,74 +9,60 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-#include "swt.h"
-#include "cocoa_structs.h"
-#include "cocoa_stats.h"
+#include <Carbon/Carbon.h>
+#include <WebKit/WebKit.h>
+#include <WebKit/HIWebView.h>
 
-#define Cocoa_NATIVE(func) Java_org_eclipse_swt_internal_cocoa_Cocoa_##func
+#include "jni.h"
 
-extern id objc_msgSend(id, SEL, ...);
-
-#ifndef NO_objc_1msgSend__IIF
-JNIEXPORT jint JNICALL Cocoa_NATIVE(objc_1msgSend__IIF)
-	(JNIEnv *env, jclass that, jint arg0, jint arg1, jfloat arg2)
-{
-	jint rc = 0;
-	Cocoa_NATIVE_ENTER(env, that, objc_1msgSend__IIF_FUNC);	
-	rc = ((jint (*) (id, SEL, float))objc_msgSend)((id)arg0, (SEL)arg1, arg2);
-	Cocoa_NATIVE_EXIT(env, that, objc_1msgSend__IIF_FUNC);
-	return rc;
-}
-#endif
-
-@interface NSStatusItemImageView : NSImageView
-{
-	int user_data;
-	int (*proc) (int sender, int user_data, int selector, void * arg0);
-}
-@end
-
-@implementation NSStatusItemImageView
-
-- (id)initWithProc:(id)prc frame:(NSRect)rect user_data:(int)data
-{
-    [super initWithFrame: rect];
-    proc= (void *) prc;
-    user_data = data;
-    return self;
+JNIEXPORT void JNICALL Java_org_eclipse_swt_browser_WebKit_WebInitForCarbon(JNIEnv *env, jclass zz) {
+	WebInitForCarbon();
 }
 
-- (void)getLocation:(NSPoint *)pt
-{
-	NSRect rect = [self frame];
-	NSRect windowRect = [[self window] frame];
-	pt->x += rect.size.width / 2;
-	pt->y += rect.size.height;
-	*pt = [self convertPoint: *pt toView: 0];
-	pt->x += windowRect.origin.x;
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_HIWebViewCreate(JNIEnv *env, jclass zz, jintArray outView) {
+	jint *a = (*env)->GetIntArrayElements(env, outView, NULL);
+	jint status = (jint) HIWebViewCreate((HIViewRef *)a);
+	(*env)->ReleaseIntArrayElements(env, outView, a, 0);
+	return status;
 }
 
-- (void)mouseDown:(NSEvent *)event
-{
-	proc((int)self, user_data, 0, event);
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_HIWebViewGetWebView(JNIEnv *env, jclass zz, jint viewRef) {
+	return (jint) HIWebViewGetWebView((HIViewRef)viewRef);
 }
 
-- (void)mouseUp:(NSEvent *)event
-{
-	proc((int)self, user_data, 1, event);
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1msgSend__II(JNIEnv *env, jclass zz, jint obj, jint sel) {
+	return (jint) objc_msgSend((void *)obj, (void *)sel);
 }
 
-- (void)rightMouseDown:(NSEvent *)event
-{
-	proc((int)self, user_data, 2, event);
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1msgSend__III(JNIEnv *env, jclass zz, jint obj, jint sel, jint arg0) {
+	return (jint) objc_msgSend((void *)obj, (void *)sel, (void *)arg0);
 }
 
-- (void)drawRect:(NSRect) rect
-{
-	proc((int)self, user_data, 3, &rect);
-	[super drawRect: rect];
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1msgSend__IIII(JNIEnv *env, jclass zz, jint obj, jint sel, jint arg0, jint arg1) {
+	return (jint) objc_msgSend((void *)obj, (void *)sel, (void *)arg0, (void *)arg1);
 }
-@end
+
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1msgSend__IIIII(JNIEnv *env, jclass zz, jint obj, jint sel, jint arg0, jint arg1, jint arg2) {
+	return (jint) objc_msgSend((void *)obj, (void *)sel, (void *)arg0, (void *)arg1, (void *)arg2);
+}
+
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1msgSend__IIIIII(JNIEnv *env, jclass zz, jint obj, jint sel, jint arg0, jint arg1, jint arg2, jint arg3) {
+	return (jint) objc_msgSend((void *)obj, (void *)sel, (void *)arg0, (void *)arg1, (void *)arg2, (void *)arg3);
+}
+
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_objc_1getClass(JNIEnv *env, jclass zz, jbyteArray name) {
+	jbyte *a = (*env)->GetByteArrayElements(env, name, NULL);
+	jint id = (jint) objc_getClass((const char *)a);
+	(*env)->ReleaseByteArrayElements(env, name, a, 0);
+	return id;
+}
+
+JNIEXPORT jint JNICALL Java_org_eclipse_swt_browser_WebKit_sel_1registerName(JNIEnv *env, jclass zz, jbyteArray name) {
+	jbyte *a= (*env)->GetByteArrayElements(env, name, NULL);
+	jint sel= (jint) sel_registerName((const char *)a);
+	(*env)->ReleaseByteArrayElements(env, name, a, 0);
+	return sel;
+}
 
 @interface WebKitDelegate : NSObject
 {

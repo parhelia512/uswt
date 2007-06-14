@@ -597,14 +597,14 @@ JNIEXPORT void JNICALL Gdip_NATIVE(GraphicsPath_1delete)
 }
 #endif
 
-#ifndef NO_GraphicsPath_1new__I
-JNIEXPORT jint JNICALL Gdip_NATIVE(GraphicsPath_1new__I)
+#ifndef NO_GraphicsPath_1new
+JNIEXPORT jint JNICALL Gdip_NATIVE(GraphicsPath_1new)
 	(JNIEnv *env, jclass that, jint arg0)
 {
 	jint rc = 0;
-	Gdip_NATIVE_ENTER(env, that, GraphicsPath_1new__I_FUNC);
+	Gdip_NATIVE_ENTER(env, that, GraphicsPath_1new_FUNC);
 	rc = (jint)new GraphicsPath((FillMode)arg0);
-	Gdip_NATIVE_EXIT(env, that, GraphicsPath_1new__I_FUNC);
+	Gdip_NATIVE_EXIT(env, that, GraphicsPath_1new_FUNC);
 	return rc;
 }
 #endif
@@ -1039,18 +1039,18 @@ JNIEXPORT jint JNICALL Gdip_NATIVE(Graphics_1SetClip__III)
 }
 #endif
 
-#ifndef NO_Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_Rect_2I
-JNIEXPORT jint JNICALL Gdip_NATIVE(Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_Rect_2I)
-	(JNIEnv *env, jclass that, jint arg0, jobject arg1, jint arg2)
+#ifndef NO_Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_RectF_2
+JNIEXPORT jint JNICALL Gdip_NATIVE(Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_RectF_2)
+	(JNIEnv *env, jclass that, jint arg0, jobject arg1)
 {
-	Rect _arg1, *lparg1=NULL;
+	RectF _arg1, *lparg1=NULL;
 	jint rc = 0;
-	Gdip_NATIVE_ENTER(env, that, Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_Rect_2I_FUNC);
-	if (arg1) if ((lparg1 = getRectFields(env, arg1, &_arg1)) == NULL) goto fail;
-	rc = (jint)((Graphics *)arg0)->SetClip(*(Rect *)lparg1, (CombineMode)arg2);
+	Gdip_NATIVE_ENTER(env, that, Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_RectF_2_FUNC);
+	if (arg1) if ((lparg1 = getRectFFields(env, arg1, &_arg1)) == NULL) goto fail;
+	rc = (jint)((Graphics *)arg0)->SetClip(*lparg1);
 fail:
-	if (arg1 && lparg1) setRectFields(env, arg1, lparg1);
-	Gdip_NATIVE_EXIT(env, that, Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_Rect_2I_FUNC);
+	if (arg1 && lparg1) setRectFFields(env, arg1, lparg1);
+	Gdip_NATIVE_EXIT(env, that, Graphics_1SetClip__ILorg_eclipse_swt_internal_gdip_RectF_2_FUNC);
 	return rc;
 }
 #endif
@@ -1674,18 +1674,6 @@ JNIEXPORT jint JNICALL Gdip_NATIVE(Pen_1SetLineJoin)
 }
 #endif
 
-#ifndef NO_Pen_1SetWidth
-JNIEXPORT jint JNICALL Gdip_NATIVE(Pen_1SetWidth)
-	(JNIEnv *env, jclass that, jint arg0, jfloat arg1)
-{
-	jint rc = 0;
-	Gdip_NATIVE_ENTER(env, that, Pen_1SetWidth_FUNC);
-	rc = (jint)((Pen *)arg0)->SetWidth((REAL)arg1);
-	Gdip_NATIVE_EXIT(env, that, Pen_1SetWidth_FUNC);
-	return rc;
-}
-#endif
-
 #ifndef NO_Pen_1delete
 JNIEXPORT void JNICALL Gdip_NATIVE(Pen_1delete)
 	(JNIEnv *env, jclass that, jint arg0)
@@ -1702,7 +1690,7 @@ JNIEXPORT jint JNICALL Gdip_NATIVE(Pen_1new)
 {
 	jint rc = 0;
 	Gdip_NATIVE_ENTER(env, that, Pen_1new_FUNC);
-	rc = (jint)new Pen((Brush *)arg0, (REAL)arg1);
+	rc = (jint)new Pen(*(Color *)arg0, (REAL)arg1);
 	Gdip_NATIVE_EXIT(env, that, Pen_1new_FUNC);
 	return rc;
 }

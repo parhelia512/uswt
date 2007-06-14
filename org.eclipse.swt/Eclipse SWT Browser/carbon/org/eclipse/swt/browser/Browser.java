@@ -15,7 +15,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.carbon.*;
-import org.eclipse.swt.internal.cocoa.*;
 import org.eclipse.swt.widgets.*;
 
 /**
@@ -113,7 +112,7 @@ public Browser(Composite parent, int style) {
 	}
 	int outControl[] = new int[1];
 	try {
-		Cocoa.HIWebViewCreate(outControl);
+		WebKit.HIWebViewCreate(outControl);
 	} catch (UnsatisfiedLinkError e) {
 		dispose();
 		SWT.error(SWT.ERROR_NO_HANDLES);
@@ -177,7 +176,7 @@ public Browser(Composite parent, int style) {
 		if (showEvent[0] != 0) OS.ReleaseEvent(showEvent[0]);
 	}
 
-	final int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
+	final int webView = WebKit.HIWebViewGetWebView(webViewHandle);
 	/*
 	* This code is intentionally commented. Setting a group name is the right thing
 	* to do in order to avoid multiple open window requests. For some reason, Safari
@@ -193,7 +192,7 @@ public Browser(Composite parent, int style) {
 //	WebKit.objc_msgSend(webView, WebKit.S_setGroupName, groupNameString);
 //	OS.CFRelease(groupNameString);
 	
-	final int notificationCenter = Cocoa.objc_msgSend(Cocoa.C_NSNotificationCenter, Cocoa.S_defaultCenter);
+	final int notificationCenter = WebKit.objc_msgSend(WebKit.C_NSNotificationCenter, WebKit.S_defaultCenter);
 
 	Listener listener = new Listener() {
 		public void handleEvent(Event e) {
@@ -221,13 +220,13 @@ public Browser(Composite parent, int style) {
 
 					e.display.setData(ADD_WIDGET_KEY, new Object[] {new Integer(webViewHandle), null});
 
-					Cocoa.objc_msgSend(webView, Cocoa.S_setFrameLoadDelegate, 0);
-					Cocoa.objc_msgSend(webView, Cocoa.S_setResourceLoadDelegate, 0);
-					Cocoa.objc_msgSend(webView, Cocoa.S_setUIDelegate, 0);
-					Cocoa.objc_msgSend(webView, Cocoa.S_setPolicyDelegate, 0);
-					Cocoa.objc_msgSend(notificationCenter, Cocoa.S_removeObserver, delegate);
+					WebKit.objc_msgSend(webView, WebKit.S_setFrameLoadDelegate, 0);
+					WebKit.objc_msgSend(webView, WebKit.S_setResourceLoadDelegate, 0);
+					WebKit.objc_msgSend(webView, WebKit.S_setUIDelegate, 0);
+					WebKit.objc_msgSend(webView, WebKit.S_setPolicyDelegate, 0);
+					WebKit.objc_msgSend(notificationCenter, WebKit.S_removeObserver, delegate);
 					
-					Cocoa.objc_msgSend(delegate, Cocoa.S_release);
+					WebKit.objc_msgSend(delegate, WebKit.S_release);
 					if (OS.HIVIEW) OS.DisposeControl(webViewHandle);
 					html = null;
 					break;
@@ -355,26 +354,26 @@ public Browser(Composite parent, int style) {
 	if (callback7Address == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	
 	// delegate = [[WebResourceLoadDelegate alloc] init eventProc];
-	delegate = Cocoa.objc_msgSend(Cocoa.C_WebKitDelegate, Cocoa.S_alloc);
-	delegate = Cocoa.objc_msgSend(delegate, Cocoa.S_initWithProc, callback7Address, webViewHandle);
+	delegate = WebKit.objc_msgSend(WebKit.C_WebKitDelegate, WebKit.S_alloc);
+	delegate = WebKit.objc_msgSend(delegate, WebKit.S_initWithProc, callback7Address, webViewHandle);
 				
 	// [webView setFrameLoadDelegate:delegate];
-	Cocoa.objc_msgSend(webView, Cocoa.S_setFrameLoadDelegate, delegate);
+	WebKit.objc_msgSend(webView, WebKit.S_setFrameLoadDelegate, delegate);
 		
 	// [webView setResourceLoadDelegate:delegate];
-	Cocoa.objc_msgSend(webView, Cocoa.S_setResourceLoadDelegate, delegate);
+	WebKit.objc_msgSend(webView, WebKit.S_setResourceLoadDelegate, delegate);
 
 	// [webView setUIDelegate:delegate];
-	Cocoa.objc_msgSend(webView, Cocoa.S_setUIDelegate, delegate);
+	WebKit.objc_msgSend(webView, WebKit.S_setUIDelegate, delegate);
 	
 	/* register delegate for all notifications sent out from webview */
-	Cocoa.objc_msgSend(notificationCenter, Cocoa.S_addObserver_selector_name_object, delegate, Cocoa.S_handleNotification, 0, webView);
+	WebKit.objc_msgSend(notificationCenter, WebKit.S_addObserver_selector_name_object, delegate, WebKit.S_handleNotification, 0, webView);
 	
 	// [webView setPolicyDelegate:delegate];
-	Cocoa.objc_msgSend(webView, Cocoa.S_setPolicyDelegate, delegate);
+	WebKit.objc_msgSend(webView, WebKit.S_setPolicyDelegate, delegate);
 
 	// [webView setDownloadDelegate:delegate];
-	Cocoa.objc_msgSend(webView, Cocoa.S_setDownloadDelegate, delegate);
+	WebKit.objc_msgSend(webView, WebKit.S_setDownloadDelegate, delegate);
 }
 
 /**
@@ -383,14 +382,14 @@ public Browser(Composite parent, int style) {
  * @since 3.2
  */
 public static void clearSessions () {
-	int storage = Cocoa.objc_msgSend (Cocoa.C_NSHTTPCookieStorage, Cocoa.S_sharedHTTPCookieStorage);
-	int cookies = Cocoa.objc_msgSend (storage, Cocoa.S_cookies);
-	int count = Cocoa.objc_msgSend (cookies, Cocoa.S_count);
+	int storage = WebKit.objc_msgSend (WebKit.C_NSHTTPCookieStorage, WebKit.S_sharedHTTPCookieStorage);
+	int cookies = WebKit.objc_msgSend (storage, WebKit.S_cookies);
+	int count = WebKit.objc_msgSend (cookies, WebKit.S_count);
 	for (int i = 0; i < count; i++) {
-		int cookie = Cocoa.objc_msgSend (cookies, Cocoa.S_objectAtIndex, i);
-		boolean isSession = Cocoa.objc_msgSend (cookie, Cocoa.S_isSessionOnly) != 0;
+		int cookie = WebKit.objc_msgSend (cookies, WebKit.S_objectAtIndex, i);
+		boolean isSession = WebKit.objc_msgSend (cookie, WebKit.S_isSessionOnly) != 0;
 		if (isSession) {
-			Cocoa.objc_msgSend (storage, Cocoa.S_deleteCookie, cookie);
+			WebKit.objc_msgSend (storage, WebKit.S_deleteCookie, cookie);
 		}
 	}
 }
@@ -628,8 +627,8 @@ public void addVisibilityWindowListener(VisibilityWindowListener listener) {
 public boolean back() {
 	checkWidget();
 	html = null;
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	return Cocoa.objc_msgSend(webView, Cocoa.S_goBack) != 0;
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	return WebKit.objc_msgSend(webView, WebKit.S_goBack) != 0;
 }
 
 protected void checkSubclass () {
@@ -670,8 +669,8 @@ public boolean execute(String script) {
 	script.getChars(0, length, buffer, 0);
 	int string = OS.CFStringCreateWithCharacters(0, buffer, length);
 
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	int value = Cocoa.objc_msgSend(webView, Cocoa.S_stringByEvaluatingJavaScriptFromString, string);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	int value = WebKit.objc_msgSend(webView, WebKit.S_stringByEvaluatingJavaScriptFromString, string);
 	OS.CFRelease(string);
 	return value != 0;
 }
@@ -693,8 +692,8 @@ public boolean execute(String script) {
 public boolean forward() {
 	checkWidget();
 	html = null;
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	return Cocoa.objc_msgSend(webView, Cocoa.S_goForward) != 0;
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	return WebKit.objc_msgSend(webView, WebKit.S_goForward) != 0;
 }
 
 /**
@@ -830,8 +829,8 @@ int handleCallback(int selector, int arg0, int arg1, int arg2, int arg3) {
  */
 public boolean isBackEnabled() {
 	checkWidget();
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	return Cocoa.objc_msgSend(webView, Cocoa.S_canGoBack) != 0;
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	return WebKit.objc_msgSend(webView, WebKit.S_canGoBack) != 0;
 }
 
 /**
@@ -849,8 +848,8 @@ public boolean isBackEnabled() {
  */
 public boolean isForwardEnabled() {
 	checkWidget();
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	return Cocoa.objc_msgSend(webView, Cocoa.S_canGoForward) != 0;
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	return WebKit.objc_msgSend(webView, WebKit.S_canGoForward) != 0;
 }
 
 /**
@@ -865,8 +864,8 @@ public boolean isForwardEnabled() {
  */
 public void refresh() {
 	checkWidget();
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	Cocoa.objc_msgSend(webView, Cocoa.S_reload, 0);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	WebKit.objc_msgSend(webView, WebKit.S_reload, 0);
 }
 
 /**	 
@@ -1203,16 +1202,16 @@ void _setText(String html) {
 	* does not need to be released.
 	* URL = [NSURL URLWithString:(NSString *)URLString]
 	*/	
-	int URL = Cocoa.objc_msgSend(Cocoa.C_NSURL, Cocoa.S_URLWithString, URLString);
+	int URL = WebKit.objc_msgSend(WebKit.C_NSURL, WebKit.S_URLWithString, URLString);
 	OS.CFRelease(URLString);
 
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
 	
 	//mainFrame = [webView mainFrame];
-	int mainFrame = Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame);
+	int mainFrame = WebKit.objc_msgSend(webView, WebKit.S_mainFrame);
 	
 	//[mainFrame loadHTMLString:(NSString *) string baseURL:(NSURL *)URL];
-	Cocoa.objc_msgSend(mainFrame, Cocoa.S_loadHTMLStringbaseURL, string, URL);
+	WebKit.objc_msgSend(mainFrame, WebKit.S_loadHTMLStringbaseURL, string, URL);
 	OS.CFRelease(string);
 }
 
@@ -1261,19 +1260,19 @@ public boolean setUrl(String url) {
 	* does not need to be released.
 	* inURL = [NSURL URLWithString:(NSString *)sHandle]
 	*/	
-	int inURL= Cocoa.objc_msgSend(Cocoa.C_NSURL, Cocoa.S_URLWithString, sHandle);
+	int inURL= WebKit.objc_msgSend(WebKit.C_NSURL, WebKit.S_URLWithString, sHandle);
 	OS.CFRelease(sHandle);
 		
 	//request = [NSURLRequest requestWithURL:(NSURL*)inURL];
-	int request= Cocoa.objc_msgSend(Cocoa.C_NSURLRequest, Cocoa.S_requestWithURL, inURL);
+	int request= WebKit.objc_msgSend(WebKit.C_NSURLRequest, WebKit.S_requestWithURL, inURL);
 	
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
 	
 	//mainFrame = [webView mainFrame];
-	int mainFrame= Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame);
+	int mainFrame= WebKit.objc_msgSend(webView, WebKit.S_mainFrame);
 
 	//[mainFrame loadRequest:request];
-	Cocoa.objc_msgSend(mainFrame, Cocoa.S_loadRequest, request);
+	WebKit.objc_msgSend(mainFrame, WebKit.S_loadRequest, request);
 
 	return true;
 }
@@ -1291,15 +1290,15 @@ public boolean setUrl(String url) {
 public void stop() {
 	checkWidget();
 	html = null;
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	Cocoa.objc_msgSend(webView, Cocoa.S_stopLoading, 0);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	WebKit.objc_msgSend(webView, WebKit.S_stopLoading, 0);
 }
 
 /* WebFrameLoadDelegate */
   
 void didFailProvisionalLoadWithError(int error, int frame) {
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	if (frame == Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame)) {
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	if (frame == WebKit.objc_msgSend(webView, WebKit.S_mainFrame)) {
 		/*
 		* Feature on Safari.  The identifier is used here as a marker for the events 
 		* related to the top frame and the URL changes related to that top frame as 
@@ -1318,8 +1317,8 @@ void didFailProvisionalLoadWithError(int error, int frame) {
 }
 
 void didFinishLoadForFrame(int frame) {
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	if (frame == Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame)) {
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	if (frame == WebKit.objc_msgSend(webView, WebKit.S_mainFrame)) {
 		final Display display= getDisplay();
 		final ProgressEvent progress = new ProgressEvent(this);
 		progress.display = getDisplay();
@@ -1364,8 +1363,8 @@ void didFinishLoadForFrame(int frame) {
 }
 
 void didReceiveTitle(int title, int frame) {
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-	if (frame == Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame)) {
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+	if (frame == WebKit.objc_msgSend(webView, WebKit.S_mainFrame)) {
 		int length = OS.CFStringGetLength(title);
 		char[] buffer = new char[length];
 		CFRange range = new CFRange();
@@ -1396,12 +1395,12 @@ void didStartProvisionalLoadForFrame(int frame) {
 }
 
 void didCommitLoadForFrame(int frame) {
-	int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
+	int webView = WebKit.HIWebViewGetWebView(webViewHandle);
 	//id url= [[[[frame provisionalDataSource] request] URL] absoluteString];
-	int dataSource = Cocoa.objc_msgSend(frame, Cocoa.S_dataSource);
-	int request = Cocoa.objc_msgSend(dataSource, Cocoa.S_request);
-	int url = Cocoa.objc_msgSend(request, Cocoa.S_URL);
-	int s = Cocoa.objc_msgSend(url, Cocoa.S_absoluteString);	
+	int dataSource = WebKit.objc_msgSend(frame, WebKit.S_dataSource);
+	int request = WebKit.objc_msgSend(dataSource, WebKit.S_request);
+	int url = WebKit.objc_msgSend(request, WebKit.S_URL);
+	int s = WebKit.objc_msgSend(url, WebKit.S_absoluteString);	
 	int length = OS.CFStringGetLength(s);
 	if (length == 0) return;
 	char[] buffer = new char[length];
@@ -1411,7 +1410,7 @@ void didCommitLoadForFrame(int frame) {
 	String url2 = new String(buffer);
 	final Display display = getDisplay();
 
-	boolean top = frame == Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame);
+	boolean top = frame == WebKit.objc_msgSend(webView, WebKit.S_mainFrame);
 	if (top) {
 		/* reset resource status variables */
 		resourceCount = 0;		
@@ -1530,12 +1529,12 @@ int identifierForInitialRequest(int request, int dataSource) {
 	* does not need to be released.
 	* identifier = [NSNumber numberWithInt: resourceCount++]
 	*/	
-	int identifier = Cocoa.objc_msgSend(Cocoa.C_NSNumber, Cocoa.S_numberWithInt, resourceCount++);
+	int identifier = WebKit.objc_msgSend(WebKit.C_NSNumber, WebKit.S_numberWithInt, resourceCount++);
 		
 	if (this.identifier == 0) {
-		int webView = Cocoa.HIWebViewGetWebView(webViewHandle);
-		int frame = Cocoa.objc_msgSend(dataSource, Cocoa.S_webFrame);
-		if (frame == Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame)) this.identifier = identifier;
+		int webView = WebKit.HIWebViewGetWebView(webViewHandle);
+		int frame = WebKit.objc_msgSend(dataSource, WebKit.S_webFrame);
+		if (frame == WebKit.objc_msgSend(webView, WebKit.S_mainFrame)) this.identifier = identifier;
 	}
 	return identifier;
 		
@@ -1563,14 +1562,14 @@ int createWebViewWithRequest(int request) {
 	int webView = 0;
 	Browser browser = newEvent.browser;
 	if (browser != null && !browser.isDisposed()) {
-		webView = Cocoa.HIWebViewGetWebView(browser.webViewHandle);
+		webView = WebKit.HIWebViewGetWebView(browser.webViewHandle);
 		
 		if (request != 0) {
 			//mainFrame = [webView mainFrame];
-			int mainFrame= Cocoa.objc_msgSend(webView, Cocoa.S_mainFrame);
+			int mainFrame= WebKit.objc_msgSend(webView, WebKit.S_mainFrame);
 
 			//[mainFrame loadRequest:request];
-			Cocoa.objc_msgSend(mainFrame, Cocoa.S_loadRequest, request);
+			WebKit.objc_msgSend(mainFrame, WebKit.S_loadRequest, request);
 		}
 	}
 	return webView;
@@ -1662,14 +1661,14 @@ void runOpenPanelForFileButtonWithResultListener(int resultListener) {
 	FileDialog dialog = new FileDialog(getShell(), SWT.NONE);
 	String result = dialog.open();
 	if (result == null) {
-		Cocoa.objc_msgSend(resultListener, Cocoa.S_cancel);
+		WebKit.objc_msgSend(resultListener, WebKit.S_cancel);
 		return;
 	}
 	int length = result.length();
 	char[] buffer = new char[length];
 	result.getChars(0, length, buffer, 0);
 	int filename = OS.CFStringCreateWithCharacters(0, buffer, length);
-	Cocoa.objc_msgSend(resultListener, Cocoa.S_chooseFilename, filename);
+	WebKit.objc_msgSend(resultListener, WebKit.S_chooseFilename, filename);
 	OS.CFRelease(filename);
 }
 void webViewClose() {
@@ -1747,18 +1746,18 @@ void setToolbarsVisible(int visible) {
 /* PolicyDelegate */
 
 void decidePolicyForMIMEType(int type, int request, int frame, int listener) {
-	boolean canShow = Cocoa.objc_msgSend(Cocoa.C_WebView, Cocoa.S_canShowMIMEType, type) != 0;
-	Cocoa.objc_msgSend(listener, canShow ? Cocoa.S_use : Cocoa.S_download);
+	boolean canShow = WebKit.objc_msgSend(WebKit.C_WebView, WebKit.S_canShowMIMEType, type) != 0;
+	WebKit.objc_msgSend(listener, canShow ? WebKit.S_use : WebKit.S_download);
 }
 
 void decidePolicyForNavigationAction(int actionInformation, int request, int frame, int listener) {
-	int url = Cocoa.objc_msgSend(request, Cocoa.S_URL);
+	int url = WebKit.objc_msgSend(request, WebKit.S_URL);
 	if (url == 0) {
 		/* indicates that a URL with an invalid format was specified */
-		Cocoa.objc_msgSend(listener, Cocoa.S_ignore);
+		WebKit.objc_msgSend(listener, WebKit.S_ignore);
 		return;
 	}
-	int s = Cocoa.objc_msgSend(url, Cocoa.S_absoluteString);
+	int s = WebKit.objc_msgSend(url, WebKit.S_absoluteString);
 	int length = OS.CFStringGetLength(s);
 	char[] buffer = new char[length];
 	CFRange range = new CFRange();
@@ -1778,7 +1777,7 @@ void decidePolicyForNavigationAction(int actionInformation, int request, int fra
 		changingLocation = false;
 	}
 
-	Cocoa.objc_msgSend(listener, newEvent.doit ? Cocoa.S_use : Cocoa.S_ignore);
+	WebKit.objc_msgSend(listener, newEvent.doit ? WebKit.S_use : WebKit.S_ignore);
 
 	if (html != null && !isDisposed()) {
 		String html = this.html;
@@ -1788,7 +1787,7 @@ void decidePolicyForNavigationAction(int actionInformation, int request, int fra
 }
 
 void decidePolicyForNewWindowAction(int actionInformation, int request, int frameName, int listener) {
-	Cocoa.objc_msgSend(listener, Cocoa.S_use);
+	WebKit.objc_msgSend(listener, WebKit.S_use);
 }
 
 void unableToImplementPolicyWithError(int error, int frame) {
@@ -1809,14 +1808,14 @@ void decideDestinationWithSuggestedFilename (int download, int filename) {
 	String path = dialog.open();
 	if (path == null) {
 		/* cancel pressed */
-		Cocoa.objc_msgSend(download, Cocoa.S_release);
+		WebKit.objc_msgSend(download, WebKit.S_release);
 		return;
 	}
 	length = path.length();
 	char[] chars = new char[length];
 	path.getChars(0, length, chars, 0);
 	int result = OS.CFStringCreateWithCharacters(0, chars, length);
-	Cocoa.objc_msgSend(download, Cocoa.S_setDestinationAllowOverwrite, result, 1);
+	WebKit.objc_msgSend(download, WebKit.S_setDestinationAllowOverwrite, result, 1);
 	OS.CFRelease(result);
 }
 }

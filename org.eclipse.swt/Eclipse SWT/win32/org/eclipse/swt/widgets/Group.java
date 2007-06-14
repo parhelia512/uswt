@@ -400,7 +400,6 @@ LRESULT WM_UPDATEUISTATE (int wParam, int lParam) {
 				redraw = findThemeControl () != null;
 			}
 		}
-		if (!redraw) redraw = findBackgroundControl () != null;
 	}
 	if (redraw) {
 		OS.InvalidateRect (handle, null, false);

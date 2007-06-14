@@ -283,11 +283,11 @@ Point computeSize () {
 				imageHeight = rect.height;
 			}
 			if ((parent.style & SWT.RIGHT) != 0) {
-				width = stringWidth + imageWidth + space;
+				width = stringWidth + imageWidth;
 				height = Math.max (stringHeight, imageHeight);
 			} else {
 				width = Math.max (stringWidth, imageWidth);
-				height = stringHeight + imageHeight + space;
+				height = stringHeight + imageHeight;
 			}
 		} else {
 			width = DEFAULT_WIDTH;
@@ -297,8 +297,8 @@ Point computeSize () {
 			width += ARROW_WIDTH;
 		}
 		int inset = 3;
-		width += inset * 2;
-		height += inset * 2;
+		width += space + inset * 2;
+		height += space + inset * 2;
 	}
 	return new Point (width, height);
 }
@@ -834,7 +834,7 @@ int kEventMouseDown (int nextHandler, int theEvent, int userData) {
 		OS.GetEventParameter (theEvent, OS.kEventParamMouseButton, OS.typeMouseButton, null, 2, null, button);
 		int chord = OS.GetCurrentEventButtonState ();
 		int modifiers = OS.GetCurrentEventKeyModifiers ();
-		parent.sendMouseEvent (SWT.MouseUp, button [0], display.clickCount, true, chord, (short)x, (short)y, modifiers);
+		parent.sendMouseEvent (SWT.MouseUp, button [0], true, chord, (short)x, (short)y, modifiers);
 	}
 	tracking = false;
 	return result;
