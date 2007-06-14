@@ -248,9 +248,8 @@ void setFontDescription (int /*long*/ font) {
 }
 
 void setForegroundColor (GdkColor color) {
-	/* Don't set the color in vbox handle (it doesn't draw) */
-	setForegroundColor (labelHandle, color);
-	setForegroundColor (imageHandle, color);
+	OS.gtk_widget_modify_fg (labelHandle,  OS.GTK_STATE_NORMAL, color);
+	OS.gtk_widget_modify_fg (imageHandle,  OS.GTK_STATE_NORMAL, color);
 }
 
 public void setImage (Image image) {

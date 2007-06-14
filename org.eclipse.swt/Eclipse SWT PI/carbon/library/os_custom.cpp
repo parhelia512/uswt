@@ -4,7 +4,7 @@
 #include "org/eclipse/swt/internal/carbon/CGRect.h"
 #include "org/eclipse/swt/internal/carbon/CGPoint.h"
 #include "org/eclipse/swt/internal/carbon/OS.h"
-#include "org/eclipse/swt/internal/cocoa/Cocoa.h"
+/*#include "org/eclipse/swt/internal/cocoa/Cocoa.h"*/
 #include "os.h"
 
 #ifndef NO_CGPoint
@@ -190,6 +190,7 @@ bigEndian()
 
 extern id objc_msgSend(id, SEL, ...);
 
+#if 0
 #ifndef NO_objc_1msgSend__IIF
 jint
 org::eclipse::swt::internal::cocoa::Cocoa::
@@ -198,4 +199,5 @@ objc_msgSend(jint p0, jint p1, jfloat p2)
   return ((jint (*) (id, SEL, float)) ::objc_msgSend)
     ((id) p0, (SEL) p1, p2);
 }
+#endif
 #endif

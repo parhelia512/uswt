@@ -96,7 +96,7 @@ public class OS extends Platform {
 			OS.MoveMemory (pszText, buffer, byteCount);	
 			ACTCTX pActCtx = new ACTCTX ();
 			pActCtx.cbSize = ACTCTX.sizeof;
-			pActCtx.dwFlags = OS.ACTCTX_FLAG_RESOURCE_NAME_VALID;
+			pActCtx.dwFlags = OS.ACTCTX_FLAG_RESOURCE_NAME_VALID | OS.ACTCTX_FLAG_SET_PROCESS_DEFAULT;
 			pActCtx.lpSource = pszText;
 			pActCtx.lpResourceName = OS.MANIFEST_RESOURCE_ID;
 			int hActCtx = OS.CreateActCtx (pActCtx);
@@ -123,12 +123,19 @@ public class OS extends Platform {
 		* to move the composition window outside of the client
 		* area, Windows crashes.  The fix is to disable legacy
 		* support.
+		* 
+		* Note: The bug is fixed in Service Pack 2.
 		*/
-		if (!OS.IsWinCE && OS.WIN32_VERSION >= OS.VERSION (5, 1)) {
+		if (!OS.IsWinCE && OS.WIN32_VERSION == OS.VERSION (5, 1)) {
 			short langID = OS.GetSystemDefaultUILanguage ();
 			short primaryLang = OS.PRIMARYLANGID (langID);
 			if (primaryLang == OS.LANG_KOREAN) {
-				OS.ImmDisableTextFrameService (0);
+				OSVERSIONINFOEX infoex = IsUnicode ? (OSVERSIONINFOEX)new OSVERSIONINFOEXW () : (OSVERSIONINFOEX)new OSVERSIONINFOEXA ();
+				infoex.dwOSVersionInfoSize = OSVERSIONINFOEX.sizeof;
+				OS.GetVersionEx (infoex);
+				if (infoex.wServicePackMajor < 2) {
+					OS.ImmDisableTextFrameService (0);
+				}
 			}
 		}
 	}
@@ -1065,10 +1072,6 @@ public class OS extends Platform {
 	public static final int PD_RETURNDC = 0x100;
 	public static final int PD_SELECTION = 0x1;
 	public static final int PD_USEDEVMODECOPIESANDCOLLATE = 0x40000;
-	public static final int PT_CLOSEFIGURE = 1;
-	public static final int PT_LINETO = 2;
-	public static final int PT_BEZIERTO = 4;
-	public static final int PT_MOVETO = 6;
 	public static final int PFM_TABSTOPS = 0x10;
 	public static final int PHYSICALHEIGHT = 0x6f;
 	public static final int PHYSICALOFFSETX = 0x70;
@@ -1263,7 +1266,6 @@ public class OS extends Platform {
 	public static final int SM_CYMENU = 0xf;
 	public static final int SM_CXMINTRACK = 34;
 	public static final int SM_CYMINTRACK = 35;
-	public static final int SM_CMOUSEBUTTONS = 43;
 	public static final int SM_CYSCREEN = 0x1;
 	public static final int SM_CYVSCROLL = 0x14;
 	public static final int SM_DBCSENABLED = 0x2A;
@@ -1585,6 +1587,8 @@ public class OS extends Platform {
 	public static final int TVN_FIRST = 0xfffffe70;
 	public static final int TVN_GETDISPINFOA = TVN_FIRST - 3;
 	public static final int TVN_GETDISPINFOW = TVN_FIRST - 52;
+	public static final int TVN_ITEMCHANGINGW = TVN_FIRST - 17;
+	public static final int TVN_ITEMCHANGINGA = TVN_FIRST - 16;
 	public static final int TVN_ITEMEXPANDEDA = TVN_FIRST -6;
 	public static final int TVN_ITEMEXPANDEDW = TVN_FIRST - 55;
 	public static final int TVN_ITEMEXPANDINGW = 0xfffffe3a;
@@ -2209,6 +2213,11 @@ public static final boolean GetVersionEx (OSVERSIONINFO lpVersionInfo) {
 	return GetVersionExA ((OSVERSIONINFOA)lpVersionInfo);
 }
 
+public static final boolean GetVersionEx (OSVERSIONINFOEX lpVersionInfo) {
+	if (IsUnicode) return GetVersionExW ((OSVERSIONINFOEXW)lpVersionInfo);
+	return GetVersionExA ((OSVERSIONINFOEXA)lpVersionInfo);
+}
+
 public static final int GetWindowLong (int hWnd, int nIndex) {
 	if (IsUnicode) return GetWindowLongW (hWnd, nIndex);
 	return GetWindowLongA (hWnd, nIndex);
@@ -2724,7 +2733,6 @@ public static final native int ActivateKeyboardLayout(int hkl, int Flags);
 public static final native boolean AdjustWindowRectEx (RECT lpRect, int dwStyle, boolean bMenu, int dwExStyle);
 public static final native boolean AlphaBlend(int hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest, int nHeightDest, int hdcSrc, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc, BLENDFUNCTION blendFunction);
 public static final native boolean Arc (int hdc,int nLeftRect,int nTopRect,int nRightRect,int nBottomRect,int nXStartArc,int nYStartArc,int nXEndArc,int nYEndArc);
-public static final native boolean AttachThreadInput (int idAttach, int idAttachTo, boolean fAttach);
 public static final native int BeginDeferWindowPos (int nNumWindows);
 public static final native int BeginPaint (int hWnd, PAINTSTRUCT lpPaint);
 public static final native boolean BeginPath(int hdc);
@@ -2952,7 +2960,6 @@ public static final native int GetObjectA (int hgdiobj, int cbBuffer, int lpvObj
 public static final native int GetObjectW (int hgdiobj, int cbBuffer, int lpvObject);
 public static final native boolean GetOpenFileNameW (OPENFILENAME lpofn);
 public static final native boolean GetOpenFileNameA (OPENFILENAME lpofn);
-public static final native int GetPath(int hdc, int[] lpPoints, byte[] lpTypes, int nSize);
 public static final native int GetPaletteEntries (int hPalette, int iStartIndex, int nEntries, byte[] logPalette);
 public static final native int GetParent (int hWnd);
 public static final native int GetPixel (int hdc, int x, int y);
@@ -2992,6 +2999,8 @@ public static final native int GetThemeRect(int hTheme, int iPartId, int iStateI
 public static final native int GetThemeSysSize(int hTheme, int iSizeID);
 public static final native boolean GetUpdateRect (int hWnd, RECT lpRect, boolean bErase);
 public static final native int GetUpdateRgn (int hWnd, int hRgn, boolean bErase);
+public static final native boolean GetVersionExW (OSVERSIONINFOEXW lpVersionInfo);
+public static final native boolean GetVersionExA (OSVERSIONINFOEXA lpVersionInfo);
 public static final native boolean GetVersionExW (OSVERSIONINFOW lpVersionInfo);
 public static final native boolean GetVersionExA (OSVERSIONINFOA lpVersionInfo);
 public static final native int GetWindow (int hWnd, int uCmd);
@@ -3149,6 +3158,7 @@ public static final native void MoveMemory (NMCUSTOMDRAW Destination, int Source
 public static final native void MoveMemory (NMLVCUSTOMDRAW Destination, int Source, int Length);
 public static final native void MoveMemory (NMTBHOTITEM Destination, int Source, int Length);
 public static final native void MoveMemory (NMTVCUSTOMDRAW Destination, int Source, int Length);
+public static final native void MoveMemory (NMTVITEMCHANGE Destination, int Source, int Length);
 public static final native void MoveMemory (NMUPDOWN Destination, int Source, int Length);
 public static final native void MoveMemory (int Destination, NMLVCUSTOMDRAW Source, int Length);
 public static final native void MoveMemory (int Destination, NMTVCUSTOMDRAW Source, int Length);

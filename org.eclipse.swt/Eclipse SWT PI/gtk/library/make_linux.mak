@@ -202,7 +202,7 @@ gnome_stats.o: gnome_stats.c gnome_stats.h
 #
 # Mozilla lib
 #
-make_mozilla:$(MOZILLA_LIB) $(PROFILE_TARGETS)
+make_mozilla:$(MOZILLA_LIB) $(PROFILE14_LIB) $(PROFILE17_LIB) $(PROFILE18_LIB)
 
 $(MOZILLA_LIB): $(MOZILLA_OBJECTS)
 	$(CXX) -o $(MOZILLA_LIB) $(MOZILLA_OBJECTS) $(MOZILLALIBS) ${GECKO_LIBS}
@@ -217,7 +217,7 @@ xpcom_custom.o: xpcom_custom.cpp
 	$(CXX) $(MOZILLACFLAGS) ${GECKO_INCLUDES} -c xpcom_custom.cpp
 
 xpcom_stats.o: xpcom_stats.cpp
-	$(CXX) $(MOZILLACFLAGS) ${GECKO_INCLUDES} -c xpcom_stats.cpp
+	$(CXX) $(MOZILLACFLAGS) ${GECKO_INCLUDES} -c xpcom_stats.cpp	
 
 $(PROFILE14_OBJECTS): xpcom_profile.cpp
 	$(CXX) -o $(PROFILE14_OBJECTS) $(MOZILLACFLAGS) ${PROFILE14_INCLUDES} -c xpcom_profile.cpp	
@@ -228,13 +228,13 @@ $(PROFILE17_OBJECTS): xpcom_profile.cpp
 $(PROFILE18_OBJECTS): xpcom_profile.cpp
 	$(CXX) -o $(PROFILE18_OBJECTS) $(MOZILLACFLAGS) ${PROFILE18_INCLUDES} -c xpcom_profile.cpp	
 
-profile14: $(PROFILE14_OBJECTS)
+$(PROFILE14_LIB): $(PROFILE14_OBJECTS)
 	$(CXX) -o $(PROFILE14_LIB) $(PROFILE14_OBJECTS) $(MOZILLALIBS) ${PROFILE14_LIBS}
 
-profile17: $(PROFILE17_OBJECTS)
+$(PROFILE17_LIB): $(PROFILE17_OBJECTS)
 	$(CXX) -o $(PROFILE17_LIB) $(PROFILE17_OBJECTS) $(MOZILLALIBS) ${PROFILE17_LIBS}
 
-profile18: $(PROFILE18_OBJECTS)
+$(PROFILE18_LIB): $(PROFILE18_OBJECTS)
 	$(CXX) -o $(PROFILE18_LIB) $(PROFILE18_OBJECTS) $(MOZILLALIBS) ${PROFILE18_LIBS}
 
 #

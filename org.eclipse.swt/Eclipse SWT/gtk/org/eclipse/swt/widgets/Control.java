@@ -439,6 +439,8 @@ void forceResize () {
 	* must be preceded by a call to gtk_widget_size_request().
 	*/
 	int /*long*/ topHandle = topHandle ();
+	int flags = OS.GTK_WIDGET_FLAGS (topHandle);
+	OS.GTK_WIDGET_SET_FLAGS (topHandle, OS.GTK_VISIBLE);
 	GtkRequisition requisition = new GtkRequisition ();
 	OS.gtk_widget_size_request (topHandle, requisition);
 	GtkAllocation allocation = new GtkAllocation ();
@@ -447,6 +449,9 @@ void forceResize () {
 	allocation.width = OS.GTK_WIDGET_WIDTH (topHandle);
 	allocation.height = OS.GTK_WIDGET_HEIGHT (topHandle);
 	OS.gtk_widget_size_allocate (topHandle, allocation);
+	if ((flags & OS.GTK_VISIBLE) == 0) {
+		OS.GTK_WIDGET_UNSET_FLAGS (topHandle, OS.GTK_VISIBLE);	
+	}
 }
 
 /**
@@ -556,20 +561,7 @@ void markLayout (boolean changed, boolean all) {
 void moveHandle (int x, int y) {
 	int /*long*/ topHandle = topHandle ();
 	int /*long*/ parentHandle = parent.parentingHandle ();
-	/*
-	* Feature in GTK.  Calling gtk_fixed_move() to move a child causes
-	* the whole parent to redraw.  This is a performance problem. The
-	* fix is temporarily make the parent not visible during the move.
-	* 
-	* NOTE: Because every widget in SWT has an X window, the new and
-	* old bounds of the child are correctly redrawn.
-	*/
-	int flags = OS.GTK_WIDGET_FLAGS (parentHandle);
-	OS.GTK_WIDGET_UNSET_FLAGS (parentHandle, OS.GTK_VISIBLE);
 	OS.gtk_fixed_move (parentHandle, topHandle, x, y);
-	if ((flags & OS.GTK_VISIBLE) != 0) {
-		OS.GTK_WIDGET_SET_FLAGS (parentHandle, OS.GTK_VISIBLE);	
-	}
 }
 
 void resizeHandle (int width, int height) {
@@ -580,6 +572,8 @@ void resizeHandle (int width, int height) {
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	int /*long*/ topHandle = topHandle ();
+	int flags = OS.GTK_WIDGET_FLAGS (topHandle);
+	OS.GTK_WIDGET_SET_FLAGS (topHandle, OS.GTK_VISIBLE);
 	boolean sameOrigin = true, sameExtent = true;
 	if (move) {
 		int oldX = OS.GTK_WIDGET_X (topHandle);
@@ -632,6 +626,9 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 			allocation.height = OS.GTK_WIDGET_HEIGHT (topHandle);
 		}
 		OS.gtk_widget_size_allocate (topHandle, allocation);
+	}
+	if ((flags & OS.GTK_VISIBLE) == 0) {
+		OS.GTK_WIDGET_UNSET_FLAGS (topHandle, OS.GTK_VISIBLE);	
 	}
 	/*
 	* Bug in GTK.  Widgets cannot be sized smaller than 1x1.
@@ -1589,8 +1586,6 @@ public boolean forceFocus () {
 }
 
 boolean forceFocus (int /*long*/ focusHandle) {
-	/* When the control is zero sized it must be realized */
-	OS.gtk_widget_realize (focusHandle);
 	OS.gtk_widget_grab_focus (focusHandle);
 	Shell shell = getShell ();
 	int /*long*/ shellHandle = shell.shellHandle;
@@ -1923,39 +1918,33 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	GdkEventButton gdkEvent = new GdkEventButton ();
 	OS.memmove (gdkEvent, event, GdkEventButton.sizeof);
 	if (gdkEvent.type == OS.GDK_3BUTTON_PRESS) return 0;
+	/*
+	* When a shell is created with SWT.ON_TOP and SWT.NO_FOCUS,
+	* do not activate the shell when the user clicks on the
+	* the client area or on the border or a control within the
+	* shell that does not take focus.
+	*/
 	Shell shell = _getShell ();
-	if ((shell.style & SWT.ON_TOP) != 0) shell.forceActive ();
+	if (((shell.style & SWT.ON_TOP) != 0) && (((shell.style & SWT.NO_FOCUS) == 0) || ((style & SWT.NO_FOCUS) == 0))) {
+		shell.forceActive();
+	}
 	display.dragStartX = (int) gdkEvent.x;
 	display.dragStartY = (int) gdkEvent.y;
 	display.dragging = display.dragOverride = false;
-	int /*long*/ result;
-	if (gdkEvent.type == OS.GDK_BUTTON_PRESS) {
-		display.clickCount = 1;
-		int /*long*/ nextEvent = OS.gdk_event_peek ();
-		if (nextEvent != 0) {
-			int eventType = OS.GDK_EVENT_TYPE (nextEvent);
-			if (eventType == OS.GDK_2BUTTON_PRESS) display.clickCount = 2;
-			if (eventType == OS.GDK_3BUTTON_PRESS) display.clickCount = 3;
-			OS.gdk_event_free (nextEvent);
-		}
-		result = sendMouseEvent (SWT.MouseDown, gdkEvent.button, display.clickCount, 0, false, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
-		if (isDisposed ()) return 1;
-		if (gdkEvent.button == 1) {
-			display.dragOverride = dragOverride () && dragDetect (display.dragStartX, display.dragStartY);
-			if (display.dragOverride) result = 1;
-		}
-		if ((state & MENU) != 0) {
-			if (gdkEvent.button == 3) {
-				if (showMenu ((int)gdkEvent.x_root, (int)gdkEvent.y_root)) {
-					result = 1;
-				}
+	int type = gdkEvent.type != OS.GDK_2BUTTON_PRESS ? SWT.MouseDown : SWT.MouseDoubleClick;
+	int /*long*/ result = sendMouseEvent (type, gdkEvent.button, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
+	if (isDisposed ()) return 1;
+	if (gdkEvent.button == 1 && gdkEvent.type == OS.GDK_BUTTON_PRESS) {
+		display.dragOverride = dragOverride () && dragDetect (display.dragStartX, display.dragStartY);
+		if (display.dragOverride) result = 1;
+	}
+	if ((state & MENU) != 0) {
+		if (gdkEvent.button == 3 && gdkEvent.type == OS.GDK_BUTTON_PRESS) {
+			if (showMenu ((int)gdkEvent.x_root, (int)gdkEvent.y_root)) {
+				result = 1;
 			}
 		}
-	} else {
-		display.clickCount = 2;
-		result = sendMouseEvent (SWT.MouseDoubleClick, gdkEvent.button, display.clickCount, 0, false, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
-		if (isDisposed ()) return 1;
-	}
+	}	
 	if (!shell.isDisposed ()) shell.setActiveControl (this);
 	return result;
 }
@@ -1976,7 +1965,7 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ event) 
 		case -6: button = 4; break;
 		case -7: button = 5; break;
 	}
-	return sendMouseEvent (SWT.MouseUp, button, display.clickCount, 0, false, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
+	return sendMouseEvent (SWT.MouseUp, button, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
 }
 
 int /*long*/ gtk_commit (int /*long*/ imcontext, int /*long*/ text) {
@@ -3019,7 +3008,7 @@ public void setForeground (Color color) {
 }
 
 void setForegroundColor (GdkColor color) {
-	setForegroundColor (handle, color);
+	OS.gtk_widget_modify_fg (handle, OS.GTK_STATE_NORMAL, color);
 }
 
 void setInitialBounds () {
@@ -3720,7 +3709,6 @@ void update (boolean all, boolean flush) {
 	int /*long*/ window = paintWindow ();
 	if (flush) display.flushExposes (window, all);
 	OS.gdk_window_process_updates (window, all);
-	OS.gdk_flush ();
 }
 
 void updateBackgroundMode () {

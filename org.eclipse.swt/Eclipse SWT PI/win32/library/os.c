@@ -131,18 +131,6 @@ JNIEXPORT jboolean JNICALL OS_NATIVE(Arc)
 }
 #endif
 
-#ifndef NO_AttachThreadInput
-JNIEXPORT jboolean JNICALL OS_NATIVE(AttachThreadInput)
-	(JNIEnv *env, jclass that, jint arg0, jint arg1, jboolean arg2)
-{
-	jboolean rc = 0;
-	OS_NATIVE_ENTER(env, that, AttachThreadInput_FUNC);
-	rc = (jboolean)AttachThreadInput((DWORD)arg0, (DWORD)arg1, arg2);
-	OS_NATIVE_EXIT(env, that, AttachThreadInput_FUNC);
-	return rc;
-}
-#endif
-
 #ifndef NO_BeginDeferWindowPos
 JNIEXPORT jint JNICALL OS_NATIVE(BeginDeferWindowPos)
 	(JNIEnv *env, jclass that, jint arg0)
@@ -3885,25 +3873,6 @@ JNIEXPORT jint JNICALL OS_NATIVE(GetParent)
 }
 #endif
 
-#ifndef NO_GetPath
-JNIEXPORT jint JNICALL OS_NATIVE(GetPath)
-	(JNIEnv *env, jclass that, jint arg0, jintArray arg1, jbyteArray arg2, jint arg3)
-{
-	jint *lparg1=NULL;
-	jbyte *lparg2=NULL;
-	jint rc = 0;
-	OS_NATIVE_ENTER(env, that, GetPath_FUNC);
-	if (arg1) if ((lparg1 = (*env)->GetIntArrayElements(env, arg1, NULL)) == NULL) goto fail;
-	if (arg2) if ((lparg2 = (*env)->GetByteArrayElements(env, arg2, NULL)) == NULL) goto fail;
-	rc = (jint)GetPath((HDC)arg0, (LPPOINT)lparg1, (LPBYTE)lparg2, arg3);
-fail:
-	if (arg2 && lparg2) (*env)->ReleaseByteArrayElements(env, arg2, lparg2, 0);
-	if (arg1 && lparg1) (*env)->ReleaseIntArrayElements(env, arg1, lparg1, 0);
-	OS_NATIVE_EXIT(env, that, GetPath_FUNC);
-	return rc;
-}
-#endif
-
 #ifndef NO_GetPixel
 JNIEXPORT jint JNICALL OS_NATIVE(GetPixel)
 	(JNIEnv *env, jclass that, jint arg0, jint arg1, jint arg2)
@@ -4761,34 +4730,66 @@ JNIEXPORT jint JNICALL OS_NATIVE(GetUpdateRgn)
 }
 #endif
 
-#ifndef NO_GetVersionExA
-JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExA)
+#ifndef NO_GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2
+JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2)
 	(JNIEnv *env, jclass that, jobject arg0)
 {
 	OSVERSIONINFOA _arg0, *lparg0=NULL;
 	jboolean rc = 0;
-	OS_NATIVE_ENTER(env, that, GetVersionExA_FUNC);
+	OS_NATIVE_ENTER(env, that, GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2_FUNC);
 	if (arg0) if ((lparg0 = getOSVERSIONINFOAFields(env, arg0, &_arg0)) == NULL) goto fail;
 	rc = (jboolean)GetVersionExA(lparg0);
 fail:
 	if (arg0 && lparg0) setOSVERSIONINFOAFields(env, arg0, lparg0);
-	OS_NATIVE_EXIT(env, that, GetVersionExA_FUNC);
+	OS_NATIVE_EXIT(env, that, GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOA_2_FUNC);
 	return rc;
 }
 #endif
 
-#ifndef NO_GetVersionExW
-JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExW)
+#ifndef NO_GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2
+JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2)
+	(JNIEnv *env, jclass that, jobject arg0)
+{
+	OSVERSIONINFOEXA _arg0, *lparg0=NULL;
+	jboolean rc = 0;
+	OS_NATIVE_ENTER(env, that, GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2_FUNC);
+	if (arg0) if ((lparg0 = getOSVERSIONINFOEXAFields(env, arg0, &_arg0)) == NULL) goto fail;
+	rc = (jboolean)GetVersionExA((LPOSVERSIONINFOA)lparg0);
+fail:
+	if (arg0 && lparg0) setOSVERSIONINFOEXAFields(env, arg0, lparg0);
+	OS_NATIVE_EXIT(env, that, GetVersionExA__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXA_2_FUNC);
+	return rc;
+}
+#endif
+
+#ifndef NO_GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2
+JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2)
+	(JNIEnv *env, jclass that, jobject arg0)
+{
+	OSVERSIONINFOEXW _arg0, *lparg0=NULL;
+	jboolean rc = 0;
+	OS_NATIVE_ENTER(env, that, GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2_FUNC);
+	if (arg0) if ((lparg0 = getOSVERSIONINFOEXWFields(env, arg0, &_arg0)) == NULL) goto fail;
+	rc = (jboolean)GetVersionExW((LPOSVERSIONINFOW)lparg0);
+fail:
+	if (arg0 && lparg0) setOSVERSIONINFOEXWFields(env, arg0, lparg0);
+	OS_NATIVE_EXIT(env, that, GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOEXW_2_FUNC);
+	return rc;
+}
+#endif
+
+#ifndef NO_GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOW_2
+JNIEXPORT jboolean JNICALL OS_NATIVE(GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOW_2)
 	(JNIEnv *env, jclass that, jobject arg0)
 {
 	OSVERSIONINFOW _arg0, *lparg0=NULL;
 	jboolean rc = 0;
-	OS_NATIVE_ENTER(env, that, GetVersionExW_FUNC);
+	OS_NATIVE_ENTER(env, that, GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOW_2_FUNC);
 	if (arg0) if ((lparg0 = getOSVERSIONINFOWFields(env, arg0, &_arg0)) == NULL) goto fail;
 	rc = (jboolean)GetVersionExW(lparg0);
 fail:
 	if (arg0 && lparg0) setOSVERSIONINFOWFields(env, arg0, lparg0);
-	OS_NATIVE_EXIT(env, that, GetVersionExW_FUNC);
+	OS_NATIVE_EXIT(env, that, GetVersionExW__Lorg_eclipse_swt_internal_win32_OSVERSIONINFOW_2_FUNC);
 	return rc;
 }
 #endif
@@ -7208,6 +7209,20 @@ JNIEXPORT void JNICALL OS_NATIVE(MoveMemory__Lorg_eclipse_swt_internal_win32_NMT
 fail:
 	if (arg0 && lparg0) setNMTVDISPINFOFields(env, arg0, lparg0);
 	OS_NATIVE_EXIT(env, that, MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVDISPINFO_2II_FUNC);
+}
+#endif
+
+#ifndef NO_MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2II
+JNIEXPORT void JNICALL OS_NATIVE(MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2II)
+	(JNIEnv *env, jclass that, jobject arg0, jint arg1, jint arg2)
+{
+	NMTVITEMCHANGE _arg0, *lparg0=NULL;
+	OS_NATIVE_ENTER(env, that, MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2II_FUNC);
+	if (arg0) if ((lparg0 = &_arg0) == NULL) goto fail;
+	MoveMemory((PVOID)lparg0, (CONST VOID *)arg1, arg2);
+fail:
+	if (arg0 && lparg0) setNMTVITEMCHANGEFields(env, arg0, lparg0);
+	OS_NATIVE_EXIT(env, that, MoveMemory__Lorg_eclipse_swt_internal_win32_NMTVITEMCHANGE_2II_FUNC);
 }
 #endif
 

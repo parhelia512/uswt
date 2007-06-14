@@ -15,8 +15,6 @@
 /*#define NDEBUG*/
 
 #include <Carbon/Carbon.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include "os_custom.h"
 

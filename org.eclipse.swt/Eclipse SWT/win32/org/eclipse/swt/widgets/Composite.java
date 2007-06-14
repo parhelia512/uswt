@@ -1242,24 +1242,24 @@ LRESULT WM_PAINT (int wParam, int lParam) {
 			if ((style & SWT.DOUBLE_BUFFERED) != 0) {
 				image = new Image (display, width, height);
 				paintGC = gc;
-				gc = new GC (image, style & SWT.RIGHT_TO_LEFT);
+				gc = new GC (image, paintGC.getStyle () & SWT.RIGHT_TO_LEFT);
 				gc.setForeground (getForeground ());
 				gc.setBackground (getBackground ());
 				gc.setFont (getFont ());
-				if ((style & SWT.NO_BACKGROUND) != 0) {
-					/* This code is intentionally commented because it may be slow to copy bits from the screen */
-					//paintGC.copyArea (image, ps.left, ps.top);
-				} else {
-					RECT rect = new RECT ();
-					OS.SetRect (rect, 0, 0, width, height);
-					drawBackground (gc.handle, rect);
-				}
 				OS.OffsetRgn (sysRgn, -ps.left, -ps.top);
 				OS.SelectClipRgn (gc.handle, sysRgn);
 				OS.OffsetRgn (sysRgn, ps.left, ps.top);
 				OS.SetMetaRgn (gc.handle);	
 				OS.SetWindowOrgEx (gc.handle, ps.left, ps.top, null);
 				OS.SetBrushOrgEx (gc.handle, ps.left, ps.top, null);
+				if ((style & SWT.NO_BACKGROUND) != 0) {
+					/* This code is intentionally commented because it may be slow to copy bits from the screen */
+					//paintGC.copyArea (image, ps.left, ps.top);
+				} else {
+					RECT rect = new RECT ();
+					OS.SetRect (rect, ps.left, ps.top, ps.right, ps.bottom);
+					drawBackground (gc.handle, rect);
+				}
 			}
 			Event event = new Event ();
 			event.gc = gc;			
@@ -1471,13 +1471,9 @@ LRESULT WM_SYSCOMMAND (int wParam, int lParam) {
 
 LRESULT wmNCPaint (int hwnd, int wParam, int lParam) {
 	if (OS.COMCTL32_MAJOR >= 6 && OS.IsAppThemed ()) {
-		int bits1 = OS.GetWindowLong (hwnd, OS.GWL_EXSTYLE);
-		if ((bits1 & OS.WS_EX_CLIENTEDGE) != 0) {
-			int code = 0;
-			int bits2 = OS.GetWindowLong (hwnd, OS.GWL_STYLE);
-			if ((bits2 & (OS.WS_HSCROLL | OS.WS_VSCROLL)) != 0) {
-				code = callWindowProc (hwnd, OS.WM_NCPAINT, wParam, lParam);
-			}
+		int bits = OS.GetWindowLong (hwnd, OS.GWL_EXSTYLE);
+		if ((bits & OS.WS_EX_CLIENTEDGE) != 0) {
+			int code = callWindowProc (hwnd, OS.WM_NCPAINT, wParam, lParam);
 			int hDC = OS.GetWindowDC (hwnd);
 			RECT rect = new RECT ();
 			OS.GetWindowRect (hwnd, rect);

@@ -24,8 +24,8 @@
 
 #ifdef NATIVE_STATS
 
-int Cairo_nativeFunctionCount = 143;
-int Cairo_nativeFunctionCallCount[143];
+int Cairo_nativeFunctionCount = 139;
+int Cairo_nativeFunctionCallCount[139];
 char * Cairo_nativeFunctionNames[] = {
 	"cairo_1append_1path",
 	"cairo_1arc",
@@ -109,8 +109,6 @@ char * Cairo_nativeFunctionNames[] = {
 	"cairo_1pattern_1set_1extend",
 	"cairo_1pattern_1set_1filter",
 	"cairo_1pattern_1set_1matrix",
-	"cairo_1pdf_1surface_1set_1size",
-	"cairo_1ps_1surface_1set_1size",
 	"cairo_1rectangle",
 	"cairo_1reference",
 	"cairo_1rel_1curve_1to",
@@ -151,11 +149,9 @@ char * Cairo_nativeFunctionNames[] = {
 	"cairo_1surface_1create_1similar",
 	"cairo_1surface_1destroy",
 	"cairo_1surface_1finish",
-	"cairo_1surface_1get_1type",
 	"cairo_1surface_1get_1user_1data",
 	"cairo_1surface_1reference",
 	"cairo_1surface_1set_1device_1offset",
-	"cairo_1surface_1set_1fallback_1resolution",
 	"cairo_1surface_1set_1user_1data",
 	"cairo_1text_1extents",
 	"cairo_1text_1extents_1t_1sizeof",

@@ -230,7 +230,7 @@ void setFontDescription (int /*long*/ font) {
 
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
-	setForegroundColor (labelHandle, color);
+	OS.gtk_widget_modify_fg (labelHandle,  OS.GTK_STATE_NORMAL, color);
 }
 
 void setOrientation () {

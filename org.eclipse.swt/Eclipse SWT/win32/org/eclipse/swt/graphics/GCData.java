@@ -11,7 +11,6 @@
 package org.eclipse.swt.graphics;
 
  
-import org.eclipse.swt.*;
 import org.eclipse.swt.internal.win32.*;
 
 /**
@@ -27,30 +26,23 @@ import org.eclipse.swt.internal.win32.*;
 
 public final class GCData {
 	public Device device;
-	public int style, state = -1;
+	public int style;
+	public Image image;
 	public int foreground = -1;
 	public int background = -1;
-	public int hFont;
-	public Pattern foregroundPattern;
-	public Pattern backgroundPattern;
-	public int lineStyle = SWT.LINE_SOLID;
+	public int hPen;
 	public int lineWidth;
-	public int lineCap = SWT.CAP_FLAT;
-	public int lineJoin = SWT.JOIN_MITER;
-	public int[] lineDashes;
-	public int alpha = 0xFF;
-
-	public Image image;
-	public int hPen, hOldPen;
-	public int hBrush, hOldBrush;
+	public int[] dashes;
+	public int hBrush;
+	public int hFont;
 	public int hNullBitmap;
 	public int hwnd;
 	public PAINTSTRUCT ps;
 	public int layout = -1;
+	public int alpha = 0xFF;
 	public int gdipGraphics;
 	public int gdipPen;
 	public int gdipBrush;
-	public int gdipFgBrush;
-	public int gdipBgBrush;
-	public int gdipFont;
+	public Pattern foregroundPattern;
+	public Pattern backgroundPattern;
 }

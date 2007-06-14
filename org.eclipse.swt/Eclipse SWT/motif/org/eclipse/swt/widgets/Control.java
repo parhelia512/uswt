@@ -1176,14 +1176,10 @@ public int internal_new_GC (GCData data) {
 		data.device = display;
 		data.display = xDisplay;
 		data.drawable = xWindow;
-		XColor foreground = new XColor ();
-		foreground.pixel = getForegroundPixel ();
-		data.foreground = foreground;
+		data.foreground = getForegroundPixel ();
 		Control control = findBackgroundControl ();
 		if (control == null) control = this;
-		XColor background = new XColor ();
-		background.pixel = control.getBackgroundPixel ();
-		data.background = background;
+		data.background = control.getBackgroundPixel ();
 		data.backgroundImage = control.backgroundImage;
 		data.font = font;
 		int [] argList = {OS.XmNcolormap, 0};
@@ -1867,7 +1863,7 @@ boolean sendMouseEvent (int type, XButtonEvent xEvent) {
 	short [] x_root = new short [1], y_root = new short [1];
 	OS.XtTranslateCoords (handle, (short) 0, (short) 0, x_root, y_root);
 	int x = xEvent.x_root - x_root [0], y = xEvent.y_root - y_root [0];
-	return sendMouseEvent (type, button, display.clickCount, 0, false, xEvent.time, x, y, xEvent.state);
+	return sendMouseEvent (type, button, 0, 0, false, xEvent.time, x, y, xEvent.state);
 }
 boolean sendMouseEvent (int type, XCrossingEvent xEvent) {
 	if (!hooks (type) && !filters (type)) return true;
@@ -3061,19 +3057,17 @@ int XButtonPress (int w, int client_data, int call_data, int continue_to_dispatc
 	Display display = this.display;
 	display.hideToolTip ();
 	Shell shell = getShell ();
-	if ((shell.style & SWT.ON_TOP) != 0) shell.forceActive ();
+	/*
+	* When a shell is created with SWT.ON_TOP and SWT.NO_FOCUS,
+	* do not activate the shell when the user clicks on the
+	* the client area or on the border or a control within the
+	* shell that does not take focus.
+	*/
+	if (((shell.style & SWT.ON_TOP) != SWT.NONE) && (((shell.style & SWT.NO_FOCUS) == SWT.NONE) || ((style & SWT.NO_FOCUS) == SWT.NONE))) {
+		shell.forceActive();
+	}
 	XButtonEvent xEvent = new XButtonEvent ();
 	OS.memmove (xEvent, call_data, XButtonEvent.sizeof);
-	int clickTime = display.getDoubleClickTime ();
-	int lastTime = display.lastTime, eventTime = xEvent.time;
-	int lastButton = display.lastButton, eventButton = xEvent.button;
-	if (lastButton == eventButton && lastTime != 0 && Math.abs (lastTime - eventTime) <= clickTime) {
-		display.clickCount++;
-	} else {
-		display.clickCount = 1;
-	}
-	display.lastTime = eventTime == 0 ? 1 : eventTime;
-	display.lastButton = eventButton;
 	boolean dispatch = sendMouseEvent (SWT.MouseDown, xEvent);
 	if (isDisposed ()) return 1;
 	if (xEvent.button == 2) {
@@ -3091,10 +3085,15 @@ int XButtonPress (int w, int client_data, int call_data, int continue_to_dispatc
 		showMenu (xEvent.x_root, xEvent.y_root);
 		if (isDisposed ()) return 1;
 	}
-	if (display.clickCount == 2) {
+	int clickTime = display.getDoubleClickTime ();
+	int lastTime = display.lastTime, eventTime = xEvent.time;
+	int lastButton = display.lastButton, eventButton = xEvent.button;
+	if (lastButton == eventButton && lastTime != 0 && Math.abs (lastTime - eventTime) <= clickTime) {
 		dispatch = sendMouseEvent (SWT.MouseDoubleClick, xEvent);
 		// widget could be disposed at this point
 	}
+	display.lastTime = eventTime == 0 ? 1 : eventTime;
+	display.lastButton = eventButton;
 	if (!shell.isDisposed ()) shell.setActiveControl (this);
 	if (!dispatch) {
 		OS.memmove (continue_to_dispatch, new int [1], 4);

@@ -1699,7 +1699,6 @@ public abstract class CNIGenerator {
     out.println("#include \"java/lang/UnsupportedOperationException.h\"");
 
     if (SWT.getPlatform().equals("gtk")) {
-      out.println("#include \"cairo_custom.h\"");
       out.println("#include \"cairo.h\"");
       out.println("#include \"cairo-xlib.h\"");
       out.println("#include \"glx.h\"");
@@ -1710,6 +1709,8 @@ public abstract class CNIGenerator {
       out.println("#include \"Carbon/Carbon.h\"");
       out.println("#include \"HIWebView.h\"");
       out.println("#include \"CarbonUtils.h\"");
+      out.println("#include <sys/types.h>");
+      out.println("#include <unistd.h>");
     } else if (SWT.getPlatform().equals("win32")) {
       out.println("#include \"windows.h\"");
       out.println("#include \"docobj.h\"");

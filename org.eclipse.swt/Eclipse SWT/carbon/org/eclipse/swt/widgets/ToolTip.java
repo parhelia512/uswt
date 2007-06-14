@@ -40,7 +40,6 @@ public class ToolTip extends Widget {
 	boolean spikeAbove, autohide;
 	TextLayout layoutText, layoutMessage;
 	String text, message;
-	TrayItem item;
 	Region region;
 	Font boldFont;
 	Runnable runnable;
@@ -128,12 +127,7 @@ void configure () {
 	int x = this.x;
 	int y = this.y;
 	if (x == -1 || y == -1) {
-		Point point;
-		if (item != null) {
-			point = item.getLocation ();
-		} else {
-			point = display.getCursorLocation ();
-		}
+		Point point = display.getCursorLocation ();
 		x = point.x;
 		y = point.y;
 	}
@@ -611,17 +605,10 @@ public void setVisible (boolean visible) {
 			// Show HMTag
 			if (tip != null) disposeTip ();
 			if (x == -1 || y == -1) {
-				Point point;
-				if (item != null) {
-					point = item.getLocation ();
-					x = point.x;
-					y = point.y;
-				} else {
-					org.eclipse.swt.internal.carbon.Point pt = new org.eclipse.swt.internal.carbon.Point ();
-					OS.GetGlobalMouse (pt);
-					x = pt.h;
-					y = pt.v;
-				}
+				org.eclipse.swt.internal.carbon.Point pt = new org.eclipse.swt.internal.carbon.Point ();
+				OS.GetGlobalMouse (pt);
+				x = pt.h;
+				y = pt.v;
 			}
 			StringBuffer string = new StringBuffer (text);
 			if (text.length () > 0) string.append ("\n\n");

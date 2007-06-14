@@ -381,12 +381,8 @@ public int internal_new_GC(GCData data) {
 		if (defaultGC != 0) {
 			XGCValues values = new XGCValues();
 			OS.XGetGCValues(xDisplay, defaultGC, OS.GCBackground | OS.GCForeground, values);
-			XColor foreground = new XColor ();
-			foreground.pixel = values.foreground;
-			data.foreground = foreground;
-			XColor background = new XColor ();
-			background.pixel = values.background;
-			data.background = background;
+			data.foreground = values.foreground;
+			data.background = values.background;
 		}
 		isGCCreated = true;
 	}

@@ -1126,34 +1126,8 @@ public Widget findWidget (int handle) {
  * @since 3.1
  */
 public Widget findWidget (int handle, int id) {
-	checkDevice ();
 	Control control = getControl (handle);
 	return control != null ? control.findItem (id) : null;
-}
-
-/**
- * Given a widget and a widget-specific id, returns the
- * instance of the <code>Widget</code> subclass which represents
- * the widget/id pair in the currently running application,
- * if such exists, or null if no matching widget can be found.
- *
- * @param widget the widget
- * @param id the id for the subwidget (usually an item)
- * @return the SWT subwidget (usually an item) that the widget/id pair represents
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
- * </ul>
- * 
- * @since 3.3
- */
-public Widget findWidget (Widget widget, int id) {
-	checkDevice ();
-	if (widget instanceof Control) {
-		return findWidget (((Control) widget).handle, id);
-	}
-	return null;
 }
 
 int foregroundIdleProc (int code, int wParam, int lParam) {
@@ -1244,26 +1218,25 @@ public static synchronized Display getCurrent () {
 int getClickCount (int type, int button, int hwnd, int lParam) {
 	switch (type) {
 		case SWT.MouseDown:
+		case SWT.MouseDoubleClick:
+			int eventTime = OS.GetMessageTime ();
 			int doubleClick = OS.GetDoubleClickTime ();
 			if (clickRect == null) clickRect = new RECT ();
-			int deltaTime = Math.abs (lastTime - getLastEventTime ());
 			POINT pt = new POINT ();
 			pt.x = (short) (lParam & 0xFFFF);
 			pt.y = (short) (lParam >> 16);
+			int deltaTime = Math.abs (lastTime - eventTime);
 			if (lastHwnd == hwnd && lastButton == button && (deltaTime <= doubleClick) && OS.PtInRect (clickRect, pt)) {
 				clickCount++;
 			} else {
-				clickCount = 1;
+				clickCount = 0;
 			}
-			//FALL THROUGH
-		case SWT.MouseDoubleClick:
 			lastHwnd = hwnd;
 			lastButton = button;
-			lastTime = getLastEventTime ();
+			lastTime = eventTime;
 			int xInset = OS.GetSystemMetrics (OS.SM_CXDOUBLECLK) / 2;
 			int yInset = OS.GetSystemMetrics (OS.SM_CYDOUBLECLK) / 2;
-			int x = (short) (lParam & 0xFFFF), y = (short) (lParam >> 16);
-			OS.SetRect (clickRect, x - xInset, y - yInset, x + xInset, y + yInset);
+			OS.SetRect (clickRect, pt.x - xInset, pt.y - yInset, pt.x + xInset, pt.y + yInset);
 			//FALL THROUGH
 		case SWT.MouseUp:
 			return clickCount;
@@ -1594,19 +1567,17 @@ public int getIconDepth () {
 	int result = OS.RegOpenKeyEx (OS.HKEY_CURRENT_USER, buffer1, 0, OS.KEY_READ, phkResult);
 	if (result != 0) return 4;
 	int depth = 4;
-	int [] lpcbData = new int [1];
+	int [] lpcbData = {128};
 	
 	/* Use the character encoding for the default locale */
+	TCHAR lpData = new TCHAR (0, lpcbData [0]);
 	TCHAR buffer2 = new TCHAR (0, "Shell Icon BPP", true); //$NON-NLS-1$
-	result = OS.RegQueryValueEx (phkResult [0], buffer2, 0, null, (TCHAR) null, lpcbData);
+	
+	result = OS.RegQueryValueEx (phkResult [0], buffer2, 0, null, lpData, lpcbData);
 	if (result == 0) {
-		TCHAR lpData = new TCHAR (0, lpcbData [0] / TCHAR.sizeof);
-		result = OS.RegQueryValueEx (phkResult [0], buffer2, 0, null, lpData, lpcbData);
-		if (result == 0) {
-			try {
-				depth = Integer.parseInt (lpData.toString (0, lpData.strlen ()));
-			} catch (NumberFormatException e) {}
-		}
+		try {
+			depth = Integer.parseInt (lpData.toString (0, lpData.strlen ()));
+		} catch (NumberFormatException e) {}
 	}
 	OS.RegCloseKey (phkResult [0]);
 	return depth;

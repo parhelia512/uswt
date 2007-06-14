@@ -261,8 +261,7 @@ public boolean contains(float x, float y, GC gc, boolean outline) {
 	if (gc == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	if (gc.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	//TODO - should use GC transformation
-	gc.initGdip();
-	gc.checkGC(GC.LINE_CAP | GC.LINE_JOIN | GC.LINE_STYLE | GC.LINE_WIDTH);
+	gc.initGdip(outline, false);
 	int mode = OS.GetPolyFillMode(gc.handle) == OS.WINDING ? Gdip.FillModeWinding : Gdip.FillModeAlternate;
 	Gdip.GraphicsPath_SetFillMode(handle, mode);
 	if (outline) {

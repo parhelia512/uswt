@@ -334,7 +334,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 					Font font = getFont ();
 					FontInfo info = new FontInfo ();
 					OS.FetchFontInfo (font.id, font.size, font.style, info);
-					int fontHeight = info.ascent + info.descent + info.leading;
+					int fontHeight = info.ascent + info.descent;
 					height = fontHeight;
 				}
 				OS.DisposeHandle (oDataHandle[0]);

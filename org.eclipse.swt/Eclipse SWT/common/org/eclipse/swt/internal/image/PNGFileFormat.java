@@ -44,11 +44,13 @@ ImageData[] loadFromByteStream() {
 		readSignature();
 		PngChunkReader chunkReader = new PngChunkReader(inputStream);
 		headerChunk = chunkReader.getIhdrChunk();
-		int imageSize = getAlignedBytesPerRow() * headerChunk.getHeight();
+		int width = headerChunk.getWidth(), height = headerChunk.getHeight();
+		if (width <= 0 || height <= 0) SWT.error(SWT.ERROR_INVALID_IMAGE);
+		int imageSize = getAlignedBytesPerRow() * height;
 		data = new byte[imageSize];		
 		imageData = ImageData.internal_new(
-			headerChunk.getWidth(),
-			headerChunk.getHeight(),
+			width,
+			height,
 			headerChunk.getSwtBitsPerPixel(),
 			new PaletteData(0, 0, 0),
 			4,
@@ -140,8 +142,8 @@ void readNextChunk(PngChunkReader chunkReader) throws IOException {
 	}
 }
 void unloadIntoByteStream(ImageLoader loader) {
-	PngEncoder encoder = new PngEncoder(loader);
-	encoder.encode(outputStream);
+	/* We do not currently support writing png. */
+	SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);
 }
 boolean isFileFormat(LEDataInputStream stream) {
 	try {
@@ -288,7 +290,8 @@ void setImageDataValues(byte[] data, ImageData imageData) {
  */
 void readPixelData(PngIdatChunk chunk, PngChunkReader chunkReader) throws IOException {
 	InputStream stream = new PngInputStream(chunk, chunkReader);
-	InputStream inflaterStream = Compatibility.newInflaterInputStream(stream);
+	boolean use3_2 = System.getProperty("org.eclipse.swt.internal.image.PNGFileFormat_3.2") != null;
+	InputStream inflaterStream = use3_2 ? null : Compatibility.newInflaterInputStream(stream);
 	if (inflaterStream != null) {
 		stream = new BufferedInputStream(inflaterStream);
 	} else {
@@ -300,6 +303,12 @@ void readPixelData(PngIdatChunk chunk, PngChunkReader chunkReader) throws IOExce
 	} else {
 		readInterlacedImage(stream);
 	}
+	/*
+	* InflaterInputStream does not consume all bytes in the stream
+	* when it is closed. This may leave unread IDAT chunks. The fix
+	* is to read all available bytes before closing it.
+	*/
+	while (stream.available() > 0) stream.read();
 	stream.close();
 }
 /**

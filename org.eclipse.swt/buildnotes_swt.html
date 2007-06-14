@@ -10,100 +10,127 @@
 <h1>
 Eclipse Platform Build Notes<br>
 SWT</h1>
-<h2> SWT Build 3.3 004 - Tuesday July 25, 2006 </h2>
+
+<h2> SWT Build 3.2 036 - Wednesday January 10, 2007 </h2>
 <h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
 <blockquote>
-19602 - [Printing] Line numbers aren't printed  
-<br>24697 - DCR - Request for PNG write support  
-<br>26436 - Spec PrinterData.startPage/endPage  
-<br>63226 - Undocumented error thrown in Image code  
-<br>81834 - BIDI: StyledText does not convert European Number to Ara...  
-<br>142335 - Perf Fix for: org.eclipse.swt.internal.image.PngHuffmanTa...  
-<br>150099 - Menu class has a public '_setVisible(boolean)' method.  
-<br>150274 - Flicker with the new WinXP border  
+104779 - ScrollBar SelectionEvent detail field not being set correctly at end of a drag  
+<br>161830 - incorrect SWT.NO_FOCUS behaviour for Shell windows on Linux  
+<br>168483 - On SLED10, context menu does not display on a popup shell with SWT.ON_TOP style bit  
+<br>169712 - [Launcher] Eclipse won't launch in Mac OS X 10.5  
+</blockquote>
+
+<h2> SWT Build 3.2 035l - Wednesday December 20, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+56780 - StyledText - Occasionally wrong ordering of multiline bidi text
+<br>157635 - BIDI:StyledText Selection of text, and BIDI formating not correct
+<br>161830 - incorrect SWT.NO_FOCUS behaviour for Shell windows on Linux
+</blockquote>
+
+<h2> SWT Build 3.2 035k - Thursday December 14, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+158982 - Table Headers getting random images on Vista
+<br>164493 - StyledText doesn't support advanced text services for Korean IME
+<br>167925 - org.eclipse.swt.win32.win32.x86 still has 3.2.1 version numbers  
+</blockquote>
+
+<h2> SWT Build 3.2 035j - Wednesday December 6, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+165091 - Eclipse 3.2.x consistently crashes on Vista
+</blockquote>
+
+<h2> SWT Build 3.2 035i - Wednesday November 14, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+154019 - "Item not removed" error in Tree followed by VM crash
+<br>160647 - Table widget leaks
+</blockquote>
+
+<h2> SWT Build 3.2 035h - Friday November 3, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+162146 - [Browser] Appending to stream hangs the SWT Browser
+<br>162598 - Multiple JVM terminations
+</blockquote>
+
+<h2> SWT Build 3.2 035e - Tuesday September 18, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+146250 - [SWT] Columns of Table widget cannot be resized, except for by dragging a mouse
+<br>157478 - Web services wizard scale and graph all weird  
+</blockquote>
+
+<h2> SWT Build 3.2 035c - Friday September 15, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+155801 - Table column tooltip disappears after scrolling
+<br>156213 - BIDI: Styledtext setOrientation does not work, on the fly
+</blockquote>
+
+<h2> SWT Build 3.2 035a - Friday September 8, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+152769 - StackOverflowError (recursive callWindowProc)
+</blockquote>
+
+<h2> SWT Build 3.2 035 - Thursday September 7, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+24451 - Reading JPEG images slow in SWT  
+<br>42457 - Invalid image exception while loading JPEG image  
+<br>133164 - JPEGFileFormat converts colors in rgb jpeg (when it shouldn't)  
+<br>142335 - Perf Fix for: org.eclipse.swt.internal.image.PngHuffmanTable.generateTable  
 <br>150407 - PNG Load Speed Terrible for medium to large images  
-<br>150764 - [PATCH] fix compiler warnings for GCC 4.x  
-<br>151228 - three-button Mozilla "confirm" dialog has same label on a...  
-<br>151330 - Browser not supported on linux ppc  
+<br>151150 - Multi Selection Tree only last 2 items are 'really' selected  
 </blockquote>
 
-<h2> SWT Build 3.3 003 - Tuesday July 18, 2006 </h2>
+<h2> SWT Build 3.2 034d - Wednesday September 6, 2006 </h2>
 <h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
 <blockquote>
-24796 - DCR - No printing on Linux GTK
-<br>80033 - SWT Browser does not display https.  
-<br>87279 - 6 different methods cause pens to be constructed and selected
-<br>91348 - [Browser] Embedded web browser doesn't render visited links
-<br>102756 - Use GtkComboBox instead of GtkCombo  
-<br>105044 - Inefficient use of Pens and Brushes causing poor performance  
-<br>105618 - Graphics.setLineDash causes ruler guide redraw problems  
-<br>109843 - Non-resizable table columns resized by CTRL+KEYPAD_ADD  
-<br>112570 - Cairo incorrectly computes text extent  
-<br>125288 - GC.textExtent does not accurately predict text size  
-<br>127469 - When a GC uses advanced and alphas the clipping is ignored in some cases.
-<br>128200 - TextLayout ignores transformations on GC  
+154943 - JavaScript error with generated content from GWT
+</blockquote>
+
+<h2> SWT Build 3.2 034a - Wednesday August 30, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+110163 - X Window System error, using Swing system look and feel, rendering SVG using SWT_AWT in non-top stack layout
+<br>154310 - [browser] cannot click into text field and type
+</blockquote>
+
+<h2> SWT Build 3.2 034 - Wednesday August 23, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+147808 - CCombo dropdown doesn't have keyboard focus in GTK
+</blockquote>
+
+<h2> SWT Build 3.2 033b - Wednesday August 16, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+142880 - The point down behavior of the DropTargetEvent.item  
+<br>146402 - Content assist popup shows ellipsis for selected item on Windows Vista beta 2
+<br>151137 - thumb doesn't work for Tree with column  
+<br>151916 - Browser auto-detect should check for XULRunner first  
+<br>152129 - cannot set enabled state on Vista  
+</blockquote>
+
+<h2> SWT Build 3.2 033 - Thursday August 9, 2006 </h2>
+<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
+<blockquote>
+80033 - SWT Browser does not display https
+<br>81834 - BIDI:  StyledText does not convert European Number to Arabic Number
+<br>91348 - [Browser] Embedded web browser doesn't render visited links  
 <br>132500 - [Browser] Eclipse abended at the operation on WS Explorer with the internal web browser
-<br>133183 - Button widget with SWT.CHECK style is not showing foreground color when it is in selected/checked state
-<br>133928 - Program#getProgram(String) fails if the program doesn't have a \\DefaultIcon
-<br>134760 - Performance of GC.fill* methods on GTK  
-<br>140132 - GC.setLineDash no-op affects line drawing  
-<br>140244 - Eclipse 3.2 gtk RC2 dumps core on Solaris 9  
-<br>141138 - Pixel corruption involving SWT.DOUBLE_BUFFERED, GC.setAdvanced() and TextLayout
-<br>146250 - [SWT] Columns of Table widget cannot be resized, except for by dragging a mouse
-<br>149493 - UI-Thread blocked while Menu is visible  
-<br>149749 - MANIFEST.MF files must be up-to-date  
-<br>149952 - First TableColumn in a Table always left justified  
-<br>150086 - Eclipse execution problem.  
-<br>150314 - NullPointerException while creating a pattern  
-</blockquote>
-
-<h2> SWT Build 3.3 002 - Tuesday June 27, 2006 </h2>
-<h3><a NAME="New API"></a>New API</h3>
-<blockquote>
-<code>MouseEvent.count</code> field
-</blockquote>
-<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
-<blockquote>
-23614 - [DCR] Allow triple mouse click events  
-<br>62555 - Group border renders badly  
-<br>77321 - StyledText's font appears inconsistent with GC.drawString(..) font
-<br>85783 - Editor font issues  
-<br>90856 - segfault while clicking in browser  
-<br>99697 - Can't navigate to external web sites  
-<br>115172 - Text clipped in editors if size reduced from platform default
-<br>115947 - Accessibility : Cannot set tooltip Text for image in Table Column
-<br>121114 - Inconsistent measurements from empty TextLayouts  
-<br>139790 - Print Margin shows up in the wrong place  
-<br>140519 - StyledText error in getTextBounds (Does not count last newline)
-<br>141282 - DnD doesn't support special characters  
-<br>146575 - setCursor is ignored in the SWT Text under gtk-linux  
-<br>147423 - NPE when removing an item from a Table with custom draw hooks
-<br>147550 - VerifyEvent.doit=false does not work for Text  
-<br>148354 - Regression: Radio buttons fail to redraw background  
-</blockquote>
-
-<h2> SWT Build 3.3 001 - Tuesday June 13, 2006 </h2>
-<h3><a NAME="New API"></a>New API</h3>
-<blockquote>
-CCombo methods cut(), copy() and paste()
-</blockquote>
-<h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
-<blockquote>
-56116 - System Tray not implemented for MAC  
-<br>108573 - Make Objective-C  Runtime APIs  public in  SWT WebKit.java  for MacOS X
-<br>110555 - Draw2d Graphics line style setting not consistent  
-<br>120118 - "xxx.getDisplay().update" does..."xxx.getShell().update" doesn't
-<br>124425 - GC.drawText does not work when setAdvanced(true)  
-<br>136323 - Shell.getClientArea has side effect  
 <br>136472 - GC#drawText doesn't work with arabic text when advance is on  
-<br>137911 - Browser widgets turn to ghosts if their construction fails.  
-<br>139329 - NullPointerException in ExpandBar
-<br>141678 - [Browser] JavaDoc Hover/Browser-Widget doesn`t show Text
-<br>142880 - The point down behavior of the DropTargetEvent.item
-<br>143732 - add cut/copy/paste api on CCombo  
-<br>145347 - Warnings with Fedora 5 compiler (gcc)  
-<br>145662 - Group control borders disappear when tabbing between child widgets
+<br>140244 - Eclipse 3.2 gtk RC2 dumps core on Solaris 9  
+<br>141678 - [Browser] JavaDoc Hover/Browser-Widget doesn`t show Text  
+<br>144765 - Layout on Labels generates a size that cuts off characters  
 <br>146264 - StyledText with SWT.WRAP flag does not shape arabic letters  
+<br>149749 - MANIFEST.MF files must be up-to-date  
+<br>151228 - three-button Mozilla "confirm" dialog has same label on all three buttons
+<br>151893 - Issue with background images and CLabels  
 </blockquote>
 
 <h2> SWT Build 3.2 032o - Friday June 9, 2006 </h2>
@@ -1380,6 +1407,7 @@ NoPR  Sort indicator stuck up on Windows
 <br>90152:  resizing Label flashes  
 <br>90222:  Device constructor  
 <br>90258:  Table item not updated when item count == 1  
+<br>90856:  segfault while clicking in browser  
 <br>90899:  Using PaintListener on Table destroys repainting (Button is the same case)  
 <br>90946:  gtk_entry_set_text crashes when passed a zero-length buffer  
 <br>91019:  SWT Rendering Problems  
@@ -1651,6 +1679,7 @@ int[] Table.getColumnOrder()
 <h2> SWT Build 3.1 022 - Tuesday February 8th, 2005 </h2>
 <h3><a NAME="Problem reports fixed"></a>Problem reports fixed</h3>
 <blockquote>
+<br>80033:  SWT Browser does not display https.  
 <br>54973:  [browser] Default WindowEvent to handle normal window open case - feature request  
 <br>81463:  [launcher] Launcher and Core issues regarding -showSplash  
 <br>81969:  [launcher] Launcher should be independent of startup.jar location  

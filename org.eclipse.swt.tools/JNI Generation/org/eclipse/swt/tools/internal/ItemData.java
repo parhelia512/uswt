@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-public abstract class ItemData implements Flags {
+public abstract class ItemData {
 
 	HashMap params;
 
@@ -57,7 +57,7 @@ public Object getParam(String key) {
 }
 
 public boolean getGenerate() {
-	return !getFlag(FLAG_NO_GEN);
+	return !getFlag("no_gen");
 }
 
 public void parse(String str) {
@@ -92,7 +92,7 @@ public void setFlag(String flag, boolean value) {
 }
 
 public void setGenerate(boolean value) {
-	setFlag(FLAG_NO_GEN, !value);
+	setFlag("no_gen", !value);
 }
 
 public void setParam(String key, Object value) {

@@ -294,9 +294,6 @@ public class Display extends Device {
 	/* Popup Menus */
 	Menu [] popups;
 	
-	/* Click count*/
-	int clickCount = 1;
-	
 	/* Timestamp of the Last Received Events */
 	int lastEventTime, lastUserEventTime;
 	
@@ -890,7 +887,6 @@ synchronized void createDisplay (DeviceData data) {
 	if (!OS.gtk_init_check (new int /*long*/ [] {0}, null)) {
 		SWT.error (SWT.ERROR_NO_HANDLES, null, " [gtk_init_check() failed]");
 	}
-	if (OS.GDK_WINDOWING_X11 ()) xDisplay = OS.GDK_DISPLAY ();
 	int /*long*/ ptr = OS.gtk_check_version (MAJOR, MINOR, MICRO);
 	if (ptr != 0) {
 		int length = OS.strlen (ptr);
@@ -1225,41 +1221,57 @@ int /*long*/ eventProc (int /*long*/ event, int /*long*/ data) {
 		return 0;
 	}
 
-	Control control = null;
-	int /*long*/ window = 0;
-	switch (eventType) {
-		case OS.GDK_ENTER_NOTIFY:
-		case OS.GDK_LEAVE_NOTIFY:
-		case OS.GDK_BUTTON_PRESS:
-		case OS.GDK_2BUTTON_PRESS: 
-		case OS.GDK_3BUTTON_PRESS:
-		case OS.GDK_BUTTON_RELEASE: 
-		case OS.GDK_MOTION_NOTIFY:  {
-			window = OS.GDK_EVENT_WINDOW (event);
-			int /*long*/ [] user_data = new int /*long*/ [1];
-			do {
-				OS.gdk_window_get_user_data (window, user_data);
-				int /*long*/ handle = user_data [0];
-				if (handle != 0) {
-					Widget widget = getWidget (handle);
-					if (widget != null && widget instanceof Control) {
-						control = (Control) widget;
-						break;
-					}
-				}
-			} while ((window = OS.gdk_window_get_parent (window)) != 0);
-		}
-	}
+	/*
+	* Feature in GTK.  GTK implements modality by adding a grab
+	* to the GTK top level window.  Normally, all mouse and 
+	* keyboard events are delivered to child widgets and the
+	* shell when the grab is active.  When an override redirect
+	* shell is created as a child of a dialog, then events are
+	* grabbed by the dialog instead of the override redirect
+	* shell.  The fix is to add a temporary grab to the override
+	* redirect window when there is not already a grab in a
+	* child widget of the override redirect shell (for example,
+	* in a scroll bar).  
+	*/
 	Shell shell = null;
-	if (control != null ) {
-		shell = control.getShell ();
-		if ((shell.style & SWT.ON_TOP) != 0) {
-			OS.gtk_grab_add (shell.shellHandle);
+	Control control = null;
+	int /*long*/ grabHandle = OS.gtk_grab_get_current ();
+	if (grabHandle != 0 && OS.GTK_IS_WINDOW (grabHandle) && OS.gtk_window_get_modal (grabHandle)) {
+		switch (eventType) {
+			case OS.GDK_KEY_PRESS:
+			case OS.GDK_KEY_RELEASE:
+			case OS.GDK_ENTER_NOTIFY:
+			case OS.GDK_LEAVE_NOTIFY:
+			case OS.GDK_BUTTON_PRESS:
+			case OS.GDK_2BUTTON_PRESS: 
+			case OS.GDK_3BUTTON_PRESS:
+			case OS.GDK_BUTTON_RELEASE: 
+			case OS.GDK_MOTION_NOTIFY:  {
+				int /*long*/ window = OS.GDK_EVENT_WINDOW (event);
+				int /*long*/ [] user_data = new int /*long*/ [1];
+				do {
+					OS.gdk_window_get_user_data (window, user_data);
+					int /*long*/ handle = user_data [0];
+					if (handle != 0) {
+						Widget widget = getWidget (handle);
+						if (widget != null && widget instanceof Control) {
+							control = (Control) widget;
+							break;
+						}
+					}
+				} while ((window = OS.gdk_window_get_parent (window)) != 0);
+			}
+		}
+		if (control != null) {		
+			shell = control.getShell ();
+			if ((shell.style & SWT.ON_TOP) != 0) {
+				OS.gtk_grab_add (shell.shellHandle);
+			}
 		}
 	}
 	OS.gtk_main_do_event (event);
 	if (dispatchEvents == null) putGdkEvents ();
-	if (control != null ) {
+	if (control != null) {
 		if (shell != null && !shell.isDisposed () && (shell.style & SWT.ON_TOP) != 0) {
 			OS.gtk_grab_remove (shell.shellHandle);
 		}
@@ -1313,29 +1325,6 @@ public Widget findWidget (int /*long*/ handle) {
  * @since 3.1
  */
 public Widget findWidget (int /*long*/ handle, int id) {
-	checkDevice ();
-	return null;
-}
-
-/**
- * Given a widget and a widget-specific id, returns the
- * instance of the <code>Widget</code> subclass which represents
- * the widget/id pair in the currently running application,
- * if such exists, or null if no matching widget can be found.
- *
- * @param widget the widget
- * @param id the id for the subwidget (usually an item)
- * @return the SWT subwidget (usually an item) that the widget/id pair represents
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
- * </ul>
- * 
- * @since 3.3
- */
-public Widget findWidget (Widget widget, int id) {
-	checkDevice ();
 	return null;
 }
 
@@ -3672,7 +3661,7 @@ void showIMWindow (Control control) {
 		Control widget = control.findBackgroundControl ();
 		if (widget == null) widget = control;
 		OS.gtk_widget_modify_bg (preeditWindow,  OS.GTK_STATE_NORMAL, widget.getBackgroundColor ());
-		widget.setForegroundColor (preeditLabel, control.getForegroundColor());
+		OS.gtk_widget_modify_fg (preeditLabel,  OS.GTK_STATE_NORMAL, control.getForegroundColor ());		
 		OS.gtk_widget_modify_font (preeditLabel, control.getFontDescription ());
 		if (pangoAttrs [0] != 0) OS.gtk_label_set_attributes (preeditLabel, pangoAttrs[0]);
 		OS.gtk_label_set_text (preeditLabel, preeditString [0]);

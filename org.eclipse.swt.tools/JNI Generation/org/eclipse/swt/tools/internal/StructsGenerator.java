@@ -273,7 +273,7 @@ void generateGetFields(Class clazz) {
 		if (exclude.length() != 0) {
 			outputln(exclude);
 		}
-		boolean noWinCE = fieldData.getFlag(FLAG_NO_WINCE);
+		boolean noWinCE = fieldData.getFlag("no_wince");
 		if (noWinCE) {
 			outputln("#ifndef _WIN32_WCE");
 		}
@@ -417,7 +417,7 @@ void generateSetFields(Class clazz) {
 		if (exclude.length() != 0) {
 			outputln(exclude);
 		}
-		boolean noWinCE = fieldData.getFlag(FLAG_NO_WINCE);
+		boolean noWinCE = fieldData.getFlag("no_wince");
 		if (noWinCE) {
 			outputln("#ifndef _WIN32_WCE");
 		}

@@ -44,6 +44,7 @@ use constant {
             "Eclipse SWT/emulated/bidi",
             "Eclipse SWT/emulated/coolbar",
             "Eclipse SWT/emulated/expand",
+            "Eclipse SWT/emulated/tray",
             "Eclipse SWT PI/carbon",
             "Eclipse SWT PI/common_j2me",
             "Eclipse SWT Accessibility/common",
