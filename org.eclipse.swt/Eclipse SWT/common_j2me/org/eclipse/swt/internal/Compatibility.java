@@ -165,10 +165,13 @@ public static int floor(int p, int q) {
  * @return the closest integer to the rational number p / q
  */
 public static int round(int p, int q) {
+  return Math.round((float)p/q);
+  /*
 	if (p < 0 || p > 32767 || q < 1 || q > 32767) {
 		SWT.error(SWT.ERROR_INVALID_RANGE);
 	}
 	return (2 * p + q) / (2 * q);
+  */
 }
 
 /**
